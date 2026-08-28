@@ -1,5 +1,6 @@
 import type { AppMode } from './LaunchScreen'
 import { IconArrowLeft } from './icons'
+import { Wordmark } from './Wordmark'
 
 const LABEL: Record<AppMode, string> = {
   train: 'Train',
@@ -33,9 +34,7 @@ export function ModeBar({ mode, onHome }: Props) {
         aria-label="Back to menu"
       >
         <IconArrowLeft className="h-3.5 w-3.5" />
-        <span className="text-[15px] font-semibold tracking-[-0.02em] text-ink">
-          Netural
-        </span>
+        <Wordmark size={14} />
       </button>
 
       <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />

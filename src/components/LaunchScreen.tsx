@@ -1,8 +1,18 @@
 import type { ReactNode } from 'react'
-import { LANE_COLOR } from '../lib/theme'
+import { LANE_COLOR, alpha } from '../lib/theme'
 import { IconBars, IconFlask, IconPulse } from './icons'
+import { Wordmark } from './Wordmark'
 
 export type AppMode = 'train' | 'predict' | 'compare'
+
+/**
+ * Hover is a border glow rather than a lift: the accent bleeds into the edge
+ * and a soft halo sits outside it, so the card lights up in place instead of
+ * moving. Both are driven from the resting shadow so the bevel is preserved.
+ */
+const BASE_BORDER = 'rgba(255,255,255,0.06)'
+const REST_SHADOW =
+  'inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 2px rgba(0,0,0,0.8), 0 14px 30px rgba(0,0,0,0.5)'
 
 type Card = {
   mode: AppMode
@@ -50,9 +60,11 @@ export function LaunchScreen({ onSelect }: Props) {
     <div className="console-scroll h-full overflow-y-auto bg-canvas">
       <div className="mx-auto flex min-h-full w-full max-w-[900px] flex-col justify-center px-8 py-14">
         <div className="mb-9 text-center">
-          <h1 className="text-[26px] font-semibold tracking-[-0.03em] text-ink">Netural</h1>
-          <p className="mt-2 text-[13px] text-ink-dim">
-            Hybrid quantum-classical machine learning for early disease detection.
+          <h1 aria-label="Netural">
+            <Wordmark size={38} />
+          </h1>
+          <p className="mt-4 text-[13px] text-ink-dim">
+            Hybrid quantum-classical machine learning platform for early disease detection.
           </p>
         </div>
 
@@ -62,12 +74,19 @@ export function LaunchScreen({ onSelect }: Props) {
               key={card.mode}
               type="button"
               onClick={() => onSelect(card.mode)}
-              className="group relative flex cursor-pointer flex-col rounded-panel p-5 text-left transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-[2px] active:translate-y-0"
+              className="group relative flex cursor-pointer flex-col rounded-panel p-5 text-left transition-[border-color,box-shadow] duration-200 ease-out"
               style={{
                 background: '#17181B',
-                border: '1px solid rgba(255,255,255,0.06)',
-                boxShadow:
-                  'inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 2px rgba(0,0,0,0.8), 0 14px 30px rgba(0,0,0,0.5)',
+                border: `1px solid ${BASE_BORDER}`,
+                boxShadow: REST_SHADOW,
+              }}
+              onPointerEnter={(e) => {
+                e.currentTarget.style.borderColor = alpha(card.accent, 0.55)
+                e.currentTarget.style.boxShadow = `${REST_SHADOW}, 0 0 0 1px ${alpha(card.accent, 0.18)}, 0 0 18px ${alpha(card.accent, 0.22)}`
+              }}
+              onPointerLeave={(e) => {
+                e.currentTarget.style.borderColor = BASE_BORDER
+                e.currentTarget.style.boxShadow = REST_SHADOW
               }}
             >
               {/* accent hairline along the top edge */}
