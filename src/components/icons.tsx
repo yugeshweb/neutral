@@ -179,6 +179,66 @@ export function IconDownload({ className }: IconProps) {
   )
 }
 
+export function IconFlask({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M10 3v6.5L4.8 18a1.5 1.5 0 0 0 1.3 2.2h11.8a1.5 1.5 0 0 0 1.3-2.2L14 9.5V3" />
+      <path d="M8.5 3h7M7.2 14h9.6" />
+    </svg>
+  )
+}
+
+export function IconPulse({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M3 12h3.5l2-5.5 3.5 11 2.5-7 1.5 1.5H21" />
+    </svg>
+  )
+}
+
+export function IconBars({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 20h16" />
+      <rect x="6" y="11" width="3.5" height="6" rx="1" />
+      <rect x="14.5" y="6" width="3.5" height="11" rx="1" />
+    </svg>
+  )
+}
+
+export function IconArrowRight({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 12h15M13 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+export function IconArrowLeft({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M20 12H5M11 6l-6 6 6 6" />
+    </svg>
+  )
+}
+
+export function IconLock({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="5" y="10" width="14" height="10" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </svg>
+  )
+}
+
+export function IconCheck({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M5 12.5l4.5 4.5L19 7" />
+    </svg>
+  )
+}
+
 export const STAGE_ICON: Record<string, (p: IconProps) => ReactElement> = {
   ingest: IconDatabase,
   clean: IconFilter,

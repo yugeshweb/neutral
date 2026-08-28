@@ -196,3 +196,59 @@
     transform: none;
   }
 }
+
+/* --- feature slider -------------------------------------------------------
+   The track is drawn by the component (a recessed channel behind the input),
+   so the native track is transparent and only the thumb is styled here. */
+.feature-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  margin: 0;
+}
+
+.feature-slider::-webkit-slider-runnable-track {
+  height: 14px;
+  background: transparent;
+}
+
+.feature-slider::-moz-range-track {
+  height: 14px;
+  background: transparent;
+}
+
+.feature-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 999px;
+  background: #23252a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+  cursor: grab;
+}
+
+.feature-slider::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border-radius: 999px;
+  background: #23252a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+  cursor: grab;
+}
+
+.feature-slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  background: #2b2d33;
+}
+
+.feature-slider:active::-moz-range-thumb {
+  cursor: grabbing;
+  background: #2b2d33;
+}

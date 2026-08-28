@@ -1,6 +1,7 @@
 import { LAMP_COLOR, alpha, formatElapsed } from '../lib/theme'
 import type { RunPhase } from '../hooks/usePipeline'
-import { IconChevron, IconPlay, IconReset, IconStop } from './icons'
+import type { AppMode } from './LaunchScreen'
+import { IconArrowLeft, IconChevron, IconPlay, IconReset, IconStop } from './icons'
 import { PushButton } from './PushButton'
 
 const DATASETS = ['Wisconsin Breast Cancer', 'UCI Heart Disease']
@@ -31,6 +32,8 @@ type Props = {
   onStart: () => void
   onStop: () => void
   onReset: () => void
+  onHome: () => void
+  onMode: (m: AppMode) => void
 }
 
 export function TopBar({
@@ -42,6 +45,8 @@ export function TopBar({
   onStart,
   onStop,
   onReset,
+  onHome,
+  onMode,
 }: Props) {
   const lamp = PHASE_LAMP[phase]
   const running = phase === 'running'
@@ -55,12 +60,45 @@ export function TopBar({
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
       }}
     >
-      {/* wordmark */}
-      <div className="flex items-baseline pr-1">
+      {/* wordmark doubles as the way back to the menu */}
+      <button
+        type="button"
+        onClick={onHome}
+        className="flex cursor-pointer items-center gap-2 rounded-[8px] px-2 py-1.5 text-ink-faint transition-colors duration-150 hover:text-ink"
+        aria-label="Back to menu"
+      >
+        <IconArrowLeft className="h-3.5 w-3.5" />
         <span className="text-[15px] font-semibold tracking-[-0.02em] text-ink">Netural</span>
-      </div>
+      </button>
 
       <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+
+      {/* mode switch */}
+      <nav
+        className="flex overflow-hidden rounded-[8px]"
+        style={{
+          background: '#0D0E10',
+          border: '1px solid rgba(255,255,255,0.05)',
+          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
+        }}
+        aria-label="Mode"
+      >
+        {(['train', 'predict', 'compare'] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => onMode(m)}
+            aria-current={m === 'train' ? 'page' : undefined}
+            className="cursor-pointer px-3 py-1.5 text-[11.5px] capitalize transition-colors duration-150"
+            style={{
+              background: m === 'train' ? 'rgba(255,255,255,0.06)' : 'transparent',
+              color: m === 'train' ? '#E8E9EB' : '#6A6C72',
+            }}
+          >
+            {m}
+          </button>
+        ))}
+      </nav>
 
       {/* dataset: the sample selector, or the uploaded file name */}
       {uploadName ? (
