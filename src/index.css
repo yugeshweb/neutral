@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&display=swap');
+@import '@xyflow/react/dist/base.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --lane-neutral: #8a8f98;
+  --lane-classical: #c08a3e;
+  --lane-quantum: #3e8c9e;
+  --lane-error: #a3543d;
+
+  /* Single raised-panel recipe, reused by every surface. */
+  --edge-top: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --drop: 0 1px 2px rgba(0, 0, 0, 0.8), 0 14px 30px rgba(0, 0, 0, 0.6);
+  --well: inset 0 1px 2px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    /* cv05: straight-leg l, disambiguates l/1/I at the small sizes used here */
+    font-feature-settings: 'cv05' 1;
+  }
+
+  /*
+   * `.font-mono` no longer switches family - it switches figure style. Inter's
+   * tabular + slashed-zero features keep IDs, timestamps and metrics aligned
+   * in columns without a second typeface.
+   */
+  .font-mono {
+    font-feature-settings: 'tnum' 1, 'zero' 1, 'cv05' 1, 'ss01' 1;
+    letter-spacing: -0.005em;
+  }
+
+  /* One focus treatment everywhere: a hairline ring, never a browser outline. */
+  :focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 1px #0b0b0d,
+      0 0 0 3px rgba(255, 255, 255, 0.28);
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* The raised panel. The inset top line is what reads as a bevel. */
+  .panel-raised {
+    background: #17181b;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: var(--edge-top), var(--drop);
+  }
+
+  /* The recessed well: icon slots, progress channels, lamp housings. */
+  .panel-well {
+    background: #0d0e10;
+    box-shadow: var(--well);
+  }
+}
+
+/* --- React Flow reset -----------------------------------------------------
+   base.css only supplies layout primitives; everything visual is replaced. */
+.react-flow {
+  background: transparent;
+}
+
+.react-flow__node {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.react-flow__node:focus,
+.react-flow__node:focus-visible {
+  outline: none;
+}
+
+.react-flow__handle {
+  width: 5px;
+  height: 5px;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.react-flow__handle::after {
+  content: none;
+}
+
+.react-flow__edge-path {
+  stroke-linecap: round;
+}
+
+.react-flow__attribution {
+  display: none;
+}
+
+.react-flow__controls,
+.react-flow__minimap {
+  display: none;
+}
+
+/* --- motion ---------------------------------------------------------------
+   Two animations only: the edge dash and the indeterminate shimmer. */
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes marker-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+
+.edge-flow {
+  animation: dash-flow 0.7s linear infinite;
+}
+
+/* The ROI marker. Blinking is an attention cue, so it holds at full
+   opacity - never mid-fade - when reduced motion is requested. */
+.marker-pulse {
+  animation: marker-pulse 1.25s ease-in-out infinite;
+}
+
+.progress-shimmer {
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Console autoscroll region */
+.console-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.console-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.console-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.console-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .edge-flow {
+    animation: none;
+  }
+
+  .progress-shimmer {
+    animation: none;
+    transform: none;
+  }
+
+  .marker-pulse {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
