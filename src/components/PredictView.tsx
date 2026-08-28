@@ -269,6 +269,31 @@ export function PredictView({ trained }: Props) {
   const set = (id: string, v: number) => setValues((prev) => ({ ...prev, [id]: v }))
   const agree = quantum.label === classical.label
 
+  // Read the top attributions back as a sentence, so the explanation does not
+  // depend on the reader interpreting the bar chart correctly.
+  const rationale = useMemo(() => {
+    const [first, second] = quantum.attributions
+    const driversToward = quantum.attributions
+      .filter((a) => (quantum.label === 'malignant' ? a.contribution > 0 : a.contribution < 0))
+      .slice(0, 2)
+      .map((a) => a.label.toLowerCase())
+
+    const strength =
+      quantum.confidence > 0.8 ? 'strongly' : quantum.confidence > 0.4 ? 'moderately' : 'weakly'
+
+    const lead =
+      driversToward.length > 0
+        ? `driven mainly by ${driversToward.join(' and ')}`
+        : `with no single feature dominating`
+
+    const counter =
+      second && Math.sign(second.contribution) !== Math.sign(first.contribution)
+        ? ` ${second.label} pulls in the opposite direction, which is why the margin is not wider.`
+        : ''
+
+    return `The model ${strength} favours ${quantum.label}, ${lead}. ${first.label} carries the largest single contribution at ${first.contribution >= 0 ? '+' : ''}${first.contribution.toFixed(3)}.${counter}`
+  }, [quantum])
+
   return (
     <div className="console-scroll h-full overflow-y-auto">
       <div className="mx-auto w-full max-w-[1120px] px-6 py-6">
@@ -391,6 +416,31 @@ export function PredictView({ trained }: Props) {
             </div>
 
             <Attributions result={quantum} />
+
+            {/* explainability, read back in words rather than bars */}
+            <div
+              className="rounded-panel p-4"
+              style={{
+                background: '#17181B',
+                border: '1px solid rgba(255,255,255,0.06)',
+                boxShadow:
+                  'inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 2px rgba(0,0,0,0.8), 0 14px 30px rgba(0,0,0,0.5)',
+              }}
+            >
+              <h3 className="mb-2.5 text-[12.5px] font-medium text-ink">
+                Why this prediction
+              </h3>
+              <p className="text-[11.5px] leading-relaxed text-ink-dim">{rationale}</p>
+
+              <p
+                className="mt-3 pt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/80"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+              >
+                Attribution is computed against the population mean, so a feature reads as
+                neutral when it sits at its typical value and contributes only as it moves
+                away. This is a decision-support view, not a diagnosis.
+              </p>
+            </div>
 
             <p className="font-mono text-[9px] leading-relaxed text-ink-faint/70">
               This readout is produced by a fixed logistic function over the eight

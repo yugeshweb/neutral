@@ -1,6 +1,5 @@
 import { LAMP_COLOR, alpha, formatElapsed } from '../lib/theme'
 import type { RunPhase } from '../hooks/usePipeline'
-import type { AppMode } from './LaunchScreen'
 import { IconArrowLeft, IconChevron, IconPlay, IconReset, IconStop } from './icons'
 import { PushButton } from './PushButton'
 
@@ -33,7 +32,6 @@ type Props = {
   onStop: () => void
   onReset: () => void
   onHome: () => void
-  onMode: (m: AppMode) => void
 }
 
 export function TopBar({
@@ -46,7 +44,6 @@ export function TopBar({
   onStop,
   onReset,
   onHome,
-  onMode,
 }: Props) {
   const lamp = PHASE_LAMP[phase]
   const running = phase === 'running'
@@ -73,32 +70,7 @@ export function TopBar({
 
       <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
 
-      {/* mode switch */}
-      <nav
-        className="flex overflow-hidden rounded-[8px]"
-        style={{
-          background: '#0D0E10',
-          border: '1px solid rgba(255,255,255,0.05)',
-          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
-        }}
-        aria-label="Mode"
-      >
-        {(['train', 'predict', 'compare'] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => onMode(m)}
-            aria-current={m === 'train' ? 'page' : undefined}
-            className="cursor-pointer px-3 py-1.5 text-[11.5px] capitalize transition-colors duration-150"
-            style={{
-              background: m === 'train' ? 'rgba(255,255,255,0.06)' : 'transparent',
-              color: m === 'train' ? '#E8E9EB' : '#6A6C72',
-            }}
-          >
-            {m}
-          </button>
-        ))}
-      </nav>
+      <span className="text-[13px] text-ink-dim">Train</span>
 
       {/* dataset: the sample selector, or the uploaded file name */}
       {uploadName ? (

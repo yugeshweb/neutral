@@ -29,18 +29,18 @@ export default function App() {
 
   return (
     <>
-      {mode === null && <LaunchScreen onSelect={goMode} trained={trained} />}
+      {mode === null && <LaunchScreen onSelect={goMode} />}
 
       {/* kept mounted across mode switches so an in-flight run survives */}
       {visitedTrain && (
         <div className={mode === 'train' ? 'h-full' : 'hidden'}>
-          <TrainView onHome={goHome} onMode={goMode} onTrained={onTrained} />
+          <TrainView onHome={goHome} onTrained={onTrained} />
         </div>
       )}
 
       {(mode === 'predict' || mode === 'compare') && (
         <div className="flex h-full min-w-[1080px] flex-col bg-canvas">
-          <ModeBar mode={mode} onHome={goHome} onMode={goMode} />
+          <ModeBar mode={mode} onHome={goHome} />
           <div className="min-h-0 flex-1">
             {mode === 'predict' ? (
               <PredictView trained={trained} />

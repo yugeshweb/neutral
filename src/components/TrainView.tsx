@@ -10,7 +10,6 @@ import { Console } from './Console'
 import { ImageViewer } from './ImageViewer'
 import { InputPanel } from './InputPanel'
 import { LaneLegend } from './LaneLegend'
-import type { AppMode } from './LaunchScreen'
 import { NodeDrawer } from './NodeDrawer'
 import { OutputPanel } from './OutputPanel'
 import { PipelineGraph } from './PipelineGraph'
@@ -20,12 +19,11 @@ import { TopBar } from './TopBar'
 
 type Props = {
   onHome: () => void
-  onMode: (m: AppMode) => void
   /** raised the first time a run reaches `complete` */
   onTrained: () => void
 }
 
-export function TrainView({ onHome, onMode, onTrained }: Props) {
+export function TrainView({ onHome, onTrained }: Props) {
   // Swap `usePipeline()` for a live-stream runner and nothing below changes.
   // Pass a node id (e.g. usePipeline('vqc')) to exercise the error path.
   const { nodeStates, logs, phase, elapsed, start, stop, reset } = usePipeline()
@@ -117,7 +115,6 @@ export function TrainView({ onHome, onMode, onTrained }: Props) {
         onStop={stop}
         onReset={handleReset}
         onHome={onHome}
-        onMode={onMode}
       />
 
       <div className="flex min-h-0 flex-1">

@@ -1,6 +1,7 @@
 import { BENCHMARK_RESULTS } from '../lib/pipeline/graph'
 import { buildMetricsCsv, downloadText } from '../lib/export'
 import { LANE_COLOR, alpha } from '../lib/theme'
+import { DeliveryTable } from './DeliveryTable'
 import { DemoChip } from './DemoChip'
 import { IconDownload } from './icons'
 import { PushButton } from './PushButton'
@@ -506,6 +507,10 @@ export function CompareView({ trained }: Props) {
             </ul>
           </div>
         </section>
+
+        <div className="mt-4">
+          <DeliveryTable />
+        </div>
 
         <p className="mt-5 max-w-[620px] font-mono text-[9px] leading-relaxed text-ink-faint/70">
           All figures on this page are placeholder values produced by a mock runner. No
