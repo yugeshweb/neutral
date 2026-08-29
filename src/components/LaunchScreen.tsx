@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
+import { useTour, type TourStop } from '../hooks/useTour'
 import { LANE_COLOR, alpha } from '../lib/theme'
 import { IconBars, IconDatabase, IconFlask, IconPulse } from './icons'
+import { TourOverlay } from './TourOverlay'
 import { Wordmark } from './Wordmark'
 
 export type AppMode = 'train' | 'predict' | 'compare' | 'conditions'
@@ -62,8 +64,33 @@ type Props = {
   onSelect: (mode: AppMode) => void
 }
 
+const TOUR_STOPS: TourStop[] = [
+  {
+    target: 'card-train',
+    title: '01 · Train',
+    body: 'Start here. Pick a dataset, walk through preprocessing and feature selection, then train the quantum model against classical baselines - a real run, computed in your browser.',
+  },
+  {
+    target: 'card-predict',
+    title: '02 · Predict',
+    body: 'Once a model is trained, score a single patient and see exactly which features drove the prediction, mapped back to clinical terms.',
+  },
+  {
+    target: 'card-compare',
+    title: '03 · Compare',
+    body: 'The benchmark: accuracy, ROC curves and cross-validation spread for the quantum model against every classical baseline, on the same split.',
+  },
+  {
+    target: 'card-conditions',
+    title: '04 · Neurological conditions',
+    body: 'A registry of six real neurological conditions this platform is built to generalise to, served by the Python backend.',
+  },
+]
+
 /** Entry screen. The detail lives inside each mode. */
 export function LaunchScreen({ onSelect }: Props) {
+  const tour = useTour('launch', TOUR_STOPS)
+
   return (
     <div className="console-scroll h-full overflow-y-auto bg-canvas">
       <div className="mx-auto flex min-h-full w-full max-w-[1120px] flex-col justify-center px-8 py-14">
@@ -74,6 +101,13 @@ export function LaunchScreen({ onSelect }: Props) {
           <p className="mt-4 text-[13px] text-ink-dim">
             Hybrid quantum-classical machine learning platform for early disease detection.
           </p>
+          <button
+            type="button"
+            onClick={tour.start}
+            className="mt-3 cursor-pointer font-mono text-[9.5px] text-ink-faint underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-ink"
+          >
+            take the tour
+          </button>
         </div>
 
         <div className="grid grid-cols-4 gap-4">
@@ -81,6 +115,7 @@ export function LaunchScreen({ onSelect }: Props) {
             <button
               key={card.mode}
               type="button"
+              data-tour={`card-${card.mode}`}
               onClick={() => onSelect(card.mode)}
               className="group relative flex cursor-pointer flex-col rounded-panel p-5 text-left transition-[border-color,box-shadow] duration-200 ease-out"
               style={{
@@ -125,6 +160,19 @@ export function LaunchScreen({ onSelect }: Props) {
           ))}
         </div>
       </div>
+
+      {tour.active && tour.stop && (
+        <TourOverlay
+          stop={tour.stop}
+          index={tour.index}
+          total={tour.total}
+          isFirst={tour.isFirst}
+          isLast={tour.isLast}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onClose={tour.close}
+        />
+      )}
     </div>
   )
 }

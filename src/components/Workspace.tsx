@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useTour, type TourStop } from '../hooks/useTour'
 import { useRun } from '../hooks/useRun'
 import { LANE_COLOR } from '../lib/theme'
 import { IconArrowLeft, IconArrowRight } from './icons'
@@ -11,7 +12,26 @@ import { ModelStep } from './steps/ModelStep'
 import { PreprocessStep } from './steps/PreprocessStep'
 import { ResultsStep } from './steps/ResultsStep'
 import { TrainStep } from './steps/TrainStep'
+import { TourOverlay } from './TourOverlay'
 import { Wordmark } from './Wordmark'
+
+const WORKSPACE_TOUR: TourStop[] = [
+  {
+    target: 'workspace-title',
+    title: 'Seven steps, one pipeline',
+    body: 'Data, Preprocess, Features, Model, Train, Results, Explain. Every screen configures the same run - nothing here is scripted, so what you set now is what actually trains.',
+  },
+  {
+    target: 'workspace-stepper',
+    title: 'Jump to any step',
+    body: 'Click any step directly once it is reachable. Results and Explain unlock automatically the moment a run finishes.',
+  },
+  {
+    target: 'workspace-next',
+    title: 'Next carries you through',
+    body: 'This button moves forward one step at a time. When you reach Train, one click runs the quantum and classical models together - typically a couple of seconds.',
+  },
+]
 
 const TITLE: Record<StepId, { title: string; blurb: string }> = {
   data: { title: 'Data', blurb: 'Choose a dataset, inspect its health, set the split and seed' },
@@ -31,6 +51,11 @@ type Props = {
 export function Workspace({ onHome, initialStep = 'data' }: Props) {
   const [step, setStep] = useState<StepId>(initialStep)
   const run = useRun()
+
+  // Only auto-fires when entering fresh at Data - a direct jump to
+  // Results/Explain (from the Predict/Compare launch cards) skips it, since
+  // those anchors are not the ones on screen at that point.
+  const tour = useTour('workspace', WORKSPACE_TOUR, initialStep === 'data')
 
   const locked = run.phase === 'running'
   const hasResult = run.result !== null
@@ -97,7 +122,7 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
 
         <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
 
-        <div>
+        <div data-tour="workspace-title">
           <div className="text-[13px] text-ink">{TITLE[step].title}</div>
           <div className="font-mono text-[9px] text-ink-faint">{TITLE[step].blurb}</div>
         </div>
@@ -106,9 +131,25 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
 
         {/* qubit count, visible on every screen after feature selection */}
         {idx >= 2 && <QubitBadge qubits={run.config.nFeatures} compact />}
+
+        <button
+          type="button"
+          onClick={() => {
+            if (step !== 'data') setStep('data')
+            tour.start()
+          }}
+          aria-label="Replay the tour"
+          title="Replay the tour"
+          className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full text-ink-faint transition-colors duration-150 hover:text-ink"
+          style={{ background: 'rgba(255,255,255,0.05)' }}
+        >
+          <span className="font-mono text-[10px]">?</span>
+        </button>
       </header>
 
-      <Stepper current={step} done={done} blocked={blocked} onGo={setStep} />
+      <div data-tour="workspace-stepper">
+        <Stepper current={step} done={done} blocked={blocked} onGo={setStep} />
+      </div>
 
       <div className="console-scroll min-h-0 flex-1 overflow-y-auto p-4">
         {step === 'data' && (
@@ -183,6 +224,7 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
         {next && (
           <button
             type="button"
+            data-tour="workspace-next"
             disabled={Boolean(nextBlocked)}
             title={nextBlocked}
             onClick={() => setStep(next.id)}
@@ -197,6 +239,19 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
           </button>
         )}
       </footer>
+
+      {tour.active && tour.stop && (
+        <TourOverlay
+          stop={tour.stop}
+          index={tour.index}
+          total={tour.total}
+          isFirst={tour.isFirst}
+          isLast={tour.isLast}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onClose={tour.close}
+        />
+      )}
     </div>
   )
 }
