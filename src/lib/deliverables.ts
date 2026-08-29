@@ -59,26 +59,26 @@ export const DELIVERABLES: Deliverable[] = [
     requirement: 'Data pre-processing module',
     section: 'Train',
     delivered:
-      'Cleaning and scaling stage: median imputation, StandardScaler fitted on the training fold only, 4-sigma outlier clipping. Surfaced as an inspectable pipeline node.',
-    module: 'src/lib/pipeline/graph.ts',
-    status: 'mocked',
+      'Drop / mean / median imputation and standard or min-max scaling, all computed on the real matrix. The scaler is fitted on the training fold only, with before-and-after distribution charts showing the effect.',
+    module: 'src/lib/ml/stats.ts',
+    status: 'live',
   },
   {
     id: 'feature-selection',
     requirement: 'Feature selection module',
     section: 'Train',
     delivered:
-      'Mutual information scoring plus recursive elimination, reducing 30 features to 8, with collinear pairs above |r| 0.92 dropped.',
-    module: 'src/lib/pipeline/graph.ts',
-    status: 'mocked',
+      'Four real methods - PCA, mutual information, ANOVA F-test and recursive elimination - with a ranked importance chart, a collinearity drop above |r| 0.92, and the retained count bound live to the qubit count.',
+    module: 'src/lib/ml/features.ts',
+    status: 'live',
   },
   {
     id: 'architecture',
     requirement: 'Hybrid quantum-classical architecture',
     section: 'Train',
     delivered:
-      'Directed graph that forks after feature selection into a classical lane and a quantum lane advancing on the same tick, then converges at benchmarking. Dependencies gate execution.',
-    module: 'src/lib/pipeline/runner.ts',
+      'Classical preprocessing and feature selection feed a quantum circuit, with classical baselines trained on the identical matrix. The whole run is one generator, stepped from the UI so progress renders as it computes.',
+    module: 'src/lib/ml/pipeline.ts',
     status: 'live',
   },
   {
@@ -86,17 +86,17 @@ export const DELIVERABLES: Deliverable[] = [
     requirement: 'Quantum-enhanced classification model',
     section: 'Train',
     delivered:
-      'Variational quantum classifier: RY angle encoding onto 8 qubits, StronglyEntanglingLayers ansatz over 4 layers and 96 parameters, PauliZ expectation readout with readout-error mitigation.',
-    module: 'src/lib/pipeline/graph.ts',
-    status: 'mocked',
+      'A real statevector simulator (2^n amplitudes, genuine gate matrices) running a VQC with three feature maps, three ansatze and three backends. Trained by Adam on exact parameter-shift gradients, verified against finite differences to 1e-11.',
+    module: 'src/lib/quantum/',
+    status: 'live',
   },
   {
     id: 'training',
     requirement: 'Hybrid model training workflow',
     section: 'Train',
     delivered:
-      'Run controls with start, stop and reset; per-stage progress, live event log, and terminal states that propagate so downstream stages report as blocked on failure.',
-    module: 'src/hooks/usePipeline.ts',
+      'One button trains the quantum and classical lanes on an identical split. Live convergence chart of the cost function per epoch, elapsed timer, progress, stop control and a scrolling log.',
+    module: 'src/hooks/useRun.ts',
     status: 'live',
   },
   {
@@ -104,53 +104,53 @@ export const DELIVERABLES: Deliverable[] = [
     requirement: 'Prediction and inference workflow',
     section: 'Predict',
     delivered:
-      'Single-case scoring over the 8 retained features, returning malignant probability, predicted label and decision margin from both the quantum and classical heads.',
-    module: 'src/lib/predict.ts',
-    status: 'mocked',
+      'Per-patient inference against the trained circuit, returning a calibrated probability, a low/moderate/high risk band and the true label for comparison.',
+    module: 'src/components/steps/ExplainStep.tsx',
+    status: 'live',
   },
   {
     id: 'explainability',
     requirement: 'Model explainability features',
     section: 'Predict',
     delivered:
-      'Per-feature signed attribution to the malignant logit, ranked by magnitude and rendered as diverging bars; a SHAP stage in the pipeline reports global attribution.',
-    module: 'src/components/PredictView.tsx',
-    status: 'partial',
+      'Permutation importance globally and occlusion attribution per patient. After PCA, component attributions are pushed back through the rotation onto the original clinical measurements - verified to recover 8/8 known-discriminative WDBC features.',
+    module: 'src/lib/ml/explain.ts',
+    status: 'live',
   },
   {
     id: 'metrics',
     requirement: 'Improve accuracy, sensitivity and specificity vs baselines',
     section: 'Compare',
     delivered:
-      'Accuracy, ROC-AUC, sensitivity and specificity reported for both models with signed deltas, plus 2x2 confusion matrices isolating exactly which cases differ.',
-    module: 'src/components/CompareView.tsx',
-    status: 'mocked',
+      'Accuracy, sensitivity, specificity, precision, F1 and ROC-AUC computed from real predictions for every model, with confusion matrices and overlaid ROC curves.',
+    module: 'src/lib/ml/metrics.ts',
+    status: 'live',
   },
   {
     id: 'benchmark',
     requirement: 'Benchmark on accuracy, efficiency and generalization',
     section: 'Compare',
     delivered:
-      'Paired metric bars on a shared scale, a computational-cost table covering training time, inference latency and parameter count, and a McNemar significance test on the paired predictions.',
-    module: 'src/components/CompareView.tsx',
-    status: 'mocked',
+      'Five classical baselines trained on the identical split, measured training and inference time, k-fold cross-validation spread as a box plot, and an exact-binomial McNemar test. A classical win is displayed exactly as cleanly as a quantum one.',
+    module: 'src/lib/ml/baselines.ts',
+    status: 'live',
   },
   {
     id: 'evaluation',
     requirement: 'Performance evaluation and reporting',
     section: 'Compare',
     delivered:
-      'Run report exportable as JSON (stage records, metrics, full log) or the comparison table as CSV. Both carry a synthetic flag and disclaimer that survive outside the UI.',
+      'Every metric on the results screen is computed in-browser from the run configuration, with backend, shot count, seed and elapsed time stated alongside. JSON and CSV export carry the run provenance.',
     module: 'src/lib/export.ts',
-    status: 'live',
+    status: 'partial',
   },
   {
     id: 'hardware',
     requirement: 'Compatible with near-term hardware and simulators',
     section: 'Platform',
     delivered:
-      'An 8-qubit, depth-4 circuit sized for NISQ devices and simulators; shot count and readout mitigation are exposed as stage configuration rather than hard-coded.',
-    module: 'src/lib/pipeline/graph.ts',
+      'Circuit width is capped at 10 qubits with depth and gate count reported live. Finite-shot sampling and a depolarising noise model reproduce device behaviour; the hardware-efficient ansatz matches real linear coupling maps.',
+    module: 'src/lib/quantum/vqc.ts',
     status: 'partial',
   },
   {
@@ -158,8 +158,8 @@ export const DELIVERABLES: Deliverable[] = [
     requirement: 'Scalable and interpretable platform',
     section: 'Platform',
     delivered:
-      'One PipelineRunner interface behind the whole UI; a documented createSSERunner swap point moves the platform onto a real backend without any component changing.',
-    module: 'src/lib/pipeline/runner.ts',
+      'The entire run is one serialisable RunConfig, so a result is reproducible from its configuration. A seven-step pipeline stepper carries the user through, with the qubit count visible on every screen after feature selection.',
+    module: 'src/lib/ml/pipeline.ts',
     status: 'live',
   },
   {
