@@ -1,4 +1,4 @@
-import type { DatasetSummary } from '../dataset'
+import { csvCell, type DatasetSummary } from '../dataset'
 import type { IngestAdapter, IngestResult, SchemaField } from './types'
 
 /**
@@ -271,6 +271,7 @@ export function parseHl7Feed(text: string, name: string, sizeBytes: number): Ing
     headers,
     preview: rows.slice(0, 4),
     warnings,
+    content: [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\n'),
     objectUrl: null,
     imageSize: null,
   }

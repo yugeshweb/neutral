@@ -1,0 +1,28 @@
+{
+  "condition_id": "neuro.glioma.mpmri",
+  "name": "Glioma and brain-tumor lesion characterization",
+  "domain": "neurological",
+  "priority": "P3",
+  "task_type": "segmentation",
+  "readiness_tier": "high_reference",
+  "reference_label_tier": "high",
+  "target_definition": "Brain tumor lesion regions and glioma characterization (grade, subtype, or prognostic features) on multiparametric MRI, referenced against pathological confirmation and expert neuroradiologist annotation.",
+  "population": "Patients with pathologically confirmed brain tumors or suspected gliomas, evaluated by multiparametric MRI including T1, T1-contrast, T2, and FLAIR sequences.",
+  "required_modalities": ["imaging"],
+  "optional_modalities": ["structured_clinical", "biomarker"],
+  "expected_output": "Tumor region segmentation, glioma characterization (grade or subtype), and prognostic risk estimates where supported.",
+  "reference_datasets": [
+    {"label": "BraTS dataset", "url": "https://www.med.upenn.edu/cbica/brats2020/data.html", "citation": "Brain Tumor Segmentation Challenge, University of Pennsylvania"},
+    {"label": "TCGA-GBM / TCIA", "url": "https://www.cancerimagingarchive.net/collection/tcga-gbm/", "citation": "The Cancer Imaging Archive"}
+  ],
+  "evidence_links": [
+    {"label": "nnU-Net", "url": "https://github.com/MIC-DKFZ/nnUNet", "citation": null},
+    {"label": "MONAI", "url": "https://github.com/Project-MONAI/MONAI", "citation": null}
+  ],
+  "limitations": [
+    "Segmentation and characterization do not constitute a diagnosis or treatment recommendation.",
+    "BraTS and TCGA datasets primarily contain known tumor cases; prevalence and generalization to screening populations is not established.",
+    "Grade and subtype classification depend on availability of pathology; imaging-only prediction of grade is inherently limited.",
+    "Multiparametric MRI acquisition protocols vary; models trained on a specific protocol may not generalize to different scanner parameters."
+  ]
+}

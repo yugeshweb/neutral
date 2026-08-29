@@ -1,0 +1,239 @@
+{
+  "evaluation_id": "eval-alzheimers-clinical-risk-tabular-0.1.0",
+  "model_id": "alzheimers-clinical-risk-tabular",
+  "model_version": "0.1.0",
+  "condition_id": "neuro.alzheimers.progression",
+  "created_at": "2026-08-29T10:18:50.234655+00:00",
+  "dataset_profile": {
+    "name": "p5_alzheimers_clinical",
+    "dataset_path": "../data/p5_alzheimers_clinical/oasis_cross_sectional_labeled.csv",
+    "target_column": "dementia",
+    "positive_label": "1",
+    "group_column": null,
+    "index_time_column": null,
+    "outcome_time_column": null,
+    "site_column": null,
+    "id_column": "ID",
+    "horizon_days": null,
+    "outcome_definition": "Binary dementia status derived from Clinical Dementia Rating (CDR > 0) at the single cross-sectional visit. This is a same-visit association/screening-proxy label, not a longitudinal MCI-to-AD progression prediction as the spec's P5 task calls for \u2014 the OASIS-1 cross-sectional release only has one scan per subject, so no progression horizon can be defined from it alone. Research-only, per spec FR-033.",
+    "leakage_columns": [
+      "CDR"
+    ],
+    "subgroup_columns": [],
+    "modality": "tabular",
+    "reduction": "anova",
+    "task_type": "early_detection"
+  },
+  "dataset_fingerprint": "0ee0e1c2dee3320005c1eab760e8277e49359380ee3a5db717ac295de0bba9e3",
+  "split_strategy": "stratified_random",
+  "split_summary": {
+    "train_rows": 150,
+    "validation_rows": 38,
+    "test_rows": 47,
+    "repeats": 10
+  },
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "leakage_checks": [
+    {
+      "name": "subject_identity",
+      "status": "not_applicable",
+      "detail": "No group column declared; subject-level structure is not verified by the engine and must be confirmed from the model's reuse record."
+    },
+    {
+      "name": "repeated_acquisition",
+      "status": "not_applicable",
+      "detail": "No repeated-visit grouping declared for this dataset."
+    },
+    {
+      "name": "site_grouping",
+      "status": "not_applicable",
+      "detail": "No site column exists in this dataset; site-held-out validation was not possible."
+    },
+    {
+      "name": "training_only_preprocessing",
+      "status": "passed",
+      "detail": "Imputation, scaling, and feature selection are fitted on the training partition only (engine-enforced)."
+    }
+  ],
+  "metrics": {
+    "accuracy": 0.5255319148936171,
+    "balanced_accuracy": 0.5643518518518518,
+    "sensitivity": 0.825,
+    "specificity": 0.3037037037037037,
+    "precision": 0.4796981063503433,
+    "negative_predictive_value": 0.6571248196248196,
+    "f1": 0.6006467840163723,
+    "roc_auc": 0.6077777777777779,
+    "pr_auc": 0.5405454670919005,
+    "brier_score": 0.2355281378310583,
+    "expected_calibration_error": 0.09265290864350048,
+    "coverage": 1.0
+  },
+  "segmentation_metrics": {},
+  "event_metrics": {},
+  "calibration": {
+    "calibration_curve": [
+      {
+        "lower": 0.2,
+        "upper": 0.30000000000000004,
+        "count": 9,
+        "mean_predicted": 0.2542130825820382,
+        "observed_frequency": 0.0
+      },
+      {
+        "lower": 0.30000000000000004,
+        "upper": 0.4,
+        "count": 14,
+        "mean_predicted": 0.36018840299290883,
+        "observed_frequency": 0.2857142857142857
+      },
+      {
+        "lower": 0.4,
+        "upper": 0.5,
+        "count": 10,
+        "mean_predicted": 0.4440281995500473,
+        "observed_frequency": 0.5
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6000000000000001,
+        "count": 14,
+        "mean_predicted": 0.5360044624306918,
+        "observed_frequency": 0.7857142857142857
+      }
+    ],
+    "engine_calibration": {
+      "requested": false,
+      "enabled": true,
+      "automatic": true,
+      "automatic_reason": "threshold or abstention policy requires probabilities",
+      "method": "sigmoid calibration",
+      "folds": 3,
+      "per_model": {
+        "qsvc": "3-fold training cross-validation"
+      }
+    }
+  },
+  "abstention": {
+    "enabled": false,
+    "margin": null,
+    "rule": null,
+    "total_rows": 47,
+    "abstained_rows": 0,
+    "evaluated_rows": 47,
+    "coverage": 1.0
+  },
+  "resource": {
+    "wall_seconds": 0.0,
+    "training_rows": 150,
+    "test_rows": 47,
+    "feature_count": 4,
+    "qubits": 4,
+    "shots": 512,
+    "backend": "statevector",
+    "estimated_kernel_pairs": null
+  },
+  "confidence_intervals": {
+    "accuracy": {
+      "lower": 0.6170212765957447,
+      "upper": 0.8723404255319149,
+      "n": 1000
+    },
+    "balanced_accuracy": {
+      "lower": 0.6177172917662048,
+      "upper": 0.8713917864656381,
+      "n": 1000
+    },
+    "sensitivity": {
+      "lower": 0.533235294117647,
+      "upper": 0.9375,
+      "n": 1000
+    },
+    "specificity": {
+      "lower": 0.5650869565217391,
+      "upper": 0.9131340579710143,
+      "n": 1000
+    },
+    "precision": {
+      "lower": 0.5,
+      "upper": 0.8823529411764706,
+      "n": 1000
+    },
+    "negative_predictive_value": {
+      "lower": 0.6294061302681992,
+      "upper": 0.9500595238095237,
+      "n": 1000
+    },
+    "f1": {
+      "lower": 0.5454545454545455,
+      "upper": 0.8500265957446809,
+      "n": 1000
+    },
+    "roc_auc": {
+      "lower": 0.7036601307189543,
+      "upper": 0.9296701388888889,
+      "n": 1000
+    },
+    "pr_auc": {
+      "lower": 0.6000099674500521,
+      "upper": 0.9197240626496728,
+      "n": 1000
+    },
+    "brier_score": {
+      "lower": 0.16882401112934095,
+      "upper": 0.22820530046593956,
+      "n": 1000
+    },
+    "expected_calibration_error": {
+      "lower": 0.09641053665559214,
+      "upper": 0.27804032386795446,
+      "n": 1000
+    }
+  },
+  "baseline_model_id": "alzheimers-clinical-risk-tabular-classical",
+  "baseline_metrics": {
+    "accuracy": 0.8212765957446809,
+    "balanced_accuracy": 0.8152777777777779,
+    "sensitivity": 0.775,
+    "specificity": 0.8555555555555555,
+    "precision": 0.8228334409255462,
+    "negative_predictive_value": 0.8484880276330425,
+    "f1": 0.7824202221366952,
+    "roc_auc": 0.9148148148148149,
+    "pr_auc": 0.9034876286456999,
+    "brier_score": 0.12070998403486222,
+    "expected_calibration_error": 0.11780208982766464,
+    "coverage": 1.0
+  },
+  "paired_comparison": {
+    "reference_model": "rbf_svc",
+    "metric": "balanced_accuracy",
+    "delta": {
+      "mean": -0.21499999999999994,
+      "std": 0.06606311153038011,
+      "lower": -0.2881481481481481,
+      "upper": -0.10842592592592595,
+      "n": 5
+    }
+  },
+  "real_gain_decision": "failed",
+  "real_gain_reason": "Paired 95% CI on balanced-accuracy delta vs rbf_svc is [-0.2881, -0.1084], not excluding zero (or negative). The classical reference remains the operational baseline.",
+  "software": {
+    "python": "3.13.9",
+    "numpy": "2.5.2",
+    "scikit-learn": "1.9.0",
+    "qiskit": "2.5.2",
+    "qiskit-aer": "0.17.2",
+    "qiskit-machine-learning": "0.9.1",
+    "qiskit-algorithms": "0.4.0",
+    "qiskit-ibm-runtime": "not-installed"
+  },
+  "source_result_path": "runtime/models/alzheimers-clinical-risk-tabular.result.json"
+}

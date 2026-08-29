@@ -172,6 +172,28 @@ live FHIR endpoint, do SMART-on-FHIR auth, page through `Bundle.link`, or resolv
 references across bundles. This platform has **not** been run against a live
 hospital or ABDM endpoint, and no such integration should be claimed for it.
 
+### Isolated EHR validation surface
+
+Open `/ehr-validation` while the Vite app is running to test the EHR cohort path
+without changing the Train/Predict/Compare interface. It uses the existing CSV
+and FHIR adapters, then calls `POST /api/validation/ehr` with the canonical CSV
+they produce. The endpoint re-loads the matrix through the backend’s existing
+loader, checks labels and missingness, fingerprints the input, and previews
+routing against every registered neurological model. It performs no training,
+inference, or diagnosis.
+
+For Vite development, run the API and frontend in separate terminals:
+
+```bash
+PYTHONPATH=backend/src backend/.venv/bin/python -m qhealth_qml.dashboard --port 8765
+VITE_QML_API_URL=http://127.0.0.1:8765 npm run dev -- --host 127.0.0.1
+```
+
+Then open `http://127.0.0.1:5173/ehr-validation`. For a built frontend, run
+`npm run build`, then pass its directory to
+`backend/.venv/bin/qhealth-dashboard --ui-dir dist`; the dashboard serves
+`/ehr-validation` through the same SPA entry point.
+
 ## Uploads
 
 The input panel accepts a CSV (parsed in-browser, quoted fields handled) or an

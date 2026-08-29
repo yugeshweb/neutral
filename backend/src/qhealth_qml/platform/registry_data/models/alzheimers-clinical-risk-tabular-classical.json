@@ -1,0 +1,113 @@
+{
+  "model_id": "alzheimers-clinical-risk-tabular-classical",
+  "condition_id": "neuro.alzheimers.progression",
+  "version": "0.1.0",
+  "display_name": "Alzheimer's clinical dementia risk (tabular, classical baseline)",
+  "task_type": "binary_classification",
+  "availability": "available",
+  "lifecycle": "operational_reference",
+  "executor": "tabular_qml",
+  "input_contract": {
+    "required_modalities": ["structured_clinical"],
+    "optional_modalities": [],
+    "required_fields": ["Age", "Educ", "SES", "MMSE", "eTIV", "nWBV", "ASF", "M/F"],
+    "min_rows": 1,
+    "population": "Adults from the OASIS-1 cross-sectional cohort with a recorded Clinical Dementia Rating (CDR). Age range and recruitment criteria per the original OASIS release; not a general population screen.",
+    "population_filters": {},
+    "quality_constraints": {
+      "Age": "18 <= age <= 120",
+      "MMSE": "0 <= MMSE <= 30 when present",
+      "CDR": "0 <= CDR <= 3 when present"
+    }
+  },
+  "dataset_profile_path": "backend/profiles/p5_alzheimers_clinical.json",
+  "temporal_validation": "not applicable — cross-sectional cohort, no index or outcome time",
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": null,
+    "fitted_on": "train_partition_only"
+  },
+  "quantum": null,
+  "classical_baseline_model_id": null,
+  "artifact": {
+    "kind": "saved_model_artifact",
+    "path": "runtime/models/alzheimers-clinical-risk-tabular-classical.joblib",
+    "manifest_path": "runtime/models/alzheimers-clinical-risk-tabular-classical.manifest.json",
+    "sha256": null,
+    "schema_version": 4
+  },
+  "calibration": {
+    "method": "validation_sigmoid",
+    "status": "not_assessed",
+    "note": "Production-rigor nested evaluation (repeats=10, outer_repeats=5) ran 2026-08-29: balanced accuracy 0.823. This is the operational reference; the paired QML candidate failed the real-gain gate."
+  },
+  "explainability": {
+    "method": "input_sensitivity",
+    "scope": "per_row",
+    "surrogate": false
+  },
+  "output_score_type": "calibrated_probability",
+  "evaluation_record_ids": ["eval-alzheimers-clinical-risk-tabular-classical-0.1.0"],
+  "safety": {
+    "allows_negative_finding": true,
+    "abstain_margin": 0.05,
+    "requires_full_coverage": true,
+    "disclaimer": "Research dementia-association screening estimate from a single cross-sectional visit, not a progression risk prediction and not a diagnosis.",
+    "limitations": [
+      "This is a SAME-VISIT dementia association/screening proxy, not a longitudinal MCI-to-AD progression prediction — OASIS-1 cross-sectional has only one scan per subject, so no progression horizon exists. The spec's P5 task (progression risk) is NOT what this model measures.",
+      "MMSE (Mini-Mental State Exam) is itself a cognitive screening instrument that clinicians use as one input to determine CDR — it is closely related to the label, not an independent risk factor. Treat MMSE's predictive strength as a proxy-label effect, not a novel biomarker finding.",
+      "201 of 436 original subjects had no recorded CDR and were dropped; this could bias the cohort toward more severe or more thoroughly assessed cases.",
+      "No biomarker-supported evaluation set or approved label policy exists yet — per FR-033 this MUST remain research-only and MUST NOT be described as diagnostic.",
+      "No external cohort or site-held-out validation was possible (single-site OASIS-1 release)."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Research benchmarking of a classical gradient-boosted classifier on structured clinical features from a dementia cross-sectional cohort.",
+    "excluded_use": "Any clinical use. Dementia diagnosis or progression prediction. Any use as evidence that a patient does or does not have Alzheimer's disease.",
+    "training_population": "235 rows (subjects with a recorded Clinical Dementia Rating from OASIS-1 cross-sectional); 201 subjects without CDR were dropped. 100 positive (42.6%, dementia = CDR > 0).",
+    "evaluation_population": "Stratified random holdout of the same OASIS-1 table. No external cohort.",
+    "label_policy": "Binary CDR > 0 as the dementia label, positive_label='1'. Derived from Clinical Dementia Rating score recorded at a single visit.",
+    "data_sources": [
+      {"label": "OASIS-1 cross-sectional (via Kaggle jboysen/mri-and-alzheimers)", "url": "https://www.kaggle.com/datasets/jboysen/mri-and-alzheimers", "citation": "Marcus et al., OASIS: Cross-Sectional MRI Data in Young, Middle Aged, Nondemented, and Demented Older Adults, Journal of Cognitive Neuroscience, 2007"}
+    ],
+    "data_licenses": ["CC0-1.0 — verified, public domain equivalent, no redistribution restriction"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "input_sensitivity over the 4 ANOVA-selected raw features",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "training/evaluation engine",
+        "decision": "adapted",
+        "source_url": null,
+        "release_or_commit": "quantum-health 0.1.0 (in-repo)",
+        "paper_citation": null,
+        "license": "in-repo, license field not yet declared",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "numeric CSV columns, or text columns auto one-hot encoded",
+        "io_contract": "LoadedDataset -> run_repeated_experiment result dict",
+        "local_modifications": "see P0 platform reuse record"
+      },
+      {
+        "component": "source dataset",
+        "decision": "reused",
+        "source_url": "https://www.kaggle.com/datasets/jboysen/mri-and-alzheimers",
+        "release_or_commit": "downloaded 2026-08-29",
+        "paper_citation": null,
+        "license": "CC0-1.0",
+        "license_verified": true,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "one row per subject (235 subjects with CDR); 201 subjects with missing CDR dropped from original 436",
+        "io_contract": "9-column CSV (age, sex, education, SES, MMSE, eTIV, nWBV, ASF, CDR); columns Hand and Delay excluded due to constant/missing values",
+        "local_modifications": "none to source values"
+      }
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P5-alzheimers-reuse-record.md"
+  }
+}

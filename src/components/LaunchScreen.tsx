@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { LANE_COLOR, alpha } from '../lib/theme'
-import { IconBars, IconFlask, IconPulse } from './icons'
+import { IconBars, IconDatabase, IconFlask, IconPulse } from './icons'
 import { Wordmark } from './Wordmark'
 
-export type AppMode = 'train' | 'predict' | 'compare'
+export type AppMode = 'train' | 'predict' | 'compare' | 'conditions'
 
 /**
  * Hover is a border glow rather than a lift: the accent bleeds into the edge
@@ -48,17 +48,25 @@ const CARDS: Card[] = [
     accent: LANE_COLOR.shared,
     icon: <IconBars className="h-[22px] w-[22px]" />,
   },
+  {
+    mode: 'conditions',
+    index: '04',
+    title: 'Neurological conditions',
+    body: 'Browse the clinical condition registry and what each one needs.',
+    accent: LANE_COLOR.shared,
+    icon: <IconDatabase className="h-[22px] w-[22px]" />,
+  },
 ]
 
 type Props = {
   onSelect: (mode: AppMode) => void
 }
 
-/** Entry screen. Three doors and nothing else - the detail lives inside each. */
+/** Entry screen. The detail lives inside each mode. */
 export function LaunchScreen({ onSelect }: Props) {
   return (
     <div className="console-scroll h-full overflow-y-auto bg-canvas">
-      <div className="mx-auto flex min-h-full w-full max-w-[900px] flex-col justify-center px-8 py-14">
+      <div className="mx-auto flex min-h-full w-full max-w-[1120px] flex-col justify-center px-8 py-14">
         <div className="mb-9 text-center">
           <h1 aria-label="Netural">
             <Wordmark size={38} />
@@ -68,7 +76,7 @@ export function LaunchScreen({ onSelect }: Props) {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           {CARDS.map((card) => (
             <button
               key={card.mode}

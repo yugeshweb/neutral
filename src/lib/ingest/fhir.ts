@@ -1,4 +1,4 @@
-import type { DatasetSummary } from '../dataset'
+import { csvCell, type DatasetSummary } from '../dataset'
 import type { IngestAdapter, IngestResult, SchemaField } from './types'
 
 /**
@@ -296,6 +296,7 @@ export function parseFhirBundle(
     headers,
     preview: rows.slice(0, 4),
     warnings,
+    content: [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\n'),
     objectUrl: null,
     imageSize: null,
   }

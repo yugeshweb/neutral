@@ -1,0 +1,207 @@
+{
+  "evaluation_id": "eval-seizure-window-risk-tabular-classical-0.1.0",
+  "model_id": "seizure-window-risk-tabular-classical",
+  "model_version": "0.1.0",
+  "condition_id": "neuro.seizure.eeg",
+  "created_at": "2026-08-29T01:31:20.304912+00:00",
+  "dataset_profile": {
+    "name": "p4_seizure_eeg",
+    "dataset_path": "../data/p4_seizure_eeg/seizure_window_features.csv",
+    "target_column": "seizure",
+    "positive_label": "1",
+    "group_column": null,
+    "index_time_column": "start_sec",
+    "outcome_time_column": null,
+    "site_column": null,
+    "id_column": "window_id",
+    "horizon_days": null,
+    "outcome_definition": "Per-window (4-second, non-overlapping) EEG epoch overlapping an expert-annotated seizure interval from the CHB-MIT chb01 recordings. This is a window-level event-detection label, not an epilepsy diagnosis (spec: 'CHB-MIT seizure output is not an epilepsy diagnosis'). A single patient's three recording hours only; not a population-level model.",
+    "leakage_columns": [],
+    "subgroup_columns": [],
+    "modality": "tabular",
+    "reduction": "anova",
+    "task_type": "early_detection"
+  },
+  "dataset_fingerprint": "5e22bd6764021d08d0c29cf1b23a6aa4afde22601b329f1d2483746aaf326b67",
+  "split_strategy": "chronological",
+  "split_summary": {
+    "train_rows": 2160,
+    "validation_rows": 0,
+    "test_rows": 540,
+    "repeats": 3
+  },
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "leakage_checks": [
+    {
+      "name": "subject_identity",
+      "status": "not_applicable",
+      "detail": "No group column declared; subject-level structure is not verified by the engine and must be confirmed from the model's reuse record."
+    },
+    {
+      "name": "repeated_acquisition",
+      "status": "not_applicable",
+      "detail": "No repeated-visit grouping declared for this dataset."
+    },
+    {
+      "name": "site_grouping",
+      "status": "not_applicable",
+      "detail": "No site column exists in this dataset; site-held-out validation was not possible."
+    },
+    {
+      "name": "training_only_preprocessing",
+      "status": "passed",
+      "detail": "Imputation, scaling, and feature selection are fitted on the training partition only (engine-enforced)."
+    }
+  ],
+  "metrics": {
+    "accuracy": 0.9962962962962963,
+    "balanced_accuracy": 0.875,
+    "sensitivity": 0.75,
+    "specificity": 1.0,
+    "precision": 1.0,
+    "negative_predictive_value": 0.99625468164794,
+    "f1": 0.8571428571428571,
+    "roc_auc": 0.9938909774436091,
+    "pr_auc": 0.8415071770334928,
+    "brier_score": 0.0037744343631273213,
+    "expected_calibration_error": 0.0028405693101699464,
+    "coverage": 1.0
+  },
+  "segmentation_metrics": {},
+  "event_metrics": {},
+  "calibration": {
+    "calibration_curve": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "count": 534,
+        "mean_predicted": 0.001291590979485065,
+        "observed_frequency": 0.003745318352059925
+      },
+      {
+        "lower": 0.7000000000000001,
+        "upper": 0.8,
+        "count": 1,
+        "mean_predicted": 0.776904238198802,
+        "observed_frequency": 1.0
+      },
+      {
+        "lower": 0.9,
+        "upper": 1.0,
+        "count": 5,
+        "mean_predicted": 0.9998957502528805,
+        "observed_frequency": 1.0
+      }
+    ],
+    "engine_calibration": {
+      "requested": false,
+      "enabled": false,
+      "automatic": false,
+      "automatic_reason": null,
+      "method": null,
+      "folds": null,
+      "per_model": {
+        "logistic_regression": "none"
+      }
+    }
+  },
+  "abstention": {
+    "enabled": false,
+    "margin": null,
+    "rule": null,
+    "total_rows": 540,
+    "abstained_rows": 0,
+    "evaluated_rows": 540,
+    "coverage": 1.0
+  },
+  "resource": {
+    "wall_seconds": 0.0,
+    "training_rows": 2160,
+    "test_rows": 540,
+    "feature_count": 4,
+    "qubits": null,
+    "shots": null,
+    "backend": "statevector",
+    "estimated_kernel_pairs": null
+  },
+  "confidence_intervals": {
+    "accuracy": {
+      "lower": 0.9907407407407407,
+      "upper": 1.0,
+      "n": 300
+    },
+    "balanced_accuracy": {
+      "lower": 0.7,
+      "upper": 1.0,
+      "n": 300
+    },
+    "sensitivity": {
+      "lower": 0.4,
+      "upper": 1.0,
+      "n": 300
+    },
+    "specificity": {
+      "lower": 1.0,
+      "upper": 1.0,
+      "n": 300
+    },
+    "precision": {
+      "lower": 1.0,
+      "upper": 1.0,
+      "n": 299
+    },
+    "negative_predictive_value": {
+      "lower": 0.9906005872314264,
+      "upper": 1.0,
+      "n": 300
+    },
+    "f1": {
+      "lower": 0.5714285714285715,
+      "upper": 1.0,
+      "n": 299
+    },
+    "roc_auc": {
+      "lower": 0.9840692653021991,
+      "upper": 1.0,
+      "n": 300
+    },
+    "pr_auc": {
+      "lower": 0.5896736596736597,
+      "upper": 1.0,
+      "n": 300
+    },
+    "brier_score": {
+      "lower": 3.4590990342635175e-05,
+      "upper": 0.00931056496391344,
+      "n": 300
+    },
+    "expected_calibration_error": {
+      "lower": 0.00047061822257065284,
+      "upper": 0.008643092963806274,
+      "n": 300
+    }
+  },
+  "baseline_model_id": null,
+  "baseline_metrics": {},
+  "paired_comparison": {},
+  "real_gain_decision": "not_assessed",
+  "real_gain_reason": "Paired nested evaluation could not run: test chronological split could not preserve both classes",
+  "software": {
+    "python": "3.13.9",
+    "numpy": "2.5.2",
+    "scikit-learn": "1.9.0",
+    "qiskit": "2.5.2",
+    "qiskit-aer": "0.17.2",
+    "qiskit-machine-learning": "0.9.1",
+    "qiskit-algorithms": "0.4.0",
+    "qiskit-ibm-runtime": "not-installed"
+  },
+  "source_result_path": "runtime/models/seizure-window-risk-tabular-classical.result.json"
+}

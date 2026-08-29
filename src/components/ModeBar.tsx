@@ -6,6 +6,7 @@ const LABEL: Record<AppMode, string> = {
   train: 'Train',
   predict: 'Predict',
   compare: 'Compare',
+  conditions: 'Conditions',
 }
 
 type Props = {

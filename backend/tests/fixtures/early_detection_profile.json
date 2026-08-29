@@ -1,0 +1,18 @@
+{
+  "name": "synthetic_early_detection_fixture",
+  "dataset_path": "early_detection.csv",
+  "target_column": "outcome_within_horizon",
+  "positive_label": "yes",
+  "group_column": "patient_id",
+  "index_time_column": "index_time",
+  "outcome_time_column": "outcome_time",
+  "site_column": "site",
+  "id_column": "record_id",
+  "horizon_days": 30,
+  "outcome_definition": "Fixture event within 30 days after the index measurement",
+  "leakage_columns": [],
+  "subgroup_columns": ["sex"],
+  "modality": "tabular",
+  "reduction": "pca",
+  "task_type": "early_detection"
+}

@@ -1,7 +1,7 @@
 /**
- * Real CSV parsing for uploaded files. The parsed summary is genuine - row and
- * column counts come from the actual file - but it only ever feeds the mock
- * runner's display copy. No model consumes these values.
+ * Real CSV parsing for uploaded files. The summary is genuine - row and column
+ * counts come from the actual file - and the original text is retained so the
+ * local QML service can train on the same file after the user confirms it.
  */
 
 export type UploadKind = 'csv' | 'image'
@@ -17,6 +17,8 @@ export type DatasetSummary = {
   preview: string[][]
   /** non-fatal problems worth surfacing to the user */
   warnings: string[]
+  /** original CSV text; retained only for the local training request */
+  content: string | null
   /** object URL for image uploads; null for CSV. Revoke when replaced. */
   objectUrl: string | null
   /** natural pixel dimensions, images only */
@@ -57,6 +59,11 @@ function splitRow(line: string): string[] {
   }
   out.push(field)
   return out.map((f) => f.trim())
+}
+
+/** Quotes a CSV field only when it needs it, so canonical output stays readable. */
+export function csvCell(value: string) {
+  return /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value
 }
 
 export function parseCsv(text: string, name: string, sizeBytes: number): DatasetSummary {
@@ -100,6 +107,7 @@ export function parseCsv(text: string, name: string, sizeBytes: number): Dataset
     headers,
     preview: body.slice(0, 4).map(splitRow),
     warnings,
+    content: text,
     objectUrl: null,
     imageSize: null,
   }
@@ -120,6 +128,7 @@ export function loadImage(file: File): Promise<DatasetSummary> {
         headers: [],
         preview: [],
         warnings: [],
+        content: null,
         objectUrl: url,
         imageSize: { w: img.naturalWidth, h: img.naturalHeight },
       })

@@ -1,0 +1,124 @@
+{
+  "model_id": "stroke-lesion-core-imaging",
+  "condition_id": "neuro.stroke.ischemic.acute",
+  "version": "0.0.0",
+  "display_name": "Acute ischemic lesion / infarct-core segmentation (planned)",
+  "task_type": "segmentation",
+  "availability": "not available",
+  "lifecycle": "experimental",
+  "executor": "imaging_segmentation",
+  "input_contract": {
+    "required_modalities": ["imaging"],
+    "optional_modalities": [{"modality": "structured_clinical", "trained_for_absence": true}],
+    "required_fields": [],
+    "min_rows": 1,
+    "population": "Adults presenting with suspected acute ischemic stroke, imaged with NCCT/CTA/CTP.",
+    "population_filters": {},
+    "quality_constraints": {
+      "imaging": "Skull-stripped, co-registered volumes at the ISLES'24 spacing contract."
+    }
+  },
+  "dataset_profile_path": null,
+  "temporal_validation": "n/a",
+  "preprocessing": {
+    "imputation": "none",
+    "scaling": "none",
+    "reduction": "none",
+    "n_components": null,
+    "angle_scaling": null,
+    "fitted_on": "n/a"
+  },
+  "quantum": null,
+  "classical_baseline_model_id": null,
+  "artifact": {
+    "kind": "none",
+    "path": null,
+    "manifest_path": null,
+    "sha256": null,
+    "schema_version": null
+  },
+  "calibration": {
+    "method": "none",
+    "status": "not_assessed",
+    "note": "No artifact."
+  },
+  "explainability": {
+    "method": "planned:lesion_overlay",
+    "scope": "region",
+    "surrogate": false
+  },
+  "output_score_type": "mask",
+  "evaluation_record_ids": [],
+  "safety": {
+    "allows_negative_finding": false,
+    "abstain_margin": null,
+    "requires_full_coverage": true,
+    "disclaimer": "No model artifact is registered. This entry exists to show the coverage gap and must never produce a finding.",
+    "limitations": [
+      "DEFERRED. Blocked on ISLES'24 access (grand-challenge.org registration and DUA, a manual human step) and on disk: 5.9 GB free as of 2026-08-29.",
+      "Planned reused implementation: DeepISLES (github.com/ezequieldlrosa/DeepIsles) as the reference segmentation ensemble, nnU-Net (github.com/MIC-DKFZ/nnUNet) as the retraining fallback, MONAI (github.com/Project-MONAI/MONAI) for volume I/O, transforms, and Dice/IoU metrics.",
+      "DeepISLES code license and model-weight license are separate and both unverified; weights may inherit ISLES data terms.",
+      "Segmentation stays classical. Any quantum component would sit only on a compact fused image/clinical representation."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Planned: acute ischemic lesion segmentation and infarct-core volume estimation from presentation CT/CTA/CTP.",
+    "excluded_use": "Everything, currently. No artifact exists.",
+    "training_population": "Planned: ISLES'24 multi-centre cohort.",
+    "evaluation_population": "Planned: ISLES'24 held-out centre plus an external cohort.",
+    "label_policy": "Expert lesion annotation and/or follow-up diffusion MRI.",
+    "data_sources": [
+      {"label": "ISLES'24", "url": "https://pubs.rsna.org/doi/full/10.1148/ryai.250603", "citation": "Radiology: Artificial Intelligence, 2025"}
+    ],
+    "data_licenses": ["ISLES'24 DUA — not accepted, access not obtained"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "planned: lesion mask overlay + per-region volume",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "segmentation network",
+        "decision": "reused",
+        "source_url": "https://github.com/ezequieldlrosa/DeepIsles",
+        "release_or_commit": null,
+        "paper_citation": "DeepISLES, Nature Communications 2025, doi:10.1038/s41467-025-62373-x",
+        "license": "permissive (unverified); weight license separate and unverified",
+        "license_verified": false,
+        "weight_source": "DeepISLES release artifacts",
+        "weight_sha256": null,
+        "preprocessing_assumptions": "ISLES'24 modality set, spacing, and skull-stripping contract",
+        "io_contract": "co-registered CT/CTA/CTP volumes -> lesion mask",
+        "local_modifications": "none — not yet integrated"
+      },
+      {
+        "component": "retraining fallback",
+        "decision": "reproduced",
+        "source_url": "https://github.com/MIC-DKFZ/nnUNet",
+        "release_or_commit": null,
+        "paper_citation": "Isensee et al., Nature Methods 2021",
+        "license": "Apache-2.0 (unverified)",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "self-configured from a dataset fingerprint",
+        "io_contract": "NIfTI volumes -> segmentation",
+        "local_modifications": "none — not yet integrated"
+      },
+      {
+        "component": "volume I/O, transforms, Dice/IoU",
+        "decision": "reused",
+        "source_url": "https://github.com/Project-MONAI/MONAI",
+        "release_or_commit": null,
+        "paper_citation": null,
+        "license": "Apache-2.0 (unverified)",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "NIfTI/DICOM with valid affine",
+        "io_contract": "LoadImage/Spacing/DiceMetric",
+        "local_modifications": "none — not yet integrated"
+      }
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P1-stroke-reuse-record.md"
+  }
+}

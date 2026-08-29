@@ -1,0 +1,205 @@
+{
+  "evaluation_id": "eval-glioma-mgmt-radiomics-tabular-classical-0.1.0",
+  "model_id": "glioma-mgmt-radiomics-tabular-classical",
+  "model_version": "0.1.0",
+  "condition_id": "neuro.glioma.mpmri",
+  "created_at": "2026-08-29T02:53:16.878327+00:00",
+  "dataset_profile": {
+    "name": "p3_glioma_mgmt",
+    "dataset_path": "../data/p3_glioma_upenn/glioma_mgmt_features.csv",
+    "target_column": "mgmt_methylated",
+    "positive_label": "1",
+    "group_column": "patient_id",
+    "index_time_column": null,
+    "outcome_time_column": null,
+    "site_column": null,
+    "id_column": "subject_id",
+    "horizon_days": null,
+    "outcome_definition": "Binary MGMT promoter methylation status (Methylated=1 vs Unmethylated=0) from CaPTk-derived structural mpMRI (FLAIR/T1/T1GD/T2) radiomic features over CaPTk's automatic tumor-region segmentation (edema/enhancing tumor/necrotic core). A molecular-characterization proxy task, not tumor segmentation or grade/subtype classification as the spec's P3 task calls for. Research-only, per spec FR-033.",
+    "leakage_columns": [
+      "subject_id",
+      "patient_id"
+    ],
+    "subgroup_columns": [],
+    "modality": "tabular",
+    "reduction": "anova",
+    "task_type": "early_detection"
+  },
+  "dataset_fingerprint": "0967dac67002320f3ff07599efe2960602b43593d3d2330e309d5edc232d2acc",
+  "split_strategy": "group",
+  "split_summary": {
+    "train_rows": 204,
+    "validation_rows": 0,
+    "test_rows": 52,
+    "repeats": 10
+  },
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "leakage_checks": [
+    {
+      "name": "subject_identity",
+      "status": "passed",
+      "detail": "Group column prevents a subject's records from crossing the split."
+    },
+    {
+      "name": "repeated_acquisition",
+      "status": "passed",
+      "detail": "Group column prevents a patient's repeated records from crossing the split."
+    },
+    {
+      "name": "site_grouping",
+      "status": "not_applicable",
+      "detail": "No site column exists in this dataset; site-held-out validation was not possible."
+    },
+    {
+      "name": "training_only_preprocessing",
+      "status": "passed",
+      "detail": "Imputation, scaling, and feature selection are fitted on the training partition only (engine-enforced)."
+    }
+  ],
+  "metrics": {
+    "accuracy": 0.5019230769230769,
+    "balanced_accuracy": 0.4737049754555708,
+    "sensitivity": 0.19092938703808265,
+    "specificity": 0.7564805638730587,
+    "precision": 0.40961951447245565,
+    "negative_predictive_value": 0.5389935780107112,
+    "f1": 0.25048997531242867,
+    "roc_auc": 0.4890685885783448,
+    "pr_auc": 0.4611442043665067,
+    "brier_score": 0.27107731594873424,
+    "expected_calibration_error": 0.15801937237402627,
+    "coverage": 1.0
+  },
+  "segmentation_metrics": {},
+  "event_metrics": {},
+  "calibration": {
+    "calibration_curve": [
+      {
+        "lower": 0.2,
+        "upper": 0.30000000000000004,
+        "count": 7,
+        "mean_predicted": 0.2725451951780128,
+        "observed_frequency": 0.14285714285714285
+      },
+      {
+        "lower": 0.30000000000000004,
+        "upper": 0.4,
+        "count": 15,
+        "mean_predicted": 0.3419699851127319,
+        "observed_frequency": 0.4
+      },
+      {
+        "lower": 0.4,
+        "upper": 0.5,
+        "count": 13,
+        "mean_predicted": 0.44618084221501747,
+        "observed_frequency": 0.6923076923076923
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6000000000000001,
+        "count": 11,
+        "mean_predicted": 0.5513366894491185,
+        "observed_frequency": 0.36363636363636365
+      },
+      {
+        "lower": 0.6000000000000001,
+        "upper": 0.7000000000000001,
+        "count": 3,
+        "mean_predicted": 0.6639997138064204,
+        "observed_frequency": 0.3333333333333333
+      },
+      {
+        "lower": 0.7000000000000001,
+        "upper": 0.8,
+        "count": 2,
+        "mean_predicted": 0.7465842778397437,
+        "observed_frequency": 0.5
+      },
+      {
+        "lower": 0.8,
+        "upper": 0.9,
+        "count": 1,
+        "mean_predicted": 0.810667921163819,
+        "observed_frequency": 0.0
+      }
+    ],
+    "engine_calibration": {
+      "requested": false,
+      "enabled": false,
+      "automatic": false,
+      "automatic_reason": null,
+      "method": null,
+      "folds": null,
+      "per_model": {
+        "logistic_regression": "none"
+      }
+    }
+  },
+  "abstention": {
+    "enabled": false,
+    "margin": null,
+    "rule": null,
+    "total_rows": 52,
+    "abstained_rows": 0,
+    "evaluated_rows": 52,
+    "coverage": 1.0
+  },
+  "resource": {
+    "wall_seconds": 0.0,
+    "training_rows": 204,
+    "test_rows": 52,
+    "feature_count": 4,
+    "qubits": null,
+    "shots": null,
+    "backend": "statevector",
+    "estimated_kernel_pairs": null
+  },
+  "confidence_intervals": {},
+  "baseline_model_id": null,
+  "baseline_metrics": {
+    "accuracy": 0.4923076923076922,
+    "balanced_accuracy": 0.4662826740012559,
+    "sensitivity": 0.14487141602358994,
+    "specificity": 0.7876939319789219,
+    "precision": 0.3350806600806601,
+    "negative_predictive_value": 0.5333712727993253,
+    "f1": 0.19734763604495406,
+    "roc_auc": 0.49494968867107064,
+    "pr_auc": 0.4718041660671567,
+    "brier_score": null,
+    "expected_calibration_error": null,
+    "coverage": 1.0
+  },
+  "paired_comparison": {
+    "reference_model": "rbf_svc",
+    "metric": "balanced_accuracy",
+    "delta": {
+      "mean": -0.009868684514376369,
+      "std": 0.026895343695243105,
+      "lower": -0.0445603089720737,
+      "upper": 0.025577731092436988,
+      "n": 5
+    }
+  },
+  "real_gain_decision": "not_assessed",
+  "real_gain_reason": "This model has no quantum component; the real-gain gate applies only to QML candidates.",
+  "software": {
+    "python": "3.13.9",
+    "numpy": "2.5.2",
+    "scikit-learn": "1.9.0",
+    "qiskit": "2.5.2",
+    "qiskit-aer": "0.17.2",
+    "qiskit-machine-learning": "0.9.1",
+    "qiskit-algorithms": "0.4.0",
+    "qiskit-ibm-runtime": "not-installed"
+  },
+  "source_result_path": "runtime/models/glioma-mgmt-radiomics-tabular-classical.result.json"
+}

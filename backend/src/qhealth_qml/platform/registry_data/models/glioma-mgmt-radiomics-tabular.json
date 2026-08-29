@@ -1,0 +1,134 @@
+{
+  "model_id": "glioma-mgmt-radiomics-tabular",
+  "condition_id": "neuro.glioma.mpmri",
+  "version": "0.1.0",
+  "display_name": "Glioma MGMT-methylation status from mpMRI radiomics (tabular, research)",
+  "task_type": "binary_classification",
+  "availability": "not available",
+  "lifecycle": "experimental",
+  "executor": "tabular_qml",
+  "input_contract": {
+    "required_modalities": ["imaging"],
+    "optional_modalities": [],
+    "required_fields": [],
+    "min_rows": 1,
+    "population": "Adults with pathologically confirmed glioblastoma (UPenn-GBM cohort) with pre-operative structural multiparametric MRI (FLAIR, T1, T1-contrast, T2) and a recorded MGMT promoter methylation status.",
+    "population_filters": {},
+    "quality_constraints": {
+      "imaging": "1728 CaPTk-computed radiomic summary features (intensity/texture/shape) over the automatic tumor-region segmentation (edema, enhancing tumor, necrotic core) for each of FLAIR/T1/T1GD/T2 — pre-extracted by the UPenn-GBM CaPTk pipeline, not computed by this engine from raw DICOM."
+    }
+  },
+  "dataset_profile_path": "backend/profiles/p3_glioma_mgmt.json",
+  "temporal_validation": "not applicable — single pre-operative scan per case, no index or outcome time",
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "quantum": {
+    "framework": "qiskit",
+    "encoding": "ZZFeatureMap",
+    "ansatz": null,
+    "circuit_version": "qiskit-2.5/zzfeaturemap-reps2",
+    "backend_mode": "statevector",
+    "n_qubits": 4,
+    "shots": 512
+  },
+  "classical_baseline_model_id": "glioma-mgmt-radiomics-tabular-classical",
+  "artifact": {
+    "kind": "saved_model_artifact",
+    "path": "runtime/models/glioma-mgmt-radiomics-tabular.joblib",
+    "manifest_path": "runtime/models/glioma-mgmt-radiomics-tabular.manifest.json",
+    "sha256": null,
+    "schema_version": 4
+  },
+  "calibration": {
+    "method": "validation_sigmoid",
+    "status": "not_assessed",
+    "note": "Production-rigor nested evaluation (repeats=10, outer_repeats=5, inner_repeats=2, full 256-case dataset) ran 2026-08-29: QSVC balanced accuracy 0.451 vs classical (rbf_svc) 0.474; real-gain gate FAILED. An architecture sweep (ANOVA vs PCA reduction x 4/6/8 qubits) found every configuration for both classical and QSVC in the 0.44-0.55 balanced-accuracy band — statistically indistinguishable from chance. NOT registered as available: neither this candidate nor its classical baseline exceeds chance on this feature set."
+  },
+  "explainability": {
+    "method": "input_sensitivity",
+    "scope": "per_row",
+    "surrogate": false
+  },
+  "output_score_type": "calibrated_probability",
+  "evaluation_record_ids": ["eval-glioma-mgmt-radiomics-tabular-0.1.0"],
+  "safety": {
+    "allows_negative_finding": true,
+    "abstain_margin": 0.05,
+    "requires_full_coverage": true,
+    "disclaimer": "Research MGMT-methylation status estimate from pre-extracted mpMRI radiomic features, not a glioma diagnosis, grade classification, or tumor segmentation.",
+    "limitations": [
+      "This is an MGMT-promoter-methylation molecular-characterization proxy, NOT tumor segmentation, grade classification, or subtype characterization as the spec's P3 task (glioma lesion characterization on mpMRI) more broadly calls for — the registry's 'glioma-characterization-mpmri' stub remains 'not available' for those parts of the task.",
+      "Radiomic features come from CaPTk's automatic tumor-region segmentation, not manually corrected contours or an independently-verified segmentation quality check — errors in that upstream segmentation propagate into these features uncorrected.",
+      "All cases are pathology-confirmed glioblastoma (WHO grade IV) from a single academic center (University of Pennsylvania) — no external cohort, no other glioma grades, and no screening-population generalization.",
+      "No biomarker-supported evaluation set beyond the cohort's own recorded MGMT status; no approved label policy exists yet — per FR-033 this MUST remain research-only and MUST NOT be described as diagnostic.",
+      "No external cohort or site-held-out validation was possible (single-site UPenn release).",
+      "PRIMARY FINDING: this candidate does not exceed chance and its classical baseline also does not exceed chance. Production-rigor nested evaluation (10 repeats, full 256-case cohort) gave QSVC balanced accuracy 0.451 vs classical 0.474 — real-gain gate FAILED. A follow-up architecture sweep over ANOVA/PCA reduction x 4/6/8 components found every configuration in [0.44, 0.55]. This is registered as availability='not available' — it exists only as a documented, honest negative result, not a usable coverage-closing model."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Documents a completed, honestly-negative benchmark of a hybrid quantum-classical classifier against a tuned classical baseline on CaPTk radiomic features for MGMT promoter methylation status. Not usable for any assessment — see PRIMARY FINDING in safety.limitations.",
+    "excluded_use": "Any clinical use. Glioma diagnosis, grading, subtyping, or treatment selection. Any use as evidence of a patient's actual MGMT status. Any live case assessment (model is not available).",
+    "training_population": "256 labeled cases total (UPenn-GBM cohort, pathology-confirmed glioblastoma, definite MGMT status recorded: 148 unmethylated / 108 methylated), split 204 train / 52 test by patient-group holdout.",
+    "evaluation_population": "Stratified group-based holdout (by patient) of the same UPenn-GBM radiomics table. No external cohort.",
+    "label_policy": "Binary MGMT column from the UPenn-GBM clinical release ('Methylated' vs 'Unmethylated'); rows with 'Not Available' or 'Indeterminate' status excluded.",
+    "data_sources": [
+      {"label": "UPenn-GBM collection (The Cancer Imaging Archive)", "url": "https://www.cancerimagingarchive.net/collection/upenn-gbm/", "citation": "Bakas et al., The University of Pennsylvania glioblastoma (UPenn-GBM) cohort: advanced MRI, clinical, genomics, and radiomics. Scientific Data, 2022. DOI: 10.1038/s41597-022-01560-7"}
+    ],
+    "data_licenses": ["CC BY 4.0 — verified directly from TCIA NBIA series metadata (LicenseName field) at download time, 2026-08-29"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "input_sensitivity over the 4 ANOVA-selected radiomic features",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "training/evaluation engine",
+        "decision": "adapted",
+        "source_url": null,
+        "release_or_commit": "quantum-health 0.1.0 (in-repo)",
+        "paper_citation": null,
+        "license": "in-repo, license field not yet declared",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "numeric CSV columns, or text columns auto one-hot encoded",
+        "io_contract": "LoadedDataset -> run_repeated_experiment result dict",
+        "local_modifications": "see P0 platform reuse record"
+      },
+      {
+        "component": "radiomic feature extraction (CaPTk)",
+        "decision": "reused",
+        "source_url": "https://www.cbica.upenn.edu/captk/",
+        "release_or_commit": "UPenn-GBM CaPTk radiomic feature release, downloaded 2026-08-29",
+        "paper_citation": "Pati et al., CaPTk: Cancer Imaging Phenomics Toolkit. Frontiers in Neuroscience, 2020.",
+        "license": "CC BY 4.0 (per UPenn-GBM collection terms)",
+        "license_verified": true,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "Radiomic features pre-computed by CaPTk over its own automatic tumor-region segmentation; this project performs no image processing.",
+        "io_contract": "per-region-per-modality radiomic feature CSVs, joined on SubjectID and merged with clinical MGMT status",
+        "local_modifications": "merged 12 automaticsegm CSVs (FLAIR/T1/T1GD/T2 x ED/ET/NC) with clinical_info_v2.1.csv via backend/data/p3_glioma_upenn/prepare.py; no values altered"
+      },
+      {
+        "component": "source dataset (UPenn-GBM)",
+        "decision": "reused",
+        "source_url": "https://www.cancerimagingarchive.net/collection/upenn-gbm/",
+        "release_or_commit": "downloaded 2026-08-29 via TCIA NBIA public REST API (no account/DUA required)",
+        "paper_citation": "Bakas et al., Scientific Data, 2022. DOI: 10.1038/s41597-022-01560-7",
+        "license": "CC BY 4.0",
+        "license_verified": true,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "one row per scan (256 labeled MGMT-known cases); patient_id used for group-based train-test split",
+        "io_contract": "clinical_info_v2.1.csv (MGMT status) joined to CaPTk radiomic feature CSVs on SubjectID",
+        "local_modifications": "filtered to rows with definite MGMT status (Methylated/Unmethylated only)"
+      }
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P3-glioma-reuse-record.md"
+  }
+}

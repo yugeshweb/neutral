@@ -1,0 +1,88 @@
+{
+  "model_id": "seizure-window-risk-tabular-classical",
+  "condition_id": "neuro.seizure.eeg",
+  "version": "0.1.0",
+  "display_name": "Seizure window risk (tabular band-power, classical baseline)",
+  "task_type": "binary_classification",
+  "availability": "available",
+  "lifecycle": "operational_reference",
+  "executor": "tabular_qml",
+  "input_contract": {
+    "required_modalities": ["signal"],
+    "optional_modalities": [],
+    "required_fields": [],
+    "min_rows": 1,
+    "population": "Single-patient (CHB-MIT chb01) continuous scalp EEG, 23-channel standard placement, 256 Hz.",
+    "population_filters": {},
+    "quality_constraints": {
+      "signal": "23-channel EEG sampled at 256 Hz, standard CHB-MIT montage; non-overlapping 4-second windows."
+    }
+  },
+  "dataset_profile_path": "backend/profiles/p4_seizure_eeg.json",
+  "temporal_validation": "not applicable — cross-sectional window profile, no outcome time or horizon",
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": null,
+    "fitted_on": "train_partition_only"
+  },
+  "quantum": null,
+  "classical_baseline_model_id": null,
+  "artifact": {
+    "kind": "saved_model_artifact",
+    "path": "runtime/models/seizure-window-risk-tabular-classical.joblib",
+    "manifest_path": "runtime/models/seizure-window-risk-tabular-classical.manifest.json",
+    "sha256": null,
+    "schema_version": 4
+  },
+  "calibration": {
+    "method": "validation_sigmoid",
+    "status": "not_assessed",
+    "note": "Single chronological-split run (2026-08-29): balanced accuracy 0.875, sensitivity 0.75, specificity 1.0. Nested paired evaluation could not run at this class rarity (18/2700 positive). Not calibration-assessed at production scale."
+  },
+  "explainability": {
+    "method": "input_sensitivity",
+    "scope": "per_row",
+    "surrogate": false
+  },
+  "output_score_type": "calibrated_probability",
+  "evaluation_record_ids": ["eval-seizure-window-risk-tabular-classical-0.1.0"],
+  "safety": {
+    "allows_negative_finding": true,
+    "abstain_margin": 0.05,
+    "requires_full_coverage": true,
+    "disclaimer": "Research window-level risk estimate, not a seizure diagnosis and not an epilepsy diagnosis.",
+    "limitations": [
+      "Classifies individual 4-second EEG windows as seizure/non-seizure; it does NOT yet reconstruct full seizure event intervals (onset/offset/latency) as the condition's primary task requires.",
+      "Trained and evaluated on a SINGLE patient (CHB-MIT chb01), 3 hours of recording, 2 seizures, 18 of 2700 windows positive (0.67% prevalence). Not validated across patients or sites.",
+      "Extreme class imbalance means metrics are unstable; treat point estimates as indicative only.",
+      "CHB-MIT seizure labels reflect one center's expert annotation protocol; not a general epilepsy diagnosis.",
+      "No site-held-out or cross-patient external validation was possible with a single patient's data.",
+      "No EDF/signal ingestion adapter exists in the platform layer yet — a live case bundle with a raw EEG asset currently routes to 'incompatible' ('requires signal; not present in this case') rather than being scored. This model is benchmark-only via the offline evaluation pipeline until that adapter is built."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Research benchmarking of a classical classifier on EEG band-power features, as a first step toward full seizure event detection.",
+    "excluded_use": "Any clinical use. Epilepsy diagnosis. Seizure detection or intervention in a real monitoring setting.",
+    "training_population": "2700 non-overlapping 4-second windows from 3 hours of chb01's scalp EEG (CHB-MIT); 18 positive (0.67%).",
+    "evaluation_population": "Chronological holdout of the same single-patient recording (later windows held out).",
+    "label_policy": "Window overlaps an expert-annotated seizure interval from chb01-summary.txt.",
+    "data_sources": [
+      {"label": "CHB-MIT Scalp EEG Database (chb01)", "url": "https://physionet.org/content/chbmit/1.0.0/", "citation": "Shoeb, A. Application of Machine Learning to Epileptic Seizure Onset Detection and Treatment. PhD thesis, MIT, 2009."}
+    ],
+    "data_licenses": ["Open Data Commons Attribution License v1.0 (PhysioNet) — verified, permissive, redistribution permitted with attribution"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "input_sensitivity over the 4 ANOVA-selected band-power features",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {"component": "training/evaluation engine", "decision": "adapted", "source_url": null, "release_or_commit": "quantum-health 0.1.0 (in-repo)", "paper_citation": null, "license": "in-repo, license field not yet declared", "license_verified": false, "weight_source": null, "weight_sha256": null, "preprocessing_assumptions": "numeric CSV columns", "io_contract": "LoadedDataset -> run_repeated_experiment result dict", "local_modifications": "see P0 platform reuse record"},
+      {"component": "EEG file I/O", "decision": "reused", "source_url": "https://github.com/mne-tools/mne-python", "release_or_commit": "mne 1.12.1", "paper_citation": "Gramfort et al., NeuroImage 2013", "license": "BSD-3-Clause", "license_verified": true, "weight_source": null, "weight_sha256": null, "preprocessing_assumptions": "EDF format, standard channel montage", "io_contract": "EDF file -> (n_channels, n_samples) array", "local_modifications": "none"},
+      {"component": "band-power feature extraction", "decision": "newly_authored", "source_url": null, "release_or_commit": "backend/data/p4_seizure_eeg/extract_features.py", "paper_citation": null, "license": "in-repo", "license_verified": false, "weight_source": null, "weight_sha256": null, "preprocessing_assumptions": "non-overlapping 4s windows; Welch PSD; 5 standard EEG bands", "io_contract": "raw EDF + seizure interval list -> numeric CSV", "local_modifications": "n/a — adapter/feature-extraction boundary"},
+      {"component": "source dataset", "decision": "reused", "source_url": "https://physionet.org/content/chbmit/1.0.0/", "release_or_commit": "chb01_01/03/04.edf, downloaded 2026-08-29", "paper_citation": "Shoeb, MIT PhD thesis 2009; Goldberger et al., PhysioNet, Circulation 2000", "license": "Open Data Commons Attribution License v1.0", "license_verified": true, "weight_source": null, "weight_sha256": null, "preprocessing_assumptions": "23-channel bipolar montage, 256 Hz", "io_contract": "EDF + summary annotation text -> raw signal + seizure intervals", "local_modifications": "none to source values"}
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P4-seizure-reuse-record.md"
+  }
+}

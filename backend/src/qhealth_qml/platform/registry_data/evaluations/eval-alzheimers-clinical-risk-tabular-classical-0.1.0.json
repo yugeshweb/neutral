@@ -1,0 +1,267 @@
+{
+  "evaluation_id": "eval-alzheimers-clinical-risk-tabular-classical-0.1.0",
+  "model_id": "alzheimers-clinical-risk-tabular-classical",
+  "model_version": "0.1.0",
+  "condition_id": "neuro.alzheimers.progression",
+  "created_at": "2026-08-29T02:19:45.410229+00:00",
+  "dataset_profile": {
+    "name": "p5_alzheimers_clinical",
+    "dataset_path": "../data/p5_alzheimers_clinical/oasis_cross_sectional_labeled.csv",
+    "target_column": "dementia",
+    "positive_label": "1",
+    "group_column": null,
+    "index_time_column": null,
+    "outcome_time_column": null,
+    "site_column": null,
+    "id_column": "ID",
+    "horizon_days": null,
+    "outcome_definition": "Binary dementia status derived from Clinical Dementia Rating (CDR > 0) at the single cross-sectional visit. This is a same-visit association/screening-proxy label, not a longitudinal MCI-to-AD progression prediction as the spec's P5 task calls for \u2014 the OASIS-1 cross-sectional release only has one scan per subject, so no progression horizon can be defined from it alone. Research-only, per spec FR-033.",
+    "leakage_columns": [
+      "CDR"
+    ],
+    "subgroup_columns": [],
+    "modality": "tabular",
+    "reduction": "anova",
+    "task_type": "early_detection"
+  },
+  "dataset_fingerprint": "0ee0e1c2dee3320005c1eab760e8277e49359380ee3a5db717ac295de0bba9e3",
+  "split_strategy": "stratified_random",
+  "split_summary": {
+    "train_rows": 150,
+    "validation_rows": 38,
+    "test_rows": 47,
+    "repeats": 10
+  },
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "leakage_checks": [
+    {
+      "name": "subject_identity",
+      "status": "not_applicable",
+      "detail": "No group column declared; subject-level structure is not verified by the engine and must be confirmed from the model's reuse record."
+    },
+    {
+      "name": "repeated_acquisition",
+      "status": "not_applicable",
+      "detail": "No repeated-visit grouping declared for this dataset."
+    },
+    {
+      "name": "site_grouping",
+      "status": "not_applicable",
+      "detail": "No site column exists in this dataset; site-held-out validation was not possible."
+    },
+    {
+      "name": "training_only_preprocessing",
+      "status": "passed",
+      "detail": "Imputation, scaling, and feature selection are fitted on the training partition only (engine-enforced)."
+    }
+  ],
+  "metrics": {
+    "accuracy": 0.8297872340425532,
+    "balanced_accuracy": 0.8226851851851851,
+    "sensitivity": 0.775,
+    "specificity": 0.8703703703703705,
+    "precision": 0.8340054640722295,
+    "negative_predictive_value": 0.8491008919241679,
+    "f1": 0.791591960226308,
+    "roc_auc": 0.9185185185185185,
+    "pr_auc": 0.904570586453346,
+    "brier_score": 0.11794544516874103,
+    "expected_calibration_error": 0.12480424018613019,
+    "coverage": 1.0
+  },
+  "segmentation_metrics": {},
+  "event_metrics": {},
+  "calibration": {
+    "calibration_curve": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "count": 7,
+        "mean_predicted": 0.07029087194726251,
+        "observed_frequency": 0.0
+      },
+      {
+        "lower": 0.1,
+        "upper": 0.2,
+        "count": 10,
+        "mean_predicted": 0.1505779187423458,
+        "observed_frequency": 0.1
+      },
+      {
+        "lower": 0.2,
+        "upper": 0.30000000000000004,
+        "count": 11,
+        "mean_predicted": 0.23047250677868023,
+        "observed_frequency": 0.2727272727272727
+      },
+      {
+        "lower": 0.30000000000000004,
+        "upper": 0.4,
+        "count": 2,
+        "mean_predicted": 0.33474693802471434,
+        "observed_frequency": 0.5
+      },
+      {
+        "lower": 0.4,
+        "upper": 0.5,
+        "count": 5,
+        "mean_predicted": 0.460223832019682,
+        "observed_frequency": 0.8
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6000000000000001,
+        "count": 3,
+        "mean_predicted": 0.5354844165774574,
+        "observed_frequency": 0.6666666666666666
+      },
+      {
+        "lower": 0.8,
+        "upper": 0.9,
+        "count": 4,
+        "mean_predicted": 0.8636184680110944,
+        "observed_frequency": 1.0
+      },
+      {
+        "lower": 0.9,
+        "upper": 1.0,
+        "count": 5,
+        "mean_predicted": 0.9691032490480845,
+        "observed_frequency": 1.0
+      }
+    ],
+    "engine_calibration": {
+      "requested": false,
+      "enabled": true,
+      "automatic": true,
+      "automatic_reason": "threshold or abstention policy requires probabilities",
+      "method": "sigmoid calibration",
+      "folds": 3,
+      "per_model": {
+        "logistic_regression": "3-fold training cross-validation"
+      }
+    }
+  },
+  "abstention": {
+    "enabled": false,
+    "margin": null,
+    "rule": null,
+    "total_rows": 47,
+    "abstained_rows": 0,
+    "evaluated_rows": 47,
+    "coverage": 1.0
+  },
+  "resource": {
+    "wall_seconds": 0.0,
+    "training_rows": 150,
+    "test_rows": 47,
+    "feature_count": 4,
+    "qubits": null,
+    "shots": null,
+    "backend": "statevector",
+    "estimated_kernel_pairs": null
+  },
+  "confidence_intervals": {
+    "accuracy": {
+      "lower": 0.7446808510638298,
+      "upper": 0.9361702127659575,
+      "n": 1000
+    },
+    "balanced_accuracy": {
+      "lower": 0.7272422500870777,
+      "upper": 0.9379699248120301,
+      "n": 1000
+    },
+    "sensitivity": {
+      "lower": 0.55,
+      "upper": 0.9335294117647057,
+      "n": 1000
+    },
+    "specificity": {
+      "lower": 0.8180976430976431,
+      "upper": 1.0,
+      "n": 1000
+    },
+    "precision": {
+      "lower": 0.7222222222222222,
+      "upper": 1.0,
+      "n": 1000
+    },
+    "negative_predictive_value": {
+      "lower": 0.6799642857142858,
+      "upper": 0.96,
+      "n": 1000
+    },
+    "f1": {
+      "lower": 0.6486089030206676,
+      "upper": 0.9268728222996515,
+      "n": 1000
+    },
+    "roc_auc": {
+      "lower": 0.808364910951118,
+      "upper": 0.9854545454545455,
+      "n": 1000
+    },
+    "pr_auc": {
+      "lower": 0.8132068160390356,
+      "upper": 0.9825046447241397,
+      "n": 1000
+    },
+    "brier_score": {
+      "lower": 0.0748687701598578,
+      "upper": 0.1819487633241835,
+      "n": 1000
+    },
+    "expected_calibration_error": {
+      "lower": 0.07058038948002683,
+      "upper": 0.20808558900552732,
+      "n": 1000
+    }
+  },
+  "baseline_model_id": null,
+  "baseline_metrics": {
+    "accuracy": 0.8212765957446809,
+    "balanced_accuracy": 0.8152777777777779,
+    "sensitivity": 0.775,
+    "specificity": 0.8555555555555555,
+    "precision": 0.8228334409255462,
+    "negative_predictive_value": 0.8484880276330425,
+    "f1": 0.7824202221366952,
+    "roc_auc": 0.9148148148148149,
+    "pr_auc": 0.9034876286456999,
+    "brier_score": 0.12070998403486222,
+    "expected_calibration_error": 0.11780208982766464,
+    "coverage": 1.0
+  },
+  "paired_comparison": {
+    "reference_model": "rbf_svc",
+    "metric": "balanced_accuracy",
+    "delta": {
+      "mean": 0.01981481481481484,
+      "std": 0.058664842844826884,
+      "lower": -0.04685185185185189,
+      "upper": 0.11083333333333342,
+      "n": 5
+    }
+  },
+  "real_gain_decision": "not_assessed",
+  "real_gain_reason": "This model has no quantum component; the real-gain gate applies only to QML candidates.",
+  "software": {
+    "python": "3.13.9",
+    "numpy": "2.5.2",
+    "scikit-learn": "1.9.0",
+    "qiskit": "2.5.2",
+    "qiskit-aer": "0.17.2",
+    "qiskit-machine-learning": "0.9.1",
+    "qiskit-algorithms": "0.4.0",
+    "qiskit-ibm-runtime": "not-installed"
+  },
+  "source_result_path": "runtime/models/alzheimers-clinical-risk-tabular-classical.result.json"
+}

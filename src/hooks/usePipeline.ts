@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PIPELINE_NODES } from '../lib/pipeline/graph'
-import { createMockRunner } from '../lib/pipeline/runner'
+import { createApiRunner } from '../lib/pipeline/runner'
+import type { QmlResult, TrainRequest } from '../lib/qmlApi'
 import type { LogLevel, NodeStatus, PipelineEvent } from '../lib/pipeline/types'
 
 export type NodeState = {
@@ -24,6 +25,12 @@ const initialStates = () =>
     PIPELINE_NODES.map((n) => [n.id, { status: 'idle' as NodeStatus, progress: 0 }]),
   ) as Record<string, NodeState>
 
+const DEFAULT_TRAIN_REQUEST: TrainRequest = {
+  source: 'wdbc',
+  dataset_name: 'Wisconsin Breast Cancer',
+  models: ['logistic_regression', 'rbf_svc', 'qsvc'],
+}
+
 function levelFor(e: PipelineEvent): LogLevel {
   if (e.status === 'error') return 'error'
   if (e.status === 'done') return 'success'
@@ -34,17 +41,21 @@ function levelFor(e: PipelineEvent): LogLevel {
   return line?.level ?? 'info'
 }
 
-export function usePipeline(failAt?: string) {
+export function usePipeline(request: TrainRequest = DEFAULT_TRAIN_REQUEST) {
   const [nodeStates, setNodeStates] = useState<Record<string, NodeState>>(initialStates)
   const [logs, setLogs] = useState<LogLine[]>([])
   const [phase, setPhase] = useState<RunPhase>('idle')
   const [elapsed, setElapsed] = useState(0)
+  const [result, setResult] = useState<QmlResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const logSeq = useRef(0)
   const startedAt = useRef<number | null>(null)
 
-  // Recreated when failAt changes so the injected failure takes effect.
-  const runner = useMemo(() => createMockRunner({ failAt }), [failAt])
+  const runner = useMemo(
+    () => createApiRunner(request, (next) => setResult(next)),
+    [request],
+  )
 
   useEffect(() => {
     return runner.subscribe((e) => {
@@ -56,6 +67,9 @@ export function usePipeline(failAt?: string) {
           metrics: e.metrics ?? prev[e.nodeId]?.metrics,
         },
       }))
+
+      if (e.result) setResult(e.result)
+      if (e.status === 'error') setError(e.message ?? 'training request failed')
 
       if (e.message) {
         setLogs((prev) => [
@@ -102,6 +116,10 @@ export function usePipeline(failAt?: string) {
   const start = useCallback(() => {
     startedAt.current = Date.now()
     setElapsed(0)
+    setError(null)
+    setResult(null)
+    setNodeStates(initialStates())
+    setLogs([])
     setPhase('running')
     runner.start()
   }, [runner])
@@ -116,9 +134,11 @@ export function usePipeline(failAt?: string) {
     setNodeStates(initialStates())
     setLogs([])
     setElapsed(0)
+    setResult(null)
+    setError(null)
     startedAt.current = null
     setPhase('idle')
   }, [runner])
 
-  return { nodeStates, logs, phase, elapsed, start, stop, reset }
+  return { nodeStates, logs, phase, elapsed, result, error, start, stop, reset }
 }

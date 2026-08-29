@@ -1,0 +1,118 @@
+{
+  "model_id": "parkinsons-voice-risk-tabular",
+  "condition_id": "neuro.parkinsons.prodromal",
+  "version": "0.1.0",
+  "display_name": "Parkinson's voice-based risk (tabular, research)",
+  "task_type": "binary_classification",
+  "availability": "available",
+  "lifecycle": "experimental",
+  "executor": "tabular_qml",
+  "input_contract": {
+    "required_modalities": ["structured_clinical"],
+    "optional_modalities": [],
+    "required_fields": ["MDVP:Fo(Hz)", "MDVP:Fhi(Hz)", "MDVP:Flo(Hz)", "MDVP:Jitter(%)", "MDVP:Jitter(Abs)", "MDVP:RAP", "MDVP:PPQ", "Jitter:DDP", "MDVP:Shimmer", "MDVP:Shimmer(dB)", "Shimmer:APQ3", "Shimmer:APQ5", "MDVP:APQ", "Shimmer:DDA", "NHR", "HNR", "RPDE", "DFA", "spread1", "spread2", "D2", "PPE"],
+    "min_rows": 1,
+    "population": "Adults from the UCI Parkinson's voice dataset (32 subjects, mixed diagnosed-Parkinson's and healthy controls), sustained phonation recordings. Not a prodromal or PPMI-style at-risk cohort.",
+    "population_filters": {},
+    "quality_constraints": {}
+  },
+  "dataset_profile_path": "backend/profiles/p6_parkinsons_clinical.json",
+  "temporal_validation": "not applicable — cross-sectional voice recordings, no index or outcome time",
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "quantum": {
+    "framework": "qiskit",
+    "encoding": "ZZFeatureMap",
+    "ansatz": null,
+    "circuit_version": "qiskit-2.5/zzfeaturemap-reps2",
+    "backend_mode": "statevector",
+    "n_qubits": 4,
+    "shots": 512
+  },
+  "classical_baseline_model_id": "parkinsons-voice-risk-tabular-classical",
+  "artifact": {
+    "kind": "saved_model_artifact",
+    "path": "runtime/models/parkinsons-voice-risk-tabular.joblib",
+    "manifest_path": "runtime/models/parkinsons-voice-risk-tabular.manifest.json",
+    "sha256": null,
+    "schema_version": 4
+  },
+  "calibration": {
+    "method": "validation_sigmoid",
+    "status": "not_assessed",
+    "note": "Production-rigor nested group-aware evaluation (repeats=10, outer_repeats=5, inner_repeats=2, bootstrap_samples=1000) ran 2026-08-29: QSVC balanced accuracy 0.539 vs classical (HistGB) 0.734; real-gain gate FAILED."
+  },
+  "explainability": {
+    "method": "input_sensitivity",
+    "scope": "per_row",
+    "surrogate": false
+  },
+  "output_score_type": "calibrated_probability",
+  "evaluation_record_ids": ["eval-parkinsons-voice-risk-tabular-0.1.0"],
+  "safety": {
+    "allows_negative_finding": true,
+    "abstain_margin": 0.05,
+    "requires_full_coverage": true,
+    "disclaimer": "Research voice-based classification estimate, not a prodromal Parkinson's risk prediction and not a diagnosis.",
+    "limitations": [
+      "This is a diagnosed-Parkinson's-vs-healthy voice classifier, NOT a prodromal/at-risk progression model as the spec's P6 task (PPMI-style prodromal risk) calls for — this dataset has no prodromal or longitudinal labels.",
+      "Only 32 subjects total (147/195 recordings from Parkinson's subjects, 48/195 from healthy controls) — extremely small cohort; point-estimate metrics have very wide uncertainty.",
+      "An early single-split check briefly showed QSVC edging out the classical baseline; the full nested group-aware paired evaluation below supersedes that as noise from only 32 subject-groups, not a real effect.",
+      "No biomarker-supported evaluation set or approved label policy exists yet — per FR-033 this MUST remain research-only and MUST NOT be described as diagnostic.",
+      "No external cohort or site-held-out validation was possible.",
+      "Nested group-aware paired evaluation (2026-08-29): QSVC balanced accuracy 0.514 vs classical baseline 0.767 — real-gain gate FAILED."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Research benchmarking of a hybrid quantum-classical classifier against tuned classical baselines on voice-derived features from a diagnosed-Parkinson's vs healthy cohort.",
+    "excluded_use": "Any clinical use. Parkinson's disease diagnosis or prodromal risk prediction. Any use as evidence that a patient does or does not have Parkinson's disease.",
+    "training_population": "195 rows (sustained phonation voice recordings from 32 subjects: 147 recordings from Parkinson's subjects, 48 from healthy controls), with repeated measurements per subject. 147 positive (75.4%, Parkinson's status = 1).",
+    "evaluation_population": "Stratified group-based holdout (by subject) of the same UCI table. No external cohort.",
+    "label_policy": "Binary 'status' column as supplied, positive_label='1' (Parkinson's diagnosis). Derived from subject-level clinical diagnosis, not longitudinal progression.",
+    "data_sources": [
+      {"label": "UCI Parkinson's voice dataset (via Kaggle elnazalikarami/uci-ml-parkinsons-dataset)", "url": "https://www.kaggle.com/datasets/elnazalikarami/uci-ml-parkinsons-dataset", "citation": "Little, M.A. et al. Suitability of dysphonia measurements for telemonitoring of Parkinson's disease. IEEE Trans Biomed Eng, 2009."}
+    ],
+    "data_licenses": ["CC BY 4.0 — verified, permissive with attribution"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "input_sensitivity over the 4 ANOVA-selected raw features",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "training/evaluation engine",
+        "decision": "adapted",
+        "source_url": null,
+        "release_or_commit": "quantum-health 0.1.0 (in-repo)",
+        "paper_citation": null,
+        "license": "in-repo, license field not yet declared",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "numeric CSV columns, or text columns auto one-hot encoded",
+        "io_contract": "LoadedDataset -> run_repeated_experiment result dict",
+        "local_modifications": "see P0 platform reuse record"
+      },
+      {
+        "component": "source dataset",
+        "decision": "reused",
+        "source_url": "https://www.kaggle.com/datasets/elnazalikarami/uci-ml-parkinsons-dataset",
+        "release_or_commit": "downloaded 2026-08-29",
+        "paper_citation": null,
+        "license": "CC BY 4.0",
+        "license_verified": true,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "one row per voice recording (195 recordings from 32 subjects); group-based split prevents same-subject leakage",
+        "io_contract": "24-column CSV (22 voice features + status + subject); subject column used for group-based train-test split",
+        "local_modifications": "none to source values"
+      }
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P6-parkinsons-reuse-record.md"
+  }
+}

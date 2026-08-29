@@ -1,0 +1,18 @@
+{
+  "name": "p5_alzheimers_clinical",
+  "dataset_path": "../data/p5_alzheimers_clinical/oasis_cross_sectional_labeled.csv",
+  "target_column": "dementia",
+  "positive_label": "1",
+  "id_column": "ID",
+  "group_column": null,
+  "index_time_column": null,
+  "outcome_time_column": null,
+  "site_column": null,
+  "horizon_days": null,
+  "outcome_definition": "Binary dementia status derived from Clinical Dementia Rating (CDR > 0) at the single cross-sectional visit. This is a same-visit association/screening-proxy label, not a longitudinal MCI-to-AD progression prediction as the spec's P5 task calls for — the OASIS-1 cross-sectional release only has one scan per subject, so no progression horizon can be defined from it alone. Research-only, per spec FR-033.",
+  "leakage_columns": ["CDR"],
+  "subgroup_columns": [],
+  "modality": "tabular",
+  "reduction": "anova",
+  "task_type": "early_detection"
+}

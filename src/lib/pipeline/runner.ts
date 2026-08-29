@@ -1,4 +1,5 @@
 import { PIPELINE_NODES } from './graph'
+import { trainModel, type QmlMetricKey, type QmlResult, type TrainRequest } from '../qmlApi'
 import type { PipelineEvent, PipelineNodeSpec } from './types'
 
 export interface PipelineRunner {
@@ -6,6 +7,176 @@ export interface PipelineRunner {
   start(): void
   stop(): void
   reset(): void
+}
+
+function metric(result: QmlResult, modelName: string | undefined, key: QmlMetricKey) {
+  const value = modelName ? result.models?.[modelName]?.metrics?.[key] : undefined
+  return typeof value === 'number' ? value : null
+}
+
+function firstModel(result: QmlResult, quantum: boolean) {
+  return Object.entries(result.models ?? {}).find(([, model]) =>
+    quantum ? model.feature_space === 'quantum' : model.feature_space === 'classical',
+  )?.[0]
+}
+
+function liveStageMetrics(result: QmlResult, nodeId: string): Record<string, number | string> {
+  const dataset = result.dataset ?? {}
+  const preprocessing = result.preprocessing ?? {}
+  const execution = result.execution ?? {}
+  const classical = firstModel(result, false)
+  const quantum = firstModel(result, true)
+  const models = Object.keys(result.models ?? {})
+
+  switch (nodeId) {
+    case 'ingest':
+      return {
+        rows: dataset.rows ?? 0,
+        columns: dataset.features ?? 0,
+        positive: dataset.positive_label ?? 'configured target',
+      }
+    case 'clean':
+      return { imputation: 'training median', standardisation: 'training split only' }
+    case 'features':
+      return {
+        selected: preprocessing.selected_features?.length ?? 0,
+        reduction: preprocessing.reduction ?? execution.reduction ?? 'anova',
+        qubits: preprocessing.qubits ?? 0,
+      }
+    case 'baseline':
+      return {
+        model: classical ?? 'not requested',
+        balanced_accuracy: metric(result, classical, 'balanced_accuracy') ?? 'n/a',
+      }
+    case 'classical-infer':
+      return {
+        model: classical ?? 'not requested',
+        rows: result.models?.[classical ?? '']?.resource?.test_rows ?? 0,
+      }
+    case 'encode':
+      return {
+        backend: execution.resolved_backend ?? execution.backend_mode ?? 'local',
+        qubits: preprocessing.qubits ?? 0,
+      }
+    case 'vqc':
+      return {
+        model: quantum ?? 'not requested',
+        balanced_accuracy: metric(result, quantum, 'balanced_accuracy') ?? 'n/a',
+      }
+    case 'measure':
+      return {
+        backend: execution.resolved_backend ?? execution.backend_mode ?? 'local',
+        shots: execution.shots ?? 0,
+      }
+    case 'benchmark': {
+      const classicalScore = metric(result, classical, 'balanced_accuracy')
+      const quantumScore = metric(result, quantum, 'balanced_accuracy')
+      return {
+        models: models.length,
+        balanced_delta:
+          classicalScore !== null && quantumScore !== null
+            ? Number((quantumScore - classicalScore).toFixed(4))
+            : 'n/a',
+      }
+    }
+    case 'explain':
+      return { status: 'available on prediction request' }
+    case 'results':
+      return { models: models.length, dataset: dataset.name ?? 'configured dataset' }
+    default:
+      return {}
+  }
+}
+
+/**
+ * Runs the actual local QML service while preserving Neutral's pipeline graph.
+ * The server returns one sealed result because the Python experiment is a
+ * synchronous job; stage cards are marked complete only after that result has
+ * been produced.
+ */
+export function createApiRunner(
+  request: TrainRequest,
+  onResult: (result: QmlResult) => void,
+): PipelineRunner {
+  let subscribers: ((e: PipelineEvent) => void)[] = []
+  let controller: AbortController | null = null
+  let running = false
+
+  function emit(event: Omit<PipelineEvent, 'timestamp'>) {
+    const next: PipelineEvent = { ...event, timestamp: Date.now() }
+    for (const subscriber of subscribers) subscriber(next)
+  }
+
+  function publishResult(result: QmlResult) {
+    for (const spec of PIPELINE_NODES) {
+      emit({
+        nodeId: spec.id,
+        status: 'done',
+        progress: 1,
+        message: `server completed ${spec.label.toLowerCase()}`,
+        metrics: liveStageMetrics(result, spec.id),
+        ...(spec.id === 'results' ? { result } : {}),
+      })
+    }
+    onResult(result)
+  }
+
+  async function run() {
+    try {
+      const result = await trainModel(request, controller?.signal)
+      if (!running) return
+      publishResult(result)
+    } catch (error) {
+      if (!running || (error instanceof DOMException && error.name === 'AbortError')) return
+      const message = error instanceof Error ? error.message : 'training request failed'
+      emit({ nodeId: 'ingest', status: 'error', progress: 1, message })
+      for (const spec of PIPELINE_NODES.slice(1)) {
+        emit({
+          nodeId: spec.id,
+          status: 'queued',
+          progress: 0,
+          message: 'blocked by training error',
+        })
+      }
+    } finally {
+      running = false
+      controller = null
+    }
+  }
+
+  return {
+    subscribe(callback) {
+      subscribers.push(callback)
+      return () => {
+        subscribers = subscribers.filter((subscriber) => subscriber !== callback)
+      }
+    },
+    start() {
+      if (running) return
+      running = true
+      controller = new AbortController()
+      emit({
+        nodeId: 'ingest',
+        status: 'running',
+        progress: 0,
+        message: 'training request sent to local QML service',
+      })
+      void run()
+    },
+    stop() {
+      running = false
+      controller?.abort()
+      controller = null
+    },
+    reset() {
+      running = false
+      controller?.abort()
+      controller = null
+      for (const spec of PIPELINE_NODES) {
+        emit({ nodeId: spec.id, status: 'idle', progress: 0 })
+      }
+    },
+  }
 }
 
 export type MockRunnerOptions = {

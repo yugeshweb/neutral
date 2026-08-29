@@ -1,0 +1,26 @@
+{
+  "condition_id": "neuro.stroke.ischemic.acute",
+  "name": "Acute ischemic stroke",
+  "domain": "neurological",
+  "priority": "P1",
+  "task_type": "segmentation",
+  "readiness_tier": "high_reference",
+  "reference_label_tier": "high",
+  "target_definition": "Acute ischemic lesion / infarct core at presentation, referenced against expert lesion annotation and/or follow-up diffusion MRI.",
+  "population": "Adults presenting with suspected acute ischemic stroke.",
+  "required_modalities": ["imaging"],
+  "optional_modalities": ["structured_clinical"],
+  "expected_output": "Case-level risk, lesion mask/regions, and an infarct-core volume estimate.",
+  "reference_datasets": [
+    {"label": "ISLES'24", "url": "https://pubs.rsna.org/doi/full/10.1148/ryai.250603", "citation": "ISLES'24 multimodal stroke lesion segmentation benchmark, Radiology: Artificial Intelligence, 2025"}
+  ],
+  "evidence_links": [
+    {"label": "DeepISLES", "url": "https://github.com/ezequieldlrosa/DeepIsles", "citation": null},
+    {"label": "DeepISLES paper", "url": "https://www.nature.com/articles/s41467-025-62373-x", "citation": "Nature Communications, 2025"}
+  ],
+  "limitations": [
+    "Acute recognition task, not a diagnosis.",
+    "A follow-up-DWI reference standard measures final infarct rather than the acute core at presentation.",
+    "No imaging model artifact is registered on this platform yet; see the model entries."
+  ]
+}

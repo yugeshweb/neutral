@@ -1,0 +1,124 @@
+{
+  "model_id": "seizure-onset-eeg",
+  "condition_id": "neuro.seizure.eeg",
+  "version": "0.0.0",
+  "display_name": "Seizure activity and onset detection (planned)",
+  "task_type": "event_detection",
+  "availability": "not available",
+  "lifecycle": "experimental",
+  "executor": "none",
+  "input_contract": {
+    "required_modalities": ["signal"],
+    "optional_modalities": [{"modality": "structured_clinical", "trained_for_absence": true}],
+    "required_fields": [],
+    "min_rows": 1,
+    "population": "Patients with continuous EEG recordings and expert-annotated seizure events.",
+    "population_filters": {},
+    "quality_constraints": {
+      "signal": "Continuous EEG with standard electrode placement and sampling rate >= 100 Hz."
+    }
+  },
+  "dataset_profile_path": null,
+  "temporal_validation": "n/a",
+  "preprocessing": {
+    "imputation": "none",
+    "scaling": "none",
+    "reduction": "none",
+    "n_components": null,
+    "angle_scaling": null,
+    "fitted_on": "n/a"
+  },
+  "quantum": null,
+  "classical_baseline_model_id": null,
+  "artifact": {
+    "kind": "none",
+    "path": null,
+    "manifest_path": null,
+    "sha256": null,
+    "schema_version": null
+  },
+  "calibration": {
+    "method": "none",
+    "status": "not_assessed",
+    "note": "No artifact."
+  },
+  "explainability": {
+    "method": "planned:signal_interval",
+    "scope": "region",
+    "surrogate": false
+  },
+  "output_score_type": "intervals",
+  "evaluation_record_ids": [],
+  "safety": {
+    "allows_negative_finding": false,
+    "abstain_margin": null,
+    "requires_full_coverage": true,
+    "disclaimer": "No model artifact is registered. This entry exists to show the coverage gap and must never produce a finding.",
+    "limitations": [
+      "DEFERRED. Blocked on EEG processing pipeline development and benchmark dataset access.",
+      "Planned reused implementation: MNE-Python for EEG I/O and signal processing, Braindecode for deep learning models, EEGNet reference architecture.",
+      "License status of CHB-MIT dataset and EEGNet implementations is unverified.",
+      "Output is seizure activity detection, not an epilepsy diagnosis."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Planned: seizure activity and onset detection from continuous EEG recordings.",
+    "excluded_use": "Everything, currently. No artifact exists.",
+    "training_population": "Planned: CHB-MIT EEG Database with expert-annotated seizure events.",
+    "evaluation_population": "Planned: CHB-MIT held-out evaluation set.",
+    "label_policy": "Expert neurophysiologist-annotated seizure onset and end times.",
+    "data_sources": [
+      {"label": "CHB-MIT EEG Database", "url": "https://physionet.org/content/chbmit/1.0.0/", "citation": "PhysioNet"}
+    ],
+    "data_licenses": ["PhysioNet license — open access"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "planned: seizure interval localization and confidence scoring",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "EEG signal processing",
+        "decision": "reused",
+        "source_url": "https://github.com/mne-tools/mne-python",
+        "release_or_commit": null,
+        "paper_citation": null,
+        "license": "BSD-3-Clause (verified)",
+        "license_verified": true,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "Continuous EEG, >= 100 Hz sampling rate, standard electrode placement",
+        "io_contract": "EDF/MEF -> preprocessed signal matrix",
+        "local_modifications": "none — not yet integrated"
+      },
+      {
+        "component": "deep learning for EEG",
+        "decision": "reused",
+        "source_url": "https://github.com/braindecode/braindecode",
+        "release_or_commit": null,
+        "paper_citation": null,
+        "license": "BSD-3-Clause (unverified)",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "Preprocessed EEG signal matrix",
+        "io_contract": "signal matrix -> seizure event predictions",
+        "local_modifications": "none — not yet integrated"
+      },
+      {
+        "component": "EEGNet reference",
+        "decision": "reproduced",
+        "source_url": "https://github.com/vlawhern/arl-eegmodels",
+        "release_or_commit": null,
+        "paper_citation": "Vernon et al., IEEE Transactions on Biomedical Engineering 2018",
+        "license": "Unlicense (unverified)",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "Preprocessed EEG, variable-length epochs",
+        "io_contract": "signal epochs -> classification output",
+        "local_modifications": "none — not yet integrated"
+      }
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P1-stroke-reuse-record.md"
+  }
+}

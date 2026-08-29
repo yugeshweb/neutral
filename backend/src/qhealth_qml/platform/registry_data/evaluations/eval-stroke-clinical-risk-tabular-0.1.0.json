@@ -1,0 +1,230 @@
+{
+  "evaluation_id": "eval-stroke-clinical-risk-tabular-0.1.0",
+  "model_id": "stroke-clinical-risk-tabular",
+  "model_version": "0.1.0",
+  "condition_id": "neuro.stroke.ischemic.acute",
+  "created_at": "2026-08-29T01:53:51.547050+00:00",
+  "dataset_profile": {
+    "name": "p1_stroke_clinical",
+    "dataset_path": "../data/p1_stroke_clinical/healthcare-dataset-stroke-data.csv",
+    "target_column": "stroke",
+    "positive_label": "1",
+    "group_column": null,
+    "index_time_column": null,
+    "outcome_time_column": null,
+    "site_column": null,
+    "id_column": "id",
+    "horizon_days": null,
+    "outcome_definition": "Recorded stroke status in the source table. The source does not document whether this is a prevalent history or an incident event, and no index or outcome time is available, so no prediction horizon can be defined. Treat as an associative risk-factor model, not early detection.",
+    "leakage_columns": [],
+    "subgroup_columns": [],
+    "modality": "tabular",
+    "reduction": "anova",
+    "task_type": "early_detection"
+  },
+  "dataset_fingerprint": "153c983b90331a1a7840b308db8f12f64ba8be9c81bcaba3f8492aa5ceef46cd",
+  "split_strategy": "stratified_random",
+  "split_summary": {
+    "train_rows": 960,
+    "validation_rows": 240,
+    "test_rows": 400,
+    "repeats": 10
+  },
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "leakage_checks": [
+    {
+      "name": "subject_identity",
+      "status": "not_applicable",
+      "detail": "No group column declared; subject-level structure is not verified by the engine and must be confirmed from the model's reuse record."
+    },
+    {
+      "name": "repeated_acquisition",
+      "status": "not_applicable",
+      "detail": "No repeated-visit grouping declared for this dataset."
+    },
+    {
+      "name": "site_grouping",
+      "status": "not_applicable",
+      "detail": "No site column exists in this dataset; site-held-out validation was not possible."
+    },
+    {
+      "name": "training_only_preprocessing",
+      "status": "passed",
+      "detail": "Imputation, scaling, and feature selection are fitted on the training partition only (engine-enforced)."
+    }
+  ],
+  "metrics": {
+    "accuracy": 0.47800000000000004,
+    "balanced_accuracy": 0.5736842105263158,
+    "sensitivity": 0.6799999999999999,
+    "specificity": 0.46736842105263143,
+    "precision": 0.07047453379761012,
+    "negative_predictive_value": 0.9599274747249587,
+    "f1": 0.12576009596006385,
+    "roc_auc": 0.6341578947368421,
+    "pr_auc": 0.12056323898236847,
+    "brier_score": 0.04704044516078706,
+    "expected_calibration_error": 0.004345566889526069,
+    "coverage": 1.0
+  },
+  "segmentation_metrics": {},
+  "event_metrics": {},
+  "calibration": {
+    "calibration_curve": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "count": 395,
+        "mean_predicted": 0.04820596883376007,
+        "observed_frequency": 0.04556962025316456
+      },
+      {
+        "lower": 0.1,
+        "upper": 0.2,
+        "count": 4,
+        "mean_predicted": 0.1344927608665323,
+        "observed_frequency": 0.25
+      },
+      {
+        "lower": 0.2,
+        "upper": 0.30000000000000004,
+        "count": 1,
+        "mean_predicted": 0.2468886356603616,
+        "observed_frequency": 1.0
+      }
+    ],
+    "engine_calibration": {
+      "requested": false,
+      "enabled": true,
+      "automatic": true,
+      "automatic_reason": "threshold or abstention policy requires probabilities",
+      "method": "sigmoid calibration",
+      "folds": 3,
+      "per_model": {
+        "qsvc": "3-fold training cross-validation"
+      }
+    }
+  },
+  "abstention": {
+    "enabled": false,
+    "margin": null,
+    "rule": null,
+    "total_rows": 400,
+    "abstained_rows": 0,
+    "evaluated_rows": 400,
+    "coverage": 1.0
+  },
+  "resource": {
+    "wall_seconds": 0.0,
+    "training_rows": 960,
+    "test_rows": 400,
+    "feature_count": 4,
+    "qubits": 4,
+    "shots": 512,
+    "backend": "statevector",
+    "estimated_kernel_pairs": null
+  },
+  "confidence_intervals": {
+    "accuracy": {
+      "lower": 0.66,
+      "upper": 0.75,
+      "n": 1000
+    },
+    "balanced_accuracy": {
+      "lower": 0.48940134426976534,
+      "upper": 0.7188301182791581,
+      "n": 1000
+    },
+    "sensitivity": {
+      "lower": 0.26666666666666666,
+      "upper": 0.7200555555555554,
+      "n": 1000
+    },
+    "specificity": {
+      "lower": 0.6693537719747397,
+      "upper": 0.7620320855614974,
+      "n": 1000
+    },
+    "precision": {
+      "lower": 0.037020202020202016,
+      "upper": 0.13636363636363635,
+      "n": 1000
+    },
+    "negative_predictive_value": {
+      "lower": 0.9419754886751474,
+      "upper": 0.9832789855072464,
+      "n": 1000
+    },
+    "f1": {
+      "lower": 0.0666260162601626,
+      "upper": 0.22517022665796105,
+      "n": 1000
+    },
+    "roc_auc": {
+      "lower": 0.4388156334880045,
+      "upper": 0.7530261750633267,
+      "n": 1000
+    },
+    "pr_auc": {
+      "lower": 0.05480770456301427,
+      "upper": 0.3418993291120648,
+      "n": 1000
+    },
+    "brier_score": {
+      "lower": 0.0287965977822152,
+      "upper": 0.06680734750982217,
+      "n": 1000
+    },
+    "expected_calibration_error": {
+      "lower": 0.0021518488902355372,
+      "upper": 0.027559524231421946,
+      "n": 1000
+    }
+  },
+  "baseline_model_id": "stroke-clinical-risk-tabular-classical",
+  "baseline_metrics": {
+    "accuracy": 0.46624999999999994,
+    "balanced_accuracy": 0.5722368421052632,
+    "sensitivity": 0.69,
+    "specificity": 0.4544736842105263,
+    "precision": 0.07064850117890527,
+    "negative_predictive_value": 0.939553430760934,
+    "f1": 0.12657744982539226,
+    "roc_auc": 0.5937236842105263,
+    "pr_auc": 0.10499401650154135,
+    "brier_score": 0.046847275810764394,
+    "expected_calibration_error": 0.003164987699886283,
+    "coverage": 1.0
+  },
+  "paired_comparison": {
+    "reference_model": "rbf_svc",
+    "metric": "balanced_accuracy",
+    "delta": {
+      "mean": 0.0,
+      "std": 0.0,
+      "lower": 0.0,
+      "upper": 0.0,
+      "n": 5
+    }
+  },
+  "real_gain_decision": "failed",
+  "real_gain_reason": "Paired 95% CI on balanced-accuracy delta vs rbf_svc is [0.0000, 0.0000], not excluding zero (or negative). The classical reference remains the operational baseline.",
+  "software": {
+    "python": "3.13.9",
+    "numpy": "2.5.2",
+    "scikit-learn": "1.9.0",
+    "qiskit": "2.5.2",
+    "qiskit-aer": "0.17.2",
+    "qiskit-machine-learning": "0.9.1",
+    "qiskit-algorithms": "0.4.0",
+    "qiskit-ibm-runtime": "not-installed"
+  },
+  "source_result_path": "runtime/models/stroke-clinical-risk-tabular.result.json"
+}
