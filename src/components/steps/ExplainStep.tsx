@@ -22,13 +22,15 @@ import { LiveChip, Panel, SectionLabel, Well } from '../ui'
 
 type Props = {
   result: RunResult | null
+  /** a run is already in flight - offer "go watch it" instead of starting a second one */
+  running?: boolean
   /** jumps to Train and starts a run with the current config - offered when there is nothing to show yet */
   onStartTraining?: () => void
 }
 
 const BAND_COLOR = { low: '#5FA88C', moderate: '#C08A3E', high: '#A3543D' }
 
-export function ExplainStep({ result, onStartTraining }: Props) {
+export function ExplainStep({ result, running, onStartTraining }: Props) {
   const [patientIdx, setPatientIdx] = useState(0)
 
   const analysis = useMemo(() => {
@@ -109,12 +111,13 @@ export function ExplainStep({ result, onStartTraining }: Props) {
       <Panel>
         <div className="grid place-items-center gap-3 py-14 text-center">
           <p className="font-mono text-[11px] text-ink-faint">
-            No model to explain yet - train it first, then come back here to see what
-            drove each prediction.
+            {running
+              ? 'Training is running now - come back here once it finishes.'
+              : 'No model to explain yet - train it first, then come back here to see what drove each prediction.'}
           </p>
           {onStartTraining && (
             <PushButton
-              label="Train now"
+              label={running ? 'Go to Train' : 'Train now'}
               icon={<IconPlay className="h-3.5 w-3.5" />}
               onClick={onStartTraining}
               tone="primary"

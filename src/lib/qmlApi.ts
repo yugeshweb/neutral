@@ -221,14 +221,26 @@ const configured = import.meta.env.VITE_QML_API_URL
 const API_ROOT = (configured === undefined ? DEFAULT_API_ROOT : configured).replace(/\/$/, '')
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_ROOT}${path}`, {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-      ...init?.headers,
-    },
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_ROOT}${path}`, {
+      ...init,
+      headers: {
+        Accept: 'application/json',
+        ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+        ...init?.headers,
+      },
+    })
+  } catch {
+    // fetch() itself throws on a refused/unreachable connection, before any
+    // response exists - a bare "Failed to fetch" tells the reader nothing
+    // actionable, so name the actual dependency instead.
+    throw new Error(
+      `could not reach the backend at ${API_ROOT || '(same origin)'} - start it with ` +
+        `"python start_api.py 8765" from the backend directory`,
+    )
+  }
+
   const payload = (await response.json().catch(() => ({}))) as T & { error?: string }
   if (!response.ok) {
     throw new Error(payload.error ?? `QML API returned ${response.status}`)

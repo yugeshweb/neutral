@@ -11,6 +11,8 @@ import { LiveChip, Panel, SectionLabel } from '../ui'
 
 type Props = {
   result: RunResult | null
+  /** a run is already in flight - offer "go watch it" instead of starting a second one */
+  running?: boolean
   /** jumps to Train and starts a run with the current config - offered when there is nothing to show yet */
   onStartTraining?: () => void
 }
@@ -82,18 +84,19 @@ function ConfusionGrid({
   )
 }
 
-export function ResultsStep({ result, onStartTraining }: Props) {
+export function ResultsStep({ result, running, onStartTraining }: Props) {
   if (!result) {
     return (
       <Panel>
         <div className="grid place-items-center gap-3 py-14 text-center">
           <p className="font-mono text-[11px] text-ink-faint">
-            No results yet - train the model first, then come back here to compare it
-            against the classical baselines.
+            {running
+              ? 'Training is running now - come back here once it finishes.'
+              : 'No results yet - train the model first, then come back here to compare it against the classical baselines.'}
           </p>
           {onStartTraining && (
             <PushButton
-              label="Train now"
+              label={running ? 'Go to Train' : 'Train now'}
               icon={<IconPlay className="h-3.5 w-3.5" />}
               onClick={onStartTraining}
               tone="primary"

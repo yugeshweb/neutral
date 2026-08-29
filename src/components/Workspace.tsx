@@ -66,9 +66,13 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
   // Offered on Results/Explain when there is no run yet - landing there
   // directly (e.g. from the Predict or Compare launch cards) must not strand
   // the user on an empty screen with no visible way to produce something.
+  // Guarded against a run already in flight: the stepper allows sitting on
+  // Results/Explain mid-run (they are blocked only by the absence of a
+  // result, not by run.phase), so this button is reachable while training is
+  // already running and must not start a second one on top of it.
   const startTrainingFromHere = () => {
     setStep('train')
-    run.start()
+    if (!locked) run.start()
   }
 
   return (
@@ -134,10 +138,18 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
           />
         )}
         {step === 'results' && (
-          <ResultsStep result={run.result} onStartTraining={startTrainingFromHere} />
+          <ResultsStep
+            result={run.result}
+            running={locked}
+            onStartTraining={startTrainingFromHere}
+          />
         )}
         {step === 'explain' && (
-          <ExplainStep result={run.result} onStartTraining={startTrainingFromHere} />
+          <ExplainStep
+            result={run.result}
+            running={locked}
+            onStartTraining={startTrainingFromHere}
+          />
         )}
       </div>
 
