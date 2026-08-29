@@ -1,5 +1,6 @@
 import { IMAGE_TYPES, loadImage, parseCsv } from '../dataset'
 import { fhirAdapter } from './fhir'
+import { hl7Adapter } from './hl7'
 import {
   NotImplementedError,
   type IngestAdapter,
@@ -10,6 +11,7 @@ import {
 
 export * from './types'
 export { parseFhirBundle } from './fhir'
+export { parseHl7Feed } from './hl7'
 
 /** Numeric-looking columns are the ones the model can actually consume. */
 function inferSchema(headers: string[], preview: string[][]): SchemaField[] {
@@ -48,23 +50,6 @@ const csvAdapter: IngestAdapter = {
         'column types inferred from the first rows',
       ],
     }
-  },
-}
-
-const hl7Adapter: IngestAdapter = {
-  format: 'hl7v2',
-  label: 'HL7 v2 message feed',
-  system: 'EHR / EMR',
-  extensions: ['.hl7', '.txt'],
-  status: 'not-implemented',
-  description:
-    'The older pipe-delimited feed, still the most widely deployed interface in hospitals. Segments carry the data; OBX fields hold observation values.',
-  vocabularies: ['LOINC'],
-  async parse() {
-    throw new NotImplementedError(
-      'hl7v2',
-      'A segment parser (MSH/PID/OBR/OBX), mapping OBX-3 identifiers to columns and OBX-5 to values, with repeating-field and escape-sequence handling.',
-    )
   },
 }
 

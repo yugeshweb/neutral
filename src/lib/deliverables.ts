@@ -41,7 +41,7 @@ export const DELIVERABLES: Deliverable[] = [
     requirement: 'Data ingestion and handling pipelines',
     section: 'Train',
     delivered:
-      'An adapter layer over five hospital source formats, all converging on one numeric matrix. CSV and FHIR R4 are fully implemented; HL7 v2, DICOM and VCF are declared and throw a stated NotImplementedError.',
+      'An adapter layer over five hospital source formats, all converging on one numeric matrix. CSV, FHIR R4 and HL7 v2 are fully implemented; DICOM and VCF are declared and throw a stated NotImplementedError.',
     module: 'src/lib/ingest/',
     status: 'partial',
   },
@@ -50,8 +50,8 @@ export const DELIVERABLES: Deliverable[] = [
     requirement: 'Ingest real hospital data, not just CSV exports',
     section: 'Train',
     delivered:
-      'FHIR R4 Bundle adapter walks the entry list, groups by Patient reference, reads Observation values by LOINC code and derives the label from Condition ICD-10 codes. Verified on a 60-patient, 602-entry sample bundle.',
-    module: 'src/lib/ingest/fhir.ts',
+      'FHIR R4 Bundle adapter walks the entry list, groups by Patient reference, reads Observation values by LOINC code and derives the label from Condition ICD-10 codes. Verified on a 60-patient, 602-entry sample bundle. An HL7 v2 adapter splits a pipe-delimited feed into ORU messages, groups by PID-3, and reads OBX-3/OBX-5 as LOINC-coded observations - the older interface still most widely deployed in hospitals.',
+    module: 'src/lib/ingest/fhir.ts, src/lib/ingest/hl7.ts',
     status: 'live',
   },
   {
