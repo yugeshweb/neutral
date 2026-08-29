@@ -52,7 +52,9 @@ export function FeaturesStep({ config, patch, locked }: Props) {
     <div className="grid grid-cols-[330px_1fr] gap-4">
       <div className="space-y-4">
         <Panel>
-          <SectionLabel>selection method</SectionLabel>
+          <SectionLabel hint={{ term: config.selection, body: METHOD_HELP[config.selection] }}>
+            selection method
+          </SectionLabel>
           <div className="mt-2.5 grid grid-cols-2 gap-1.5">
             {(['mutual-info', 'anova', 'pca', 'rfe'] as const).map((m) => (
               <button
@@ -77,9 +79,6 @@ export function FeaturesStep({ config, patch, locked }: Props) {
               </button>
             ))}
           </div>
-          <p className="mt-2 font-mono text-[9px] leading-relaxed text-ink-faint/85">
-            {METHOD_HELP[config.selection]}
-          </p>
         </Panel>
 
         {/* the qubit link - the whole point of this screen */}

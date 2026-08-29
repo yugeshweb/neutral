@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { LANE_COLOR, alpha } from '../lib/theme'
+import { Tooltip } from './Tooltip'
 
 /** Shared surfaces, so every step screen shares one recipe. */
 
@@ -28,10 +29,32 @@ export function Panel({
   )
 }
 
-export function SectionLabel({ children }: { children: ReactNode }) {
+/**
+ * A panel's heading. `hint` moves the explanatory paragraph that used to sit
+ * under every control into a (?) the reader opens on demand - the control
+ * stays the thing on screen, not the essay about it.
+ */
+export function SectionLabel({
+  children,
+  hint,
+}: {
+  children: ReactNode
+  hint?: { term: string; body: string }
+}) {
   return (
-    <h3 className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+    <h3 className="flex items-center gap-1.5 font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
       {children}
+      {hint && (
+        <Tooltip term={hint.term} body={hint.body}>
+          <span
+            className="grid h-[13px] w-[13px] shrink-0 place-items-center rounded-full text-[8px] font-normal normal-case tracking-normal"
+            style={{ background: 'rgba(255,255,255,0.06)', color: '#6A6C72' }}
+            aria-label={`About ${hint.term}`}
+          >
+            ?
+          </span>
+        </Tooltip>
+      )}
     </h3>
   )
 }

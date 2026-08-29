@@ -66,28 +66,11 @@ export function ModelStep({ config, patch, locked }: Props) {
     <div className="grid grid-cols-[330px_1fr] gap-4">
       <div className="space-y-4">
         <Panel>
-          <SectionLabel>model type</SectionLabel>
-          <div className="mt-2.5">
-            <Segmented
-              ariaLabel="Model type"
-              disabled={locked}
-              value="vqc"
-              onChange={() => {}}
-              options={[
-                { value: 'vqc', label: 'VQC', title: 'Variational Quantum Classifier' },
-                { value: 'qnn', label: 'QNN', title: 'Not implemented in this build' },
-                { value: 'qsvm', label: 'QSVM', title: 'Not implemented in this build' },
-              ]}
-            />
-          </div>
-          <p className="mt-2 font-mono text-[9px] leading-relaxed text-ink-faint/85">
-            Only the VQC is implemented. QNN and QSVM are declared but not built — the
-            delivery table records that honestly rather than hiding it.
-          </p>
-        </Panel>
-
-        <Panel>
-          <SectionLabel>feature map</SectionLabel>
+          <SectionLabel
+            hint={{ term: config.vqc.featureMap, body: FEATURE_MAP_HELP[config.vqc.featureMap] }}
+          >
+            feature map
+          </SectionLabel>
           <div className="mt-2.5">
             <Segmented
               ariaLabel="Feature map"
@@ -101,29 +84,24 @@ export function ModelStep({ config, patch, locked }: Props) {
               ]}
             />
           </div>
-          <p className="mt-2 font-mono text-[9px] leading-relaxed text-ink-faint/85">
-            {FEATURE_MAP_HELP[config.vqc.featureMap]}
-          </p>
         </Panel>
 
         <Panel>
-          <div className="flex items-baseline justify-between">
-            <SectionLabel>ansatz</SectionLabel>
-            <Tooltip
-              term="Ansatz"
-              body='The trainable part of the circuit — a fixed pattern of rotation gates whose angles are the parameters being learned. German for "approach". Choosing one is like choosing a network architecture: it decides what the model can express.'
-            >
-              <span className="font-mono text-[8.5px] text-ink-faint underline decoration-dotted underline-offset-2">
-                what is this?
-              </span>
-            </Tooltip>
-          </div>
+          <SectionLabel
+            hint={{
+              term: 'Ansatz',
+              body: 'The trainable part of the circuit - a fixed pattern of rotation gates whose angles are the parameters being learned. German for "approach". Choosing one is like choosing a network architecture: it decides what the model can express.',
+            }}
+          >
+            ansatz
+          </SectionLabel>
 
           <div className="mt-2.5 space-y-1.5">
             {(['strongly-entangling', 'basic-entangling', 'hardware-efficient'] as const).map((a) => (
               <button
                 key={a}
                 type="button"
+                title={ANSATZ_HELP[a]}
                 disabled={locked}
                 onClick={() => patch({ vqc: { ...config.vqc, ansatz: a } })}
                 className="w-full cursor-pointer rounded-[7px] px-2 py-1.5 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
@@ -141,9 +119,6 @@ export function ModelStep({ config, patch, locked }: Props) {
               </button>
             ))}
           </div>
-          <p className="mt-2 font-mono text-[9px] leading-relaxed text-ink-faint/85">
-            {ANSATZ_HELP[config.vqc.ansatz]}
-          </p>
 
           <div className="mt-3">
             <Field label={`layers — ${config.vqc.layers}`}>
@@ -161,7 +136,9 @@ export function ModelStep({ config, patch, locked }: Props) {
         </Panel>
 
         <Panel>
-          <SectionLabel>backend</SectionLabel>
+          <SectionLabel hint={{ term: config.vqc.backend, body: BACKEND_HELP[config.vqc.backend] }}>
+            backend
+          </SectionLabel>
           <div className="mt-2.5">
             <Segmented
               ariaLabel="Backend"
@@ -179,9 +156,6 @@ export function ModelStep({ config, patch, locked }: Props) {
               ]}
             />
           </div>
-          <p className="mt-2 font-mono text-[9px] leading-relaxed text-ink-faint/85">
-            {BACKEND_HELP[config.vqc.backend]}
-          </p>
 
           {config.vqc.backend !== 'ideal' && (
             <div className="mt-3">
@@ -219,7 +193,20 @@ export function ModelStep({ config, patch, locked }: Props) {
         <Panel>
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
-              <SectionLabel>circuit</SectionLabel>
+              <div className="flex items-center gap-2">
+                <SectionLabel>circuit</SectionLabel>
+                <Tooltip
+                  term="VQC"
+                  body="Variational Quantum Classifier - the only model type implemented in this build. QNN and QSVM are declared but not built; the delivery table records that honestly rather than hiding it."
+                >
+                  <span
+                    className="rounded-[4px] px-1.5 py-[1px] font-mono text-[8.5px]"
+                    style={{ background: alpha(LANE_COLOR.quantum, 0.12), color: LANE_COLOR.quantum }}
+                  >
+                    VQC
+                  </span>
+                </Tooltip>
+              </div>
               <p className="mt-1 font-mono text-[9px] text-ink-faint">
                 exactly what the simulator executes, redrawn as you change settings
               </p>
