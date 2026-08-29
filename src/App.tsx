@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { ConditionCatalog } from './components/ConditionCatalog'
 import { CompareView } from './components/CompareView'
 import { LaunchScreen, type AppMode } from './components/LaunchScreen'
 import { ModeBar } from './components/ModeBar'
@@ -6,12 +7,12 @@ import { PredictView } from './components/PredictView'
 import { TrainView } from './components/TrainView'
 
 /**
- * Top-level router. `null` is the launch screen; the three modes are the
+ * Top-level router. `null` is the launch screen; the modes are the
  * platform's entry points - train the model, score a case, compare against the
- * classical baseline.
+ * classical baseline, or browse the condition catalog.
  *
  * TrainView is kept mounted once visited so a run in flight is not destroyed by
- * a trip to another mode; the other two are cheap enough to remount.
+ * a trip to another mode; the other views are cheap enough to remount.
  */
 export default function App() {
   const [mode, setMode] = useState<AppMode | null>(null)
@@ -48,6 +49,12 @@ export default function App() {
               <CompareView trained={trained} />
             )}
           </div>
+        </div>
+      )}
+
+      {mode === 'conditions' && (
+        <div className="h-full">
+          <ConditionCatalog />
         </div>
       )}
     </>

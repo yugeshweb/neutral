@@ -1,3 +1,5 @@
+import type { QmlResult } from '../qmlApi'
+
 export type NodeStatus = 'idle' | 'queued' | 'running' | 'done' | 'error'
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'success'
@@ -8,6 +10,7 @@ export type PipelineEvent = {
   progress?: number // 0..1
   message?: string
   metrics?: Record<string, number | string>
+  result?: QmlResult
   timestamp: number
 }
 

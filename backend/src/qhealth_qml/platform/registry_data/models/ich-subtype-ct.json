@@ -1,0 +1,110 @@
+{
+  "model_id": "ich-subtype-ct",
+  "condition_id": "neuro.ich.acute",
+  "version": "0.0.0",
+  "display_name": "Intracranial hemorrhage subtype classification (planned)",
+  "task_type": "multilabel_classification",
+  "availability": "not available",
+  "lifecycle": "experimental",
+  "executor": "imaging_segmentation",
+  "input_contract": {
+    "required_modalities": ["imaging"],
+    "optional_modalities": [{"modality": "structured_clinical", "trained_for_absence": true}],
+    "required_fields": [],
+    "min_rows": 1,
+    "population": "Adults presenting with suspected acute intracranial hemorrhage, imaged with non-contrast head CT.",
+    "population_filters": {},
+    "quality_constraints": {
+      "imaging": "Non-contrast head CT, standard acquisition protocol."
+    }
+  },
+  "dataset_profile_path": null,
+  "temporal_validation": "n/a",
+  "preprocessing": {
+    "imputation": "none",
+    "scaling": "none",
+    "reduction": "none",
+    "n_components": null,
+    "angle_scaling": null,
+    "fitted_on": "n/a"
+  },
+  "quantum": null,
+  "classical_baseline_model_id": null,
+  "artifact": {
+    "kind": "none",
+    "path": null,
+    "manifest_path": null,
+    "sha256": null,
+    "schema_version": null
+  },
+  "calibration": {
+    "method": "none",
+    "status": "not_assessed",
+    "note": "No artifact."
+  },
+  "explainability": {
+    "method": "planned:lesion_overlay",
+    "scope": "region",
+    "surrogate": false
+  },
+  "output_score_type": "none",
+  "evaluation_record_ids": [],
+  "safety": {
+    "allows_negative_finding": false,
+    "abstain_margin": null,
+    "requires_full_coverage": true,
+    "disclaimer": "No model artifact is registered. This entry exists to show the coverage gap and must never produce a finding.",
+    "limitations": [
+      "DEFERRED. Blocked on RSNA ICH dataset access and local computational resources.",
+      "Planned reused implementation: RSNA ICH Challenge baseline, MONAI for imaging I/O and multilabel classification metrics.",
+      "License status of RSNA ICH data and challenge implementations is unverified.",
+      "Model will classify five hemorrhage subtypes: epidural, intraparenchymal, intraventricular, subarachnoid, and subdural."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Planned: acute intracranial hemorrhage detection and subtype classification from non-contrast head CT.",
+    "excluded_use": "Everything, currently. No artifact exists.",
+    "training_population": "Planned: RSNA ICH Challenge dataset.",
+    "evaluation_population": "Planned: RSNA held-out evaluation set.",
+    "label_policy": "Radiologist-annotated hemorrhage type and presence.",
+    "data_sources": [
+      {"label": "RSNA Intracranial Hemorrhage Detection Challenge 2019", "url": "https://www.rsna.org/artificial-intelligence/ai-image-challenge/rsna-intracranial-hemorrhage-detection-challenge-2019", "citation": "RSNA ICH Challenge"}
+    ],
+    "data_licenses": ["RSNA ICH Challenge — license status unverified"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "planned: region-level hemorrhage subtype localization",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "RSNA ICH Challenge baseline",
+        "decision": "reused",
+        "source_url": "https://www.rsna.org/artificial-intelligence/ai-image-challenge/rsna-intracranial-hemorrhage-detection-challenge-2019",
+        "release_or_commit": null,
+        "paper_citation": null,
+        "license": "Challenge license (unverified)",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "Non-contrast head CT, standard DICOM format",
+        "io_contract": "DICOM CT volumes -> hemorrhage class labels",
+        "local_modifications": "none — not yet integrated"
+      },
+      {
+        "component": "medical imaging I/O and metrics",
+        "decision": "reused",
+        "source_url": "https://github.com/Project-MONAI/MONAI",
+        "release_or_commit": null,
+        "paper_citation": null,
+        "license": "Apache-2.0 (unverified)",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "DICOM with valid affine",
+        "io_contract": "LoadImage/multilabel classification metrics",
+        "local_modifications": "none — not yet integrated"
+      }
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P1-stroke-reuse-record.md"
+  }
+}

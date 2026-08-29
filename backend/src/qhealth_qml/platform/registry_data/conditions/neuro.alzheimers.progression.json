@@ -1,0 +1,29 @@
+{
+  "condition_id": "neuro.alzheimers.progression",
+  "name": "Alzheimer's disease progression risk",
+  "domain": "neurological",
+  "priority": "P5",
+  "task_type": "progression_risk",
+  "readiness_tier": "research_only",
+  "reference_label_tier": "moderate",
+  "target_definition": "Longitudinal progression from mild cognitive impairment to Alzheimer's disease dementia, or biomarker-supported disease stage, as observed in research cohorts with extended follow-up.",
+  "population": "Research cohorts with cognitive and biomarker assessments, including cognitively normal, mild cognitive impairment, and dementia-stage individuals.",
+  "required_modalities": ["structured_clinical"],
+  "optional_modalities": ["imaging", "biomarker"],
+  "expected_output": "Progression risk estimate, not a confirmed diagnosis. Output is a research prediction only.",
+  "reference_datasets": [
+    {"label": "ADNI dataset", "url": "https://adni.loni.usc.edu/data-samples/adni-data/", "citation": "Alzheimer's Disease Neuroimaging Initiative"},
+    {"label": "OASIS dataset", "url": "https://dev.oasis-brains.org/", "citation": "Open Access Series of Imaging Studies"}
+  ],
+  "evidence_links": [
+    {"label": "ADNI", "url": "https://adni.loni.usc.edu/", "citation": null},
+    {"label": "OASIS", "url": "https://www.oasis-brains.org/", "citation": null}
+  ],
+  "limitations": [
+    "This is a research-only model. Output is a progression risk prediction, not a diagnosis of Alzheimer's disease.",
+    "Cognitive outcome labels are probabilistic and may reflect measurement error or incomplete follow-up.",
+    "Longitudinal data is subject to dropout bias and survival bias.",
+    "Biomarker-supported labels are heterogeneous across datasets and may not be uniformly defined.",
+    "Performance on populations with different demographic characteristics, comorbidities, or cognitive reserve levels is not established."
+  ]
+}

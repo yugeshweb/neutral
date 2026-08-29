@@ -1,0 +1,13 @@
+patient_id,f1,f2,diagnosis
+p1,0.10,0.20,benign
+p1,0.12,0.19,benign
+p2,0.20,0.25,benign
+p2,0.18,0.22,benign
+p3,0.24,0.28,benign
+p3,0.22,0.27,benign
+p4,0.70,0.60,malignant
+p4,0.72,0.61,malignant
+p5,0.80,0.70,malignant
+p5,0.82,0.72,malignant
+p6,0.90,0.76,malignant
+p6,0.88,0.74,malignant

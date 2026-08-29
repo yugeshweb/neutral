@@ -1,0 +1,18 @@
+{
+  "name": "p3_glioma_mgmt",
+  "dataset_path": "../data/p3_glioma_upenn/glioma_mgmt_features.csv",
+  "target_column": "mgmt_methylated",
+  "positive_label": "1",
+  "id_column": "subject_id",
+  "group_column": "patient_id",
+  "index_time_column": null,
+  "outcome_time_column": null,
+  "site_column": null,
+  "horizon_days": null,
+  "outcome_definition": "Binary MGMT promoter methylation status (Methylated=1 vs Unmethylated=0) from CaPTk-derived structural mpMRI (FLAIR/T1/T1GD/T2) radiomic features over CaPTk's automatic tumor-region segmentation (edema/enhancing tumor/necrotic core). A molecular-characterization proxy task, not tumor segmentation or grade/subtype classification as the spec's P3 task calls for. Research-only, per spec FR-033.",
+  "leakage_columns": ["subject_id", "patient_id"],
+  "subgroup_columns": [],
+  "modality": "tabular",
+  "reduction": "anova",
+  "task_type": "early_detection"
+}

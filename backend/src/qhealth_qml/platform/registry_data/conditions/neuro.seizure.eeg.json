@@ -1,0 +1,28 @@
+{
+  "condition_id": "neuro.seizure.eeg",
+  "name": "Seizure activity and onset detection",
+  "domain": "neurological",
+  "priority": "P4",
+  "task_type": "event_detection",
+  "readiness_tier": "high_reference",
+  "reference_label_tier": "high",
+  "target_definition": "Seizure activity intervals and onset times identified in continuous EEG recording, as annotated by expert neurophysiologists.",
+  "population": "Patients with continuous EEG recordings and expert-annotated seizure events, including both with and without seizure activity.",
+  "required_modalities": ["signal"],
+  "optional_modalities": ["structured_clinical"],
+  "expected_output": "Seizure probability, event intervals with start and end times, and latency estimates.",
+  "reference_datasets": [
+    {"label": "CHB-MIT EEG Database", "url": "https://physionet.org/content/chbmit/1.0.0/", "citation": "Children's Hospital Boston Seizure Database, PhysioNet"}
+  ],
+  "evidence_links": [
+    {"label": "MNE-Python", "url": "https://github.com/mne-tools/mne-python", "citation": null},
+    {"label": "Braindecode", "url": "https://github.com/braindecode/braindecode", "citation": null},
+    {"label": "EEGNet", "url": "https://github.com/vlawhern/arl-eegmodels", "citation": null}
+  ],
+  "limitations": [
+    "Output is seizure activity detection, not an epilepsy diagnosis.",
+    "The CHB-MIT database represents pediatric seizure activity and may not generalize to adult populations.",
+    "Inter-rater agreement on seizure onset times varies; timestamps are expert-annotated but subject to observer variability.",
+    "Continuous EEG is a specialized modality not available in all clinical settings."
+  ]
+}

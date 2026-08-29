@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantum-health"
+version = "0.1.0"
+description = "Hardware-aware hybrid quantum/classical disease-detection benchmark"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=2.0,<3",
+  "scikit-learn>=1.4,<2",
+  "qiskit~=2.5.1",
+  "qiskit-aer~=0.17.1",
+  "qiskit-machine-learning~=0.9.1",
+  "qiskit-algorithms~=0.4.0",
+]
+
+[project.optional-dependencies]
+hardware = ["qiskit-ibm-runtime~=0.47.0"]
+
+[project.scripts]
+qhealth = "qhealth_qml.cli:main"
+qhealth-study = "qhealth_qml.study_cli:main"
+qhealth-dashboard = "qhealth_qml.dashboard:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+qhealth_qml = ["dashboard/*.html", "dashboard/*.css", "dashboard/*.js"]

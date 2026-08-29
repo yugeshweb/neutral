@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#081214" />
+    <title>QHealth / evidence console</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="QHealth evidence console home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>qhealth<span class="brand-slash">/</span>console</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="#evidence">Evidence</a>
+          <a href="#prediction">Prediction</a>
+          <a href="#interpretation">Interpretation</a>
+        </nav>
+        <div class="topbar-status"><span class="status-dot" aria-hidden="true"></span><span id="mode-label">loading record</span></div>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <p class="eyebrow">HYBRID EARLY-DETECTION RESEARCH</p>
+            <h1 id="page-title">Evidence before <em>advantage.</em></h1>
+            <p class="hero-lede" id="hero-lede">A review console for the split, the signal, and the cost of the circuit behind every result.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#prediction">Run a row <span aria-hidden="true">↗</span></a>
+              <span class="boundary-note"><span class="note-marker" aria-hidden="true">!</span> Research record · not a diagnosis</span>
+            </div>
+          </div>
+          <div class="evidence-rail" aria-label="Evidence boundary">
+            <div class="rail-heading"><span>record status</span><span id="record-status">—</span></div>
+            <div class="rail-line" aria-hidden="true">
+              <span class="rail-node node-live"></span>
+              <span class="rail-node node-mid"></span>
+              <span class="rail-node node-end"></span>
+            </div>
+            <div class="rail-labels">
+              <div><strong id="dataset-value">—</strong><span>dataset</span></div>
+              <div><strong id="split-value">—</strong><span>split</span></div>
+              <div><strong id="backend-value">—</strong><span>execution</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="signal-strip" aria-label="Study facts">
+          <div class="signal-item"><span class="signal-label">TASK</span><strong id="task-value">—</strong></div>
+          <div class="signal-item"><span class="signal-label">POSITIVE CLASS</span><strong id="positive-value">—</strong></div>
+          <div class="signal-item"><span class="signal-label">TEST ROWS</span><strong id="test-value" class="tabular">—</strong></div>
+          <div class="signal-item signal-boundary"><span class="signal-label">BOUNDARY</span><strong>benchmark evidence only</strong></div>
+        </section>
+
+        <section class="section-block" id="evidence" aria-labelledby="evidence-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">01 / COMPARISON</p>
+              <h2 id="evidence-title">Which signal holds up?</h2>
+            </div>
+            <p class="section-explainer">Every model sees the same reduced feature space. The table keeps quality beside operating-point and resource evidence.</p>
+          </div>
+          <div id="comparison" class="comparison-wrap">
+            <div class="loading-state" role="status">Reading the research record…</div>
+          </div>
+          <div id="evidence-summary" class="evidence-summary"></div>
+        </section>
+
+        <section class="section-block split-section" id="prediction" aria-labelledby="prediction-title">
+          <div class="section-heading compact-heading">
+            <div>
+              <p class="eyebrow">02 / PREDICTION</p>
+              <h2 id="prediction-title">Put one row through the instrument.</h2>
+            </div>
+            <p class="section-explainer">Local inference only. Missing values are imputed from the trusted training reference; no data leaves this process.</p>
+          </div>
+          <div class="prediction-layout">
+            <form id="prediction-form" class="control-panel">
+              <div class="panel-kicker"><span class="panel-index">P</span><span>LOCAL MODEL INPUT</span></div>
+              <div class="field-group">
+                <label for="sample-select">Load a sample row</label>
+                <select id="sample-select">
+                  <option value="">No sample rows supplied</option>
+                </select>
+                <p class="field-help">Or edit the feature JSON below.</p>
+              </div>
+              <div class="field-group">
+                <label for="features-input">Feature values <span class="required-mark">JSON</span></label>
+                <textarea id="features-input" rows="10" spellcheck="false" aria-describedby="features-help" placeholder='{"feature_name": 0.42}'></textarea>
+                <p class="field-help" id="features-help">Use the exact model feature names. Null values are accepted as missing.</p>
+              </div>
+              <div class="form-actions">
+                <button class="button button-primary" type="submit">Score this row <span aria-hidden="true">→</span></button>
+                <button class="button button-quiet" type="button" id="clear-input">Clear</button>
+              </div>
+              <p class="form-status" id="prediction-status" role="status" aria-live="polite"></p>
+            </form>
+            <div class="prediction-output" id="prediction-output" aria-live="polite">
+              <div class="empty-output"><span class="empty-glyph" aria-hidden="true">◎</span><p>Prediction output will land here.</p><span>Start with a sample row or paste a feature object.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-block" id="interpretation" aria-labelledby="interpretation-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">03 / INTERPRETATION</p>
+              <h2 id="interpretation-title">What moved the signal?</h2>
+            </div>
+            <p class="section-explainer">Reference replacement is a sensitivity diagnostic. It is not causal attribution or clinical reasoning.</p>
+          </div>
+          <div class="interpretation-grid">
+            <div class="feature-panel" id="feature-impact">
+              <div class="loading-state">Explanation appears after a model or row is scored.</div>
+            </div>
+            <div class="resource-panel" id="resource-trace">
+              <div class="panel-kicker"><span class="panel-index">R</span><span>RESOURCE TRACE</span></div>
+              <dl class="resource-list" id="resource-list"><div><dt>backend</dt><dd>—</dd></div><div><dt>qubits</dt><dd>—</dd></div><div><dt>estimated kernel pairs</dt><dd>—</dd></div><div><dt>training rows</dt><dd>—</dd></div></dl>
+              <details class="boundary-details"><summary>Read the boundary</summary><p id="boundary-copy">This console reports software and benchmark evidence. It does not establish clinical efficacy, regulatory clearance, or quantum advantage.</p></details>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>qhealth / research console</span>
+        <span>Local artifact · protected data must remain in its approved environment.</span>
+      </footer>
+    </div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

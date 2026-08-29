@@ -1,0 +1,114 @@
+{
+  "model_id": "stroke-clinical-risk-tabular-classical",
+  "condition_id": "neuro.stroke.ischemic.acute",
+  "version": "0.1.0",
+  "display_name": "Stroke clinical risk head (tabular, classical baseline)",
+  "task_type": "binary_classification",
+  "availability": "available",
+  "lifecycle": "operational_reference",
+  "executor": "tabular_qml",
+  "input_contract": {
+    "required_modalities": ["structured_clinical"],
+    "optional_modalities": [],
+    "required_fields": ["age", "hypertension", "heart_disease", "avg_glucose_level", "bmi", "gender", "ever_married", "Residence_type", "work_type", "smoking_status"],
+    "min_rows": 1,
+    "population": "Adults with recorded cardiovascular risk factors. Not validated for anyone under 18 and not validated for gender recorded as 'Other' (n=1 in the source cohort).",
+    "population_filters": {"age": ">=18"},
+    "quality_constraints": {
+      "age": "0 <= age <= 120",
+      "bmi": "10 <= bmi <= 100 when present",
+      "avg_glucose_level": "40 <= avg_glucose_level <= 400"
+    }
+  },
+  "dataset_profile_path": "backend/profiles/p1_stroke_clinical.json",
+  "temporal_validation": "not applicable — cross-sectional cohort, no index or outcome time",
+  "preprocessing": {
+    "imputation": "median",
+    "scaling": "standard",
+    "reduction": "anova",
+    "n_components": 4,
+    "angle_scaling": null,
+    "fitted_on": "train_partition_only"
+  },
+  "quantum": null,
+  "classical_baseline_model_id": null,
+  "artifact": {
+    "kind": "saved_model_artifact",
+    "path": "runtime/models/stroke-clinical-risk-tabular-classical.joblib",
+    "manifest_path": "runtime/models/stroke-clinical-risk-tabular-classical.manifest.json",
+    "sha256": null,
+    "schema_version": 4
+  },
+  "calibration": {
+    "method": "validation_sigmoid",
+    "status": "not_assessed",
+    "note": "Set to 'calibrated' or 'failed' only from an EvaluationRecord."
+  },
+  "explainability": {
+    "method": "input_sensitivity",
+    "scope": "per_row",
+    "surrogate": false
+  },
+  "output_score_type": "calibrated_probability",
+  "evaluation_record_ids": ["eval-stroke-clinical-risk-tabular-classical-0.1.0"],
+  "safety": {
+    "allows_negative_finding": true,
+    "abstain_margin": 0.05,
+    "requires_full_coverage": true,
+    "disclaimer": "Research risk estimate, not a diagnosis and not a stroke detection result.",
+    "limitations": [
+      "Reference-label confidence is LOW. The source table has no datasheet, no named institution, and no documented collection protocol.",
+      "The source does not state whether the stroke label is prevalent or incident, so reverse causation cannot be excluded. This is an association model, not early detection.",
+      "30.2% of smoking_status is 'Unknown' and that missingness is likely non-random.",
+      "Prevalence is 4.87%; accuracy is not a meaningful metric for this model.",
+      "This model does NOT detect an acute ischemic lesion and is not a substitute for imaging.",
+      "No site or scanner column exists, so site-held-out external validation was not possible."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Research benchmarking of a classical gradient-boosted classifier on structured cardiovascular risk factors.",
+    "excluded_use": "Any clinical use. Acute stroke detection or triage. Any use as evidence that a patient does not have a stroke.",
+    "training_population": "5110 rows, one per patient, from the Kaggle stroke-prediction table. 249 positive (4.87%).",
+    "evaluation_population": "Stratified random holdout of the same table. No external cohort.",
+    "label_policy": "Binary 'stroke' column as supplied, positive_label='1'. Temporal relationship to the recorded risk factors is undocumented.",
+    "data_sources": [
+      {"label": "Kaggle fedesoriano/stroke-prediction-dataset", "url": "https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset", "citation": null}
+    ],
+    "data_licenses": ["kaggle:copyright-authors — UNVERIFIED, redistribution blocked pending manual review"],
+    "limitations": ["See safety.limitations."],
+    "calibration_status": "not_assessed",
+    "explanation_method": "input_sensitivity over the 4 ANOVA-selected raw features",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "training/evaluation engine",
+        "decision": "adapted",
+        "source_url": null,
+        "release_or_commit": "quantum-health 0.1.0 (in-repo)",
+        "paper_citation": null,
+        "license": "in-repo, license field not yet declared",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "numeric CSV columns, or text columns auto one-hot encoded; common missing-value sentinels treated as NaN",
+        "io_contract": "LoadedDataset -> run_repeated_experiment result dict",
+        "local_modifications": "load_csv_dataset() extended to auto-detect and one-hot encode categorical text columns and to recognize N/A-style missing sentinels (generalized capability, not stroke-specific); explain_raw_inputs() index-out-of-range bug fixed for datasets with >16 raw feature columns"
+      },
+      {
+        "component": "source dataset",
+        "decision": "reused",
+        "source_url": "https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset",
+        "release_or_commit": "downloaded 2026-08-29, 316971 bytes",
+        "paper_citation": null,
+        "license": "copyright-authors",
+        "license_verified": false,
+        "weight_source": null,
+        "weight_sha256": null,
+        "preprocessing_assumptions": "one row per patient; id is a non-informative surrogate key",
+        "io_contract": "12-column CSV",
+        "local_modifications": "none to source values"
+      }
+    ],
+    "research_record": "specs/001-neurological-conditions/research/P1-stroke-reuse-record.md"
+  }
+}

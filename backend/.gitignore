@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+*.egg-info/
+artifacts/*.json
+
+# Third-party dataset payloads: license status must be verified per FR-035
+# before anything gets committed (see specs/001-neurological-conditions/
+# research/*-reuse-record.md). Adapters/scripts/manifests stay tracked.
+data/**/*.csv
+data/**/*.json
+data/**/*.edf
+data/**/*.zip
+data/**/*.data
+data/**/*.names
+data/**/*.txt
+!data/**/manifest.json
+!data/**/*profile*.json

@@ -1,0 +1,18 @@
+{
+  "name": "p1_stroke_clinical",
+  "dataset_path": "../data/p1_stroke_clinical/healthcare-dataset-stroke-data.csv",
+  "target_column": "stroke",
+  "positive_label": "1",
+  "id_column": "id",
+  "group_column": null,
+  "index_time_column": null,
+  "outcome_time_column": null,
+  "site_column": null,
+  "horizon_days": null,
+  "outcome_definition": "Recorded stroke status in the source table. The source does not document whether this is a prevalent history or an incident event, and no index or outcome time is available, so no prediction horizon can be defined. Treat as an associative risk-factor model, not early detection.",
+  "leakage_columns": [],
+  "subgroup_columns": [],
+  "modality": "tabular",
+  "reduction": "anova",
+  "task_type": "early_detection"
+}

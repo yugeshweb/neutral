@@ -1,0 +1,25 @@
+{
+  "condition_id": "neuro.ich.acute",
+  "name": "Acute intracranial hemorrhage",
+  "domain": "neurological",
+  "priority": "P2",
+  "task_type": "multilabel_classification",
+  "readiness_tier": "high_reference",
+  "reference_label_tier": "high",
+  "target_definition": "Presence and subtype of acute intracranial hemorrhage on non-contrast head CT, classified into five subtypes: epidural, intraparenchymal, intraventricular, subarachnoid, and subdural.",
+  "population": "Adults presenting with suspected acute intracranial hemorrhage, evaluated by non-contrast head CT.",
+  "required_modalities": ["imaging"],
+  "optional_modalities": ["structured_clinical"],
+  "expected_output": "Any-hemorrhage risk and per-subtype findings for epidural, intraparenchymal, intraventricular, subarachnoid, and subdural hemorrhage.",
+  "reference_datasets": [
+    {"label": "RSNA Intracranial Hemorrhage Detection Challenge 2019", "url": "https://www.rsna.org/artificial-intelligence/ai-image-challenge/rsna-intracranial-hemorrhage-detection-challenge-2019", "citation": "RSNA ICH Challenge dataset"}
+  ],
+  "evidence_links": [
+    {"label": "RSNA ICH Challenge", "url": "https://www.rsna.org/artificial-intelligence/ai-image-challenge/rsna-intracranial-hemorrhage-detection-challenge-2019", "citation": null}
+  ],
+  "limitations": [
+    "Acute recognition task on non-contrast CT, not a clinical diagnosis or treatment recommendation.",
+    "Radiologist-labeled subtypes are the reference; inter-rater agreement metrics are not uniformly documented.",
+    "The dataset represents a retrospective challenge cohort and may not reflect all populations or acquisition protocols."
+  ]
+}

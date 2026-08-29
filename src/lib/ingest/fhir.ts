@@ -120,6 +120,10 @@ function ageFrom(birthDate: string | undefined): number | null {
   return years >= 0 && years < 130 ? Math.round(years) : null
 }
 
+function csvCell(value: string) {
+  return /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value
+}
+
 export function parseFhirBundle(
   text: string,
   name: string,
@@ -296,6 +300,7 @@ export function parseFhirBundle(
     headers,
     preview: rows.slice(0, 4),
     warnings,
+    content: [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\n'),
     objectUrl: null,
     imageSize: null,
   }

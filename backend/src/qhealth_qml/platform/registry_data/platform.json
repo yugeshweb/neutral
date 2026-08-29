@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "registry_version": "0.1.0",
+  "domain": "neurological",
+  "disease_models": [],
+  "disclaimer": "Research prediction, not a medical diagnosis. This platform does not provide diagnosis, treatment recommendations, or triage decisions.",
+  "no_compatible_assessment_text": "No registered model could be run on the data supplied. This is not a negative result and does not indicate the absence of any neurological condition.",
+  "synthetic_marker": "SYNTHETIC / DEMO OUTPUT — not model inference and not clinical evidence.",
+  "research_records": [
+    "specs/001-neurological-conditions/research/P0-platform-reuse-record.md",
+    "specs/001-neurological-conditions/research/P1-stroke-reuse-record.md",
+    "specs/001-neurological-conditions/research/P2-ich-reuse-record.md",
+    "specs/001-neurological-conditions/research/P3-glioma-reuse-record.md",
+    "specs/001-neurological-conditions/research/P4-seizure-reuse-record.md",
+    "specs/001-neurological-conditions/research/P5-alzheimers-reuse-record.md",
+    "specs/001-neurological-conditions/research/P6-parkinsons-reuse-record.md"
+  ]
+}

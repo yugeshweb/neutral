@@ -1,0 +1,28 @@
+{
+  "condition_id": "neuro.parkinsons.prodromal",
+  "name": "Parkinson's disease and prodromal risk",
+  "domain": "neurological",
+  "priority": "P6",
+  "task_type": "progression_risk",
+  "readiness_tier": "research_only",
+  "reference_label_tier": "moderate",
+  "target_definition": "Progression to clinical Parkinson's disease or prodromal risk stage, or clinical/prodromal classification, as defined in longitudinal research cohorts.",
+  "population": "Research cohorts with clinical assessments, sensor data, imaging, and genetic/biomarker information, including controls, prodromal individuals, and Parkinson's patients.",
+  "required_modalities": ["structured_clinical"],
+  "optional_modalities": ["imaging", "signal", "biomarker"],
+  "expected_output": "Parkinson's disease or prodromal risk estimate, not a confirmed diagnosis. Output is a research prediction only.",
+  "reference_datasets": [
+    {"label": "PPMI dataset", "url": "https://www.ppmi-info.org/access-data-specimens/data", "citation": "Parkinson's Progression Markers Initiative"}
+  ],
+  "evidence_links": [
+    {"label": "PPMI", "url": "https://www.ppmi-info.org/", "citation": null}
+  ],
+  "limitations": [
+    "This is a research-only model. Output is a Parkinson's disease or prodromal risk prediction, not a diagnosis.",
+    "PPMI data access is restricted and subject to data-use agreements; models trained on restricted cohorts may not generalize.",
+    "Prodromal labels and outcome definitions are probabilistic and evolving in the research literature.",
+    "Longitudinal follow-up is incomplete in some participants; outcome measurement is ongoing.",
+    "Sensor and imaging data collection protocols vary; generalization to different equipment or acquisition parameters is not established.",
+    "Demographic diversity in the PPMI cohort is limited; performance across different populations is unknown."
+  ]
+}
