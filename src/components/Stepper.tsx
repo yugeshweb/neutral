@@ -50,7 +50,10 @@ export function Stepper({ current, done, blocked = {}, onGo }: Props) {
         const isCurrent = step.id === current
         const isDone = done.has(step.id)
         const reason = blocked[step.id]
-        const isBlocked = Boolean(reason)
+        // Being on a step must never render as disabled, even if it was
+        // reached by a direct jump rather than by clicking through here -
+        // a highlighted-but-greyed-out "current" step reads as broken.
+        const isBlocked = Boolean(reason) && !isCurrent
         const passed = i < currentIdx
 
         const color = isCurrent

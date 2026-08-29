@@ -30,7 +30,7 @@ export const IMAGE_TYPES = /\.(png|jpe?g|webp|bmp)$/i
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 /** Split one CSV line, honouring double-quoted fields containing commas. */
-function splitRow(line: string): string[] {
+export function splitRow(line: string): string[] {
   const out: string[] = []
   let field = ''
   let quoted = false

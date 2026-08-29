@@ -188,9 +188,47 @@ const SPECS: Record<string, { specs: FeatureSpec[]; rows: number; rate: number }
 
 const cache = new Map<string, Dataset>()
 
+/** The one uploaded dataset in play this session, if any. */
+export const CUSTOM_DATASET_ID = 'custom'
+let customDataset: Dataset | null = null
+let customMeta: DatasetMeta | null = null
+
+/**
+ * Registers an uploaded file as a trainable dataset, under the fixed id
+ * `CUSTOM_DATASET_ID`. Deliberately kept out of `DATASET_META` - that list
+ * drives the preset picker cards, and a file that has not been uploaded yet
+ * must not appear there.
+ */
+export function registerCustomDataset(dataset: Omit<Dataset, 'id'>, source: string): Dataset {
+  const ds: Dataset = { ...dataset, id: CUSTOM_DATASET_ID }
+  customDataset = ds
+  customMeta = {
+    id: CUSTOM_DATASET_ID,
+    name: dataset.name,
+    source,
+    rows: dataset.X.length,
+    positiveLabel: dataset.positiveLabel,
+    negativeLabel: dataset.negativeLabel,
+    featureDescriptions: {},
+    synthetic: false,
+  }
+  cache.delete(CUSTOM_DATASET_ID)
+  return ds
+}
+
+export function hasCustomDataset(): boolean {
+  return customDataset !== null
+}
+
 export function loadDataset(id: string): Dataset {
   const hit = cache.get(id)
   if (hit) return hit
+
+  if (id === CUSTOM_DATASET_ID) {
+    if (!customDataset) throw new Error('no uploaded dataset has been registered yet')
+    cache.set(id, customDataset)
+    return customDataset
+  }
 
   const entry = SPECS[id]
   const meta = DATASET_META.find((m) => m.id === id)
@@ -211,6 +249,7 @@ export function loadDataset(id: string): Dataset {
 }
 
 export function datasetMeta(id: string): DatasetMeta | undefined {
+  if (id === CUSTOM_DATASET_ID) return customMeta ?? undefined
   return DATASET_META.find((m) => m.id === id)
 }
 

@@ -1,9 +1,17 @@
-import { useMemo } from 'react'
-import { DATASET_META, loadDataset } from '../../lib/ml/datasets'
+import { useMemo, useState } from 'react'
+import {
+  CUSTOM_DATASET_ID,
+  DATASET_META,
+  datasetMeta,
+  hasCustomDataset,
+  loadDataset,
+} from '../../lib/ml/datasets'
 import type { RunConfig } from '../../lib/ml/pipeline'
 import { classCounts, mean, std } from '../../lib/ml/stats'
 import { LANE_COLOR, alpha } from '../../lib/theme'
+import { IconUpload } from '../icons'
 import { Panel, SectionLabel } from '../ui'
+import { UploadPanel } from '../UploadPanel'
 
 type Props = {
   config: RunConfig
@@ -12,8 +20,13 @@ type Props = {
 }
 
 export function DataStep({ config, patch, locked }: Props) {
+  const [uploading, setUploading] = useState(false)
   const data = useMemo(() => loadDataset(config.datasetId), [config.datasetId])
-  const meta = DATASET_META.find((m) => m.id === config.datasetId)!
+  // datasetMeta() (not the DATASET_META array) also resolves the uploaded
+  // dataset's synthesised meta - the array deliberately excludes it, since it
+  // also drives the preset picker below and a file that has not been
+  // uploaded yet must not appear there as a fourth preset.
+  const meta = datasetMeta(config.datasetId)!
 
   const health = useMemo(() => {
     const d = data.featureNames.length
@@ -43,7 +56,7 @@ export function DataStep({ config, patch, locked }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {DATASET_META.map((m) => {
           const active = m.id === config.datasetId
           return (
@@ -51,7 +64,10 @@ export function DataStep({ config, patch, locked }: Props) {
               key={m.id}
               type="button"
               disabled={locked}
-              onClick={() => patch({ datasetId: m.id, targetColumn: 'diagnosis' })}
+              onClick={() => {
+                setUploading(false)
+                patch({ datasetId: m.id, targetColumn: 'diagnosis' })
+              }}
               className="cursor-pointer rounded-panel p-3.5 text-left transition-[border-color,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 background: '#17181B',
@@ -78,7 +94,66 @@ export function DataStep({ config, patch, locked }: Props) {
             </button>
           )
         })}
+
+        {/* upload: the fourth option, closing the "your own data" gap */}
+        {(() => {
+          const active = !uploading && config.datasetId === CUSTOM_DATASET_ID
+          return (
+            <button
+              type="button"
+              disabled={locked}
+              onClick={() => {
+                if (hasCustomDataset() && !uploading) {
+                  patch({ datasetId: CUSTOM_DATASET_ID, targetColumn: 'diagnosis' })
+                } else {
+                  setUploading(true)
+                }
+              }}
+              className="cursor-pointer rounded-panel p-3.5 text-left transition-[border-color,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                background: '#17181B',
+                border: `1px dashed ${active ? alpha(LANE_COLOR.quantum, 0.5) : 'rgba(255,255,255,0.14)'}`,
+                boxShadow: active
+                  ? `inset 0 1px 0 rgba(255,255,255,0.07), 0 0 14px ${alpha(LANE_COLOR.quantum, 0.18)}`
+                  : 'inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 2px rgba(0,0,0,0.8)',
+              }}
+            >
+              <div className="flex items-baseline justify-between">
+                <span className="flex items-center gap-1.5 text-[12.5px] font-medium text-ink">
+                  <IconUpload className="h-3.5 w-3.5 text-ink-faint" />
+                  {hasCustomDataset() ? datasetMeta(CUSTOM_DATASET_ID)?.name : 'Upload'}
+                </span>
+                {active && (
+                  <span
+                    className="h-[6px] w-[6px] rounded-full"
+                    style={{ background: LANE_COLOR.quantum }}
+                  />
+                )}
+              </div>
+              <div className="mt-1 font-mono text-[9px] text-ink-faint">
+                CSV, FHIR, HL7 v2
+              </div>
+              <div className="mt-2 flex gap-3 font-mono text-[9.5px] text-ink-dim">
+                {hasCustomDataset() ? (
+                  <span>{datasetMeta(CUSTOM_DATASET_ID)?.rows} rows</span>
+                ) : (
+                  <span>your own data</span>
+                )}
+              </div>
+            </button>
+          )
+        })()}
       </div>
+
+      {uploading && (
+        <UploadPanel
+          disabled={locked}
+          onReady={(dataset) => {
+            setUploading(false)
+            patch({ datasetId: dataset.id, targetColumn: 'diagnosis' })
+          }}
+        />
+      )}
 
       <div className="grid grid-cols-[1fr_320px] gap-4">
         {/* preview table */}

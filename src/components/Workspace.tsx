@@ -63,6 +63,14 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
   const next = idx < STEPS.length - 1 ? STEPS[idx + 1] : null
   const nextBlocked = next ? blocked[next.id] : undefined
 
+  // Offered on Results/Explain when there is no run yet - landing there
+  // directly (e.g. from the Predict or Compare launch cards) must not strand
+  // the user on an empty screen with no visible way to produce something.
+  const startTrainingFromHere = () => {
+    setStep('train')
+    run.start()
+  }
+
   return (
     <div className="flex h-full min-w-[1100px] flex-col bg-canvas">
       <header
@@ -125,8 +133,12 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
             onLoadDemo={run.loadDemo}
           />
         )}
-        {step === 'results' && <ResultsStep result={run.result} />}
-        {step === 'explain' && <ExplainStep result={run.result} />}
+        {step === 'results' && (
+          <ResultsStep result={run.result} onStartTraining={startTrainingFromHere} />
+        )}
+        {step === 'explain' && (
+          <ExplainStep result={run.result} onStartTraining={startTrainingFromHere} />
+        )}
       </div>
 
       {/* step navigation */}

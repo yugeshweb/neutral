@@ -4,11 +4,15 @@ import type { RunResult } from '../../lib/ml/pipeline'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { BoxPlot, RocChart } from '../charts'
 import { DeliveryTable } from '../DeliveryTable'
+import { IconPlay } from '../icons'
+import { PushButton } from '../PushButton'
 import { QubitBadge } from '../QubitBadge'
 import { LiveChip, Panel, SectionLabel } from '../ui'
 
 type Props = {
   result: RunResult | null
+  /** jumps to Train and starts a run with the current config - offered when there is nothing to show yet */
+  onStartTraining?: () => void
 }
 
 const METRIC_COLUMNS = [
@@ -78,14 +82,24 @@ function ConfusionGrid({
   )
 }
 
-export function ResultsStep({ result }: Props) {
+export function ResultsStep({ result, onStartTraining }: Props) {
   if (!result) {
     return (
       <Panel>
-        <div className="grid place-items-center py-14">
+        <div className="grid place-items-center gap-3 py-14 text-center">
           <p className="font-mono text-[11px] text-ink-faint">
-            no results yet — run the pipeline from the Train step
+            No results yet - train the model first, then come back here to compare it
+            against the classical baselines.
           </p>
+          {onStartTraining && (
+            <PushButton
+              label="Train now"
+              icon={<IconPlay className="h-3.5 w-3.5" />}
+              onClick={onStartTraining}
+              tone="primary"
+              accent="#5FA88C"
+            />
+          )}
         </div>
       </Panel>
     )

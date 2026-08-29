@@ -15,16 +15,20 @@ import { makeRng } from '../../lib/quantum/statevector'
 import { Vqc, trainVqc } from '../../lib/quantum/vqc'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { DivergingBars, ImportanceBars } from '../charts'
+import { IconPlay } from '../icons'
+import { PushButton } from '../PushButton'
 import { QubitBadge } from '../QubitBadge'
 import { LiveChip, Panel, SectionLabel, Well } from '../ui'
 
 type Props = {
   result: RunResult | null
+  /** jumps to Train and starts a run with the current config - offered when there is nothing to show yet */
+  onStartTraining?: () => void
 }
 
 const BAND_COLOR = { low: '#5FA88C', moderate: '#C08A3E', high: '#A3543D' }
 
-export function ExplainStep({ result }: Props) {
+export function ExplainStep({ result, onStartTraining }: Props) {
   const [patientIdx, setPatientIdx] = useState(0)
 
   const analysis = useMemo(() => {
@@ -103,10 +107,20 @@ export function ExplainStep({ result }: Props) {
   if (!result || !analysis) {
     return (
       <Panel>
-        <div className="grid place-items-center py-14">
+        <div className="grid place-items-center gap-3 py-14 text-center">
           <p className="font-mono text-[11px] text-ink-faint">
-            no model to explain yet — run the pipeline first
+            No model to explain yet - train it first, then come back here to see what
+            drove each prediction.
           </p>
+          {onStartTraining && (
+            <PushButton
+              label="Train now"
+              icon={<IconPlay className="h-3.5 w-3.5" />}
+              onClick={onStartTraining}
+              tone="primary"
+              accent="#5FA88C"
+            />
+          )}
         </div>
       </Panel>
     )
