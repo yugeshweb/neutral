@@ -23,8 +23,8 @@ type Props = {
 function Row({ k, v }: { k: string; v: string | number }) {
   return (
     <div className="flex items-baseline justify-between gap-4 py-[5px]">
-      <span className="font-mono text-[10.5px] text-ink-faint">{k}</span>
-      <span className="truncate font-mono text-[10.5px] text-ink-dim">{v}</span>
+      <span className="font-mono text-[12.5px] text-ink-faint">{k}</span>
+      <span className="truncate font-mono text-[12.5px] text-ink-dim">{v}</span>
     </div>
   )
 }
@@ -32,7 +32,7 @@ function Row({ k, v }: { k: string; v: string | number }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="px-4 py-3.5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-      <div className="mb-1.5 font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint/70">
+      <div className="mb-1.5 font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint/70">
         {title}
       </div>
       {children}
@@ -83,9 +83,9 @@ export function NodeDrawer({ nodeId, state, logs, onClose }: Props) {
                 boxShadow: status === 'idle' ? 'none' : `0 0 4px ${alpha(LAMP_COLOR[status], 0.9)}`,
               }}
             />
-            <h2 className="truncate text-[13px] font-medium text-ink">{spec.label}</h2>
+            <h2 className="truncate text-[14.5px] font-medium text-ink">{spec.label}</h2>
           </div>
-          <div className="mt-1 font-mono text-[10px] text-ink-faint">
+          <div className="mt-1 font-mono text-[12px] text-ink-faint">
             {spec.id} / {STATUS_LABEL[status]}
           </div>
         </div>
@@ -104,7 +104,7 @@ export function NodeDrawer({ nodeId, state, logs, onClose }: Props) {
       {/* lane tag */}
       <div className="px-4 pb-3.5">
         <span
-          className="inline-block rounded-[5px] px-2 py-[3px] font-mono text-[9.5px] tracking-[0.02em]"
+          className="inline-block rounded-[5px] px-2 py-[3px] font-mono text-[11.5px] tracking-[0.02em]"
           style={{
             color: accent,
             background: alpha(accent, 0.09),
@@ -129,7 +129,7 @@ export function NodeDrawer({ nodeId, state, logs, onClose }: Props) {
           {state?.metrics ? (
             Object.entries(state.metrics).map(([k, v]) => <Row key={k} k={k} v={v} />)
           ) : (
-            <div className="py-1 font-mono text-[10.5px] text-ink-faint/60">
+            <div className="py-1 font-mono text-[12.5px] text-ink-faint/60">
               no metrics until stage completes
             </div>
           )}
@@ -137,10 +137,10 @@ export function NodeDrawer({ nodeId, state, logs, onClose }: Props) {
 
         <Section title={`log / ${logs.length}`}>
           {logs.length === 0 ? (
-            <div className="py-1 font-mono text-[10.5px] text-ink-faint/60">no entries</div>
+            <div className="py-1 font-mono text-[12.5px] text-ink-faint/60">no entries</div>
           ) : (
             logs.map((l) => (
-              <div key={l.id} className="flex gap-2.5 py-[2px] font-mono text-[10px] leading-[1.55]">
+              <div key={l.id} className="flex gap-2.5 py-[2px] font-mono text-[12px] leading-[1.55]">
                 <span className="shrink-0 tabular-nums text-ink-faint/55">
                   {formatClock(l.timestamp)}
                 </span>

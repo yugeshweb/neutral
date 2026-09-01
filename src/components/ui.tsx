@@ -42,12 +42,12 @@ export function SectionLabel({
   hint?: { term: string; body: string }
 }) {
   return (
-    <h3 className="flex items-center gap-1.5 font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+    <h3 className="flex items-center gap-1.5 font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
       {children}
       {hint && (
         <Tooltip term={hint.term} body={hint.body}>
           <span
-            className="grid h-[13px] w-[13px] shrink-0 place-items-center rounded-full text-[8px] font-normal normal-case tracking-normal"
+            className="grid h-[13px] w-[13px] shrink-0 place-items-center rounded-full text-[10.5px] font-normal normal-case tracking-normal"
             style={{ background: 'rgba(255,255,255,0.06)', color: '#6A6C72' }}
             aria-label={`About ${hint.term}`}
           >
@@ -107,7 +107,7 @@ export function Segmented<T extends string>({
           disabled={disabled}
           onClick={() => onChange(o.value)}
           aria-pressed={value === o.value}
-          className="flex-1 cursor-pointer whitespace-nowrap px-2 py-1.5 font-mono text-[9.5px] transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 cursor-pointer whitespace-nowrap px-2 py-1.5 font-mono text-[11.5px] transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             background: value === o.value ? 'rgba(255,255,255,0.06)' : 'transparent',
             color: value === o.value ? '#E8E9EB' : '#6A6C72',
@@ -131,10 +131,10 @@ export function Field({
 }) {
   return (
     <div>
-      <div className="mb-1.5 font-mono text-[10px] text-ink-dim">{label}</div>
+      <div className="mb-1.5 font-mono text-[12px] text-ink-dim">{label}</div>
       {children}
       {hint && (
-        <p className="mt-1 font-mono text-[8.5px] leading-relaxed text-ink-faint/80">{hint}</p>
+        <p className="mt-1 font-mono text-[11px] leading-relaxed text-ink-faint/80">{hint}</p>
       )}
     </div>
   )
@@ -182,7 +182,7 @@ export function Slider({
         />
       </div>
       {format && (
-        <div className="mt-1 text-right font-mono text-[9.5px] tabular-nums text-ink">
+        <div className="mt-1 text-right font-mono text-[11.5px] tabular-nums text-ink">
           {format(value)}
         </div>
       )}
@@ -224,7 +224,7 @@ export function Checkbox({
           </svg>
         )}
       </span>
-      <span className="font-mono text-[10px]" style={{ color: checked ? '#E8E9EB' : '#9A9CA1' }}>
+      <span className="font-mono text-[12px]" style={{ color: checked ? '#E8E9EB' : '#9A9CA1' }}>
         {label}
       </span>
     </button>
@@ -235,7 +235,7 @@ export function Checkbox({
 export function LiveChip({ label = 'computed' }: { label?: string }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[9px] tracking-[0.02em]"
+      className="inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[11px] tracking-[0.02em]"
       style={{
         color: '#5FA88C',
         background: alpha('#5FA88C', 0.08),

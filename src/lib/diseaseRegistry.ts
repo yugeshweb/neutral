@@ -249,11 +249,11 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
     datasetSource: 'Department of Epileptology, University of Bonn',
     totalSamples: 500,
     featureDescriptions: {
-      delta_power: 'Normalized power in 0.5–4 Hz delta oscillation band (deep slow wave activity)',
-      theta_power: 'Normalized power in 4–8 Hz theta band (rhythmic hippocampal synchronization)',
-      alpha_power: 'Normalized power in 8–13 Hz alpha oscillation band (posterior resting rhythm)',
-      beta_power: 'Normalized power in 13–30 Hz beta band (cortical excitability and desynchronization)',
-      gamma_power: 'Normalized power in 30–80 Hz gamma band (high-frequency epileptic paroxysms)',
+      delta_power: 'Normalized power in 0.5-4 Hz delta oscillation band (deep slow wave activity)',
+      theta_power: 'Normalized power in 4-8 Hz theta band (rhythmic hippocampal synchronization)',
+      alpha_power: 'Normalized power in 8-13 Hz alpha oscillation band (posterior resting rhythm)',
+      beta_power: 'Normalized power in 13-30 Hz beta band (cortical excitability and desynchronization)',
+      gamma_power: 'Normalized power in 30-80 Hz gamma band (high-frequency epileptic paroxysms)',
       spectral_entropy: 'Shannon entropy across Fourier spectral distribution (signal complexity)',
       hjorth_mobility: 'Mean frequency estimation via ratio of variance of first derivative to amplitude',
       hjorth_complexity: 'Measure of frequency spread and deviation from pure sinusoidal form',
@@ -421,7 +421,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
       cholesterol: 'Serum total cholesterol concentration (mg/dL)',
       max_heart_rate: 'Maximum heart rate achieved during standardized Bruce treadmill protocol (bpm)',
       st_depression: 'ST segment depression induced by exercise relative to resting baseline (mm)',
-      num_vessels: 'Number of major coronary vessels (0–3) visualized with contrast fluoroscopy',
+      num_vessels: 'Number of major coronary vessels (0-3) visualized with contrast fluoroscopy',
       chest_pain_type: 'Chest pain classification (1: typical angina, 2: atypical, 3: non-anginal, 4: asymptomatic)',
       exercise_angina: 'Presence of exercise-induced angina pectoris (0: no, 1: yes)',
       st_slope: 'Slope of the peak exercise ST segment (1: upsloping, 2: flat, 3: downsloping)',
@@ -566,6 +566,398 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
       },
     ],
   },
+  /*
+   * The three conditions below mirror the validated models in the Python
+   * registry (backend P1, P5, P6). Unlike the entries above, their benchmark
+   * metrics are NOT illustrative: every figure is transcribed from the
+   * evaluation records under
+   * `backend/src/qhealth_qml/platform/registry_data/evaluations/`, produced by
+   * repeated holdout on the real cohorts. Their honest scoping is carried over
+   * verbatim too - where the backend says a model is a same-visit proxy rather
+   * than a progression predictor, this says the same.
+   */
+  {
+    id: 'stroke-risk',
+    name: 'Stroke Clinical Risk',
+    category: 'neurological',
+    categoryLabel: 'Neurological / Cerebrovascular',
+    tagline: 'Structured cardiovascular risk factors for stroke association',
+    modality: 'Clinical & Hemodynamic Tabular',
+    targetCondition: 'Recorded stroke event',
+    positiveLabel: 'Stroke',
+    negativeLabel: 'No Stroke',
+    inputDimensionality: '10 structured clinical risk factors',
+    reducedDimensionality: '6 quantum-encoded risk components',
+    defaultQubits: 6,
+    datasetName: 'Kaggle stroke-prediction cohort',
+    datasetSource: 'Backend P1, 5110 rows, 4.87% positive',
+    totalSamples: 5110,
+    featureDescriptions: {
+      age: 'Age in years',
+      avg_glucose_level: 'Average blood glucose concentration (mg/dL)',
+      bmi: 'Body mass index',
+      hypertension: 'Diagnosed hypertension (0 or 1)',
+      heart_disease: 'Diagnosed heart disease (0 or 1)',
+      ever_married: 'Has ever been married (0 or 1)',
+      work_type: 'Employment category code',
+      residence_type: 'Urban residence (0 rural, 1 urban)',
+      smoking_status: 'Smoking status code, higher is heavier exposure',
+      gender: 'Recorded gender code',
+    },
+    featureRanges: {
+      age: { min: 18, max: 100, step: 1, unit: 'yrs', defaultVal: 43 },
+      avg_glucose_level: { min: 55, max: 280, step: 1, unit: 'mg/dL', defaultVal: 106 },
+      bmi: { min: 12, max: 60, step: 0.5, unit: 'kg/m2', defaultVal: 28.9 },
+      hypertension: { min: 0, max: 1, step: 1, unit: '', defaultVal: 0 },
+      heart_disease: { min: 0, max: 1, step: 1, unit: '', defaultVal: 0 },
+      ever_married: { min: 0, max: 1, step: 1, unit: '', defaultVal: 1 },
+      work_type: { min: 0, max: 4, step: 1, unit: '', defaultVal: 2 },
+      residence_type: { min: 0, max: 1, step: 1, unit: '', defaultVal: 1 },
+      smoking_status: { min: 0, max: 3, step: 1, unit: '', defaultVal: 1 },
+      gender: { min: 0, max: 1, step: 1, unit: '', defaultVal: 0 },
+    },
+    classicalModel: {
+      id: 'stroke-clinical-risk-tabular-classical',
+      name: 'Gradient Boosted Classifier',
+      kind: 'classical',
+      metrics: {
+        accuracy: 0.735,
+        precision: 0.137,
+        sensitivity: 0.780,
+        specificity: 0.732,
+        f1: 0.231,
+        rocAuc: 0.845,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 39, fn: 11, tn: 712, fp: 260 },
+      parameters: 'Gradient-boosted trees, class-weighted',
+      hardware: 'Classical CPU',
+      description: 'Operational reference in the backend registry, balanced accuracy 0.756 on repeated holdout.',
+      rationale: 'At 4.87% prevalence, precision is necessarily low: catching 78% of stroke cases costs a large number of false positives. The negative predictive value of 0.985 is the useful figure here.',
+      rocPoints: [
+        { fpr: 0.0, tpr: 0.0 },
+        { fpr: 0.1, tpr: 0.42 },
+        { fpr: 0.27, tpr: 0.78 },
+        { fpr: 0.5, tpr: 0.9 },
+        { fpr: 1.0, tpr: 1.0 },
+      ],
+    },
+    quantumModel: {
+      id: 'stroke-clinical-risk-tabular',
+      name: 'Quantum Support Vector Classifier',
+      kind: 'quantum',
+      metrics: {
+        accuracy: 0.478,
+        precision: 0.062,
+        sensitivity: 0.680,
+        specificity: 0.467,
+        f1: 0.114,
+        rocAuc: 0.634,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 34, fn: 16, tn: 454, fp: 518 },
+      parameters: 'QSVC, ZZ feature map',
+      hardware: 'Statevector simulator',
+      description: 'Balanced accuracy 0.574, below the classical baseline on the same split.',
+      rationale: 'Registered as experimental. The paired confidence interval on the delta does not favour the quantum candidate, so classical remains the operational reference.',
+      rocPoints: [
+        { fpr: 0.0, tpr: 0.0 },
+        { fpr: 0.2, tpr: 0.3 },
+        { fpr: 0.53, tpr: 0.68 },
+        { fpr: 0.8, tpr: 0.85 },
+        { fpr: 1.0, tpr: 1.0 },
+      ],
+    },
+    honestCallout: {
+      title: 'Classical outperforms quantum on this cohort',
+      summary: 'Balanced accuracy 0.756 classical against 0.574 quantum on the same repeated holdout. The classical model is the operational reference.',
+      quantumPros: [],
+      classicalPros: [
+        'Higher balanced accuracy (0.756 vs 0.574)',
+        'Higher ROC AUC (0.845 vs 0.634)',
+        'Negative predictive value 0.985, useful for ruling out',
+      ],
+      nuance: 'Research benchmarking only. Excluded from any clinical use, acute stroke triage, or use as evidence that a patient does not have a stroke.',
+    },
+    samplePresets: [
+      {
+        id: 'stroke-elevated',
+        name: 'Older patient, multiple risk factors',
+        description: 'Age 78, hypertension and heart disease present, elevated glucose',
+        expectedClass: 'High Risk',
+        values: {
+          age: 78, avg_glucose_level: 205, bmi: 31.5, hypertension: 1,
+          heart_disease: 1, ever_married: 1, work_type: 2,
+          residence_type: 1, smoking_status: 2, gender: 1,
+        },
+      },
+      {
+        id: 'stroke-baseline',
+        name: 'Younger patient, no risk factors',
+        description: 'Age 32, no hypertension or heart disease, normal glucose',
+        expectedClass: 'Low Risk',
+        values: {
+          age: 32, avg_glucose_level: 85, bmi: 24.0, hypertension: 0,
+          heart_disease: 0, ever_married: 0, work_type: 2,
+          residence_type: 0, smoking_status: 0, gender: 0,
+        },
+      },
+    ],
+  },
+  {
+    id: 'alzheimers',
+    name: "Alzheimer's Dementia Association",
+    category: 'neurological',
+    categoryLabel: 'Neurological / Neurodegenerative',
+    tagline: 'Same-visit dementia association from clinical and volumetric measures',
+    modality: 'Structured Tabular',
+    targetCondition: 'Dementia at the same visit (CDR > 0)',
+    positiveLabel: 'Dementia (CDR > 0)',
+    negativeLabel: 'No Dementia (CDR 0)',
+    inputDimensionality: '8 clinical and MRI-derived volumetric measures',
+    reducedDimensionality: '6 quantum-encoded components',
+    defaultQubits: 6,
+    datasetName: 'OASIS-1 cross-sectional',
+    datasetSource: 'Backend P5, 235 rows, 42.6% positive',
+    totalSamples: 235,
+    featureDescriptions: {
+      MMSE: 'Mini-Mental State Examination score, 0 to 30, lower is worse',
+      nWBV: 'Normalized whole-brain volume',
+      Age: 'Age at visit in years',
+      eTIV: 'Estimated total intracranial volume (mm3)',
+      ASF: 'Atlas scaling factor',
+      Educ: 'Years of education band',
+      SES: 'Socioeconomic status band, lower value is higher status',
+      M_F: 'Recorded sex code',
+    },
+    featureRanges: {
+      MMSE: { min: 0, max: 30, step: 1, unit: 'pts', defaultVal: 27 },
+      nWBV: { min: 0.64, max: 0.84, step: 0.001, unit: '', defaultVal: 0.729 },
+      Age: { min: 33, max: 96, step: 1, unit: 'yrs', defaultVal: 75 },
+      eTIV: { min: 1100, max: 2000, step: 10, unit: 'mm3', defaultVal: 1480 },
+      ASF: { min: 0.88, max: 1.6, step: 0.01, unit: '', defaultVal: 1.2 },
+      Educ: { min: 1, max: 5, step: 1, unit: '', defaultVal: 3 },
+      SES: { min: 1, max: 5, step: 1, unit: '', defaultVal: 2 },
+      M_F: { min: 0, max: 1, step: 1, unit: '', defaultVal: 0 },
+    },
+    classicalModel: {
+      id: 'alzheimers-clinical-risk-tabular-classical',
+      name: 'Gradient Boosted Classifier',
+      kind: 'classical',
+      metrics: {
+        accuracy: 0.830,
+        precision: 0.834,
+        sensitivity: 0.775,
+        specificity: 0.870,
+        f1: 0.792,
+        rocAuc: 0.919,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 31, fn: 9, tn: 47, fp: 7 },
+      parameters: 'Gradient-boosted trees',
+      hardware: 'Classical CPU',
+      description: 'Operational reference, balanced accuracy 0.823 on repeated holdout.',
+      rationale: 'MMSE and normalized whole-brain volume carry most of the signal, which is consistent with the clinical literature.',
+      rocPoints: [
+        { fpr: 0.0, tpr: 0.0 },
+        { fpr: 0.05, tpr: 0.55 },
+        { fpr: 0.13, tpr: 0.78 },
+        { fpr: 0.3, tpr: 0.93 },
+        { fpr: 1.0, tpr: 1.0 },
+      ],
+    },
+    quantumModel: {
+      id: 'alzheimers-clinical-risk-tabular',
+      name: 'Quantum Support Vector Classifier',
+      kind: 'quantum',
+      metrics: {
+        accuracy: 0.526,
+        precision: 0.497,
+        sensitivity: 0.825,
+        specificity: 0.304,
+        f1: 0.620,
+        rocAuc: 0.608,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 33, fn: 7, tn: 16, fp: 38 },
+      parameters: 'QSVC, ZZ feature map',
+      hardware: 'Statevector simulator',
+      description: 'Balanced accuracy 0.564, well below the classical baseline.',
+      rationale: 'Registered as experimental. High sensitivity here comes from predicting the positive class far too often, as the 0.304 specificity shows.',
+      rocPoints: [
+        { fpr: 0.0, tpr: 0.0 },
+        { fpr: 0.3, tpr: 0.5 },
+        { fpr: 0.7, tpr: 0.83 },
+        { fpr: 0.9, tpr: 0.95 },
+        { fpr: 1.0, tpr: 1.0 },
+      ],
+    },
+    honestCallout: {
+      title: 'Scoped as a same-visit proxy, not progression',
+      summary: 'Balanced accuracy 0.823 classical against 0.564 quantum. This predicts dementia association at the same visit, not future progression.',
+      quantumPros: [],
+      classicalPros: [
+        'Higher balanced accuracy (0.823 vs 0.564)',
+        'Far higher specificity (0.870 vs 0.304)',
+        'ROC AUC 0.919',
+      ],
+      nuance: 'No OASIS-1 data supports a longitudinal progression claim. 201 subjects without a recorded Clinical Dementia Rating were dropped. Research benchmarking only.',
+    },
+    samplePresets: [
+      {
+        id: 'alz-impaired',
+        name: 'Impaired cognition, reduced brain volume',
+        description: 'MMSE 21, low normalized whole-brain volume',
+        expectedClass: 'High Risk',
+        values: { MMSE: 21, nWBV: 0.695, Age: 82, eTIV: 1450, ASF: 1.21, Educ: 2, SES: 3, M_F: 1 },
+      },
+      {
+        id: 'alz-intact',
+        name: 'Intact cognition',
+        description: 'MMSE 30, brain volume within normal range',
+        expectedClass: 'Low Risk',
+        values: { MMSE: 30, nWBV: 0.756, Age: 68, eTIV: 1490, ASF: 1.18, Educ: 4, SES: 2, M_F: 0 },
+      },
+    ],
+  },
+  {
+    id: 'parkinsons',
+    name: "Parkinson's Voice Analysis",
+    category: 'neurological',
+    categoryLabel: 'Neurological / Movement Disorder',
+    tagline: 'Sustained-phonation acoustic markers, diagnosed against healthy controls',
+    modality: 'Structured Tabular',
+    targetCondition: "Diagnosed Parkinson's disease",
+    positiveLabel: "Parkinson's",
+    negativeLabel: 'Healthy Control',
+    inputDimensionality: '12 acoustic measures from sustained phonation',
+    reducedDimensionality: '6 quantum-encoded acoustic components',
+    defaultQubits: 6,
+    datasetName: "UCI Parkinson's voice cohort",
+    datasetSource: 'Backend P6, 195 recordings from 32 subjects',
+    totalSamples: 195,
+    featureDescriptions: {
+      PPE: 'Pitch period entropy',
+      spread1: 'Nonlinear fundamental-frequency spread measure',
+      MDVP_Fo_Hz: 'Average vocal fundamental frequency (Hz)',
+      MDVP_Flo_Hz: 'Minimum vocal fundamental frequency (Hz)',
+      spread2: 'Second nonlinear frequency-spread measure',
+      MDVP_Jitter_pct: 'Cycle-to-cycle fundamental frequency variation (%)',
+      MDVP_Shimmer: 'Cycle-to-cycle amplitude variation',
+      HNR: 'Harmonics-to-noise ratio (dB)',
+      NHR: 'Noise-to-harmonics ratio',
+      RPDE: 'Recurrence period density entropy',
+      DFA: 'Detrended fluctuation analysis exponent',
+      D2: 'Correlation dimension',
+    },
+    featureRanges: {
+      PPE: { min: 0.04, max: 0.53, step: 0.001, unit: '', defaultVal: 0.207 },
+      spread1: { min: -7.96, max: -2.43, step: 0.01, unit: '', defaultVal: -5.68 },
+      MDVP_Fo_Hz: { min: 88, max: 260, step: 1, unit: 'Hz', defaultVal: 154 },
+      MDVP_Flo_Hz: { min: 65, max: 240, step: 1, unit: 'Hz', defaultVal: 116 },
+      spread2: { min: 0.006, max: 0.45, step: 0.001, unit: '', defaultVal: 0.227 },
+      MDVP_Jitter_pct: { min: 0.001, max: 0.034, step: 0.0005, unit: '%', defaultVal: 0.0062 },
+      MDVP_Shimmer: { min: 0.009, max: 0.12, step: 0.001, unit: '', defaultVal: 0.030 },
+      HNR: { min: 8, max: 33, step: 0.5, unit: 'dB', defaultVal: 21.9 },
+      NHR: { min: 0.0006, max: 0.32, step: 0.001, unit: '', defaultVal: 0.025 },
+      RPDE: { min: 0.25, max: 0.69, step: 0.001, unit: '', defaultVal: 0.499 },
+      DFA: { min: 0.57, max: 0.83, step: 0.001, unit: '', defaultVal: 0.718 },
+      D2: { min: 1.42, max: 3.68, step: 0.01, unit: '', defaultVal: 2.382 },
+    },
+    classicalModel: {
+      id: 'parkinsons-voice-risk-tabular-classical',
+      name: 'Gradient Boosted Classifier',
+      kind: 'classical',
+      metrics: {
+        accuracy: 0.823,
+        precision: 0.879,
+        sensitivity: 0.898,
+        specificity: 0.571,
+        f1: 0.873,
+        rocAuc: 0.883,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 132, fn: 15, tn: 27, fp: 21 },
+      parameters: 'Gradient-boosted trees',
+      hardware: 'Classical CPU',
+      description: 'Operational reference, balanced accuracy 0.734 on repeated holdout.',
+      rationale: 'Specificity is limited by the class imbalance: only 48 of 195 recordings are healthy controls, and the 32 subjects contribute multiple recordings each.',
+      rocPoints: [
+        { fpr: 0.0, tpr: 0.0 },
+        { fpr: 0.15, tpr: 0.68 },
+        { fpr: 0.43, tpr: 0.9 },
+        { fpr: 0.7, tpr: 0.97 },
+        { fpr: 1.0, tpr: 1.0 },
+      ],
+    },
+    quantumModel: {
+      id: 'parkinsons-voice-risk-tabular',
+      name: 'Quantum Support Vector Classifier',
+      kind: 'quantum',
+      metrics: {
+        accuracy: 0.685,
+        precision: 0.795,
+        sensitivity: 0.837,
+        specificity: 0.242,
+        f1: 0.816,
+        rocAuc: 0.561,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 123, fn: 24, tn: 12, fp: 36 },
+      parameters: 'QSVC, ZZ feature map',
+      hardware: 'Statevector simulator',
+      description: 'Balanced accuracy 0.539, barely above chance.',
+      rationale: 'Registered as experimental. A ROC AUC of 0.561 on this cohort is close to uninformative.',
+      rocPoints: [
+        { fpr: 0.0, tpr: 0.0 },
+        { fpr: 0.35, tpr: 0.5 },
+        { fpr: 0.76, tpr: 0.84 },
+        { fpr: 0.92, tpr: 0.95 },
+        { fpr: 1.0, tpr: 1.0 },
+      ],
+    },
+    honestCallout: {
+      title: 'Diagnosed versus healthy, not prodromal risk',
+      summary: 'Balanced accuracy 0.734 classical against 0.539 quantum. This separates already-diagnosed subjects from healthy controls.',
+      quantumPros: [],
+      classicalPros: [
+        'Higher balanced accuracy (0.734 vs 0.539)',
+        'Higher specificity (0.571 vs 0.242)',
+        'ROC AUC 0.883 against 0.561',
+      ],
+      nuance: 'Not a prodromal or PPMI-style at-risk cohort. Recordings are grouped by subject, so a naive row-level split would leak. Research benchmarking only.',
+    },
+    samplePresets: [
+      {
+        id: 'pd-affected',
+        name: 'Marked voice tremor',
+        description: 'Elevated jitter and shimmer, reduced harmonics-to-noise ratio',
+        expectedClass: 'High Risk',
+        values: {
+          PPE: 0.32, spread1: -4.62, MDVP_Fo_Hz: 128, MDVP_Flo_Hz: 92,
+          spread2: 0.31, MDVP_Jitter_pct: 0.0128, MDVP_Shimmer: 0.058,
+          HNR: 16.4, NHR: 0.061, RPDE: 0.588, DFA: 0.762, D2: 2.71,
+        },
+      },
+      {
+        id: 'pd-control',
+        name: 'Stable phonation',
+        description: 'Low jitter and shimmer, high harmonics-to-noise ratio',
+        expectedClass: 'Low Risk',
+        values: {
+          PPE: 0.105, spread1: -7.02, MDVP_Fo_Hz: 197, MDVP_Flo_Hz: 158,
+          spread2: 0.142, MDVP_Jitter_pct: 0.0032, MDVP_Shimmer: 0.0158,
+          HNR: 25.8, NHR: 0.0089, RPDE: 0.421, DFA: 0.688, D2: 2.08,
+        },
+      },
+    ],
+  },
 ]
 
 export function getDiseasePipeline(id: string): DiseasePipeline {
@@ -588,13 +980,28 @@ export type TrainedPipelineArtifact = {
   quantumModelName: string
   quantumWeights?: number[]
   quantumConfig?: VqcConfig
+  /**
+   * Everything below is what inference needs to replay the training transform
+   * exactly. Without it the Predict screen cannot score with the model that was
+   * actually fitted, only approximate it.
+   */
+  /** column indices kept by the selector, in model input order */
+  keptIndices?: number[]
+  /** set when the selector was PCA, in which case keptIndices does not apply */
+  pca?: { mean: number[]; scale: number[]; loadings: number[][] } | null
+  /** per-column fill values, so a missing input is imputed the training way */
+  imputeValues?: number[]
+  /** column means in model space: the neutral reference for occlusion */
+  baselineVector?: number[]
   confusionMatrixClassical: { tp: number; fn: number; tn: number; fp: number }
   confusionMatrixQuantum: { tp: number; fn: number; tn: number; fp: number }
   rocPointsClassical: { fpr: number; tpr: number }[]
   rocPointsQuantum: { fpr: number; tpr: number }[]
 }
 
-const PERSISTED_KEY = 'netural_persisted_trained_pipelines'
+const PERSISTED_KEY = 'neutral_persisted_trained_pipelines'
+/** The key this used to be written under, before the spelling was corrected. */
+const LEGACY_PERSISTED_KEY = 'netural_persisted_trained_pipelines'
 
 export function saveTrainedPipeline(artifact: TrainedPipelineArtifact) {
   try {
@@ -618,8 +1025,17 @@ export function loadTrainedPipeline(diseaseId: string): TrainedPipelineArtifact 
 export function loadAllTrainedPipelines(): Record<string, TrainedPipelineArtifact> {
   try {
     const raw = localStorage.getItem(PERSISTED_KEY)
-    if (!raw) return {}
-    return JSON.parse(raw)
+    if (raw) return JSON.parse(raw)
+
+    // Fall back to the old key once and migrate it forward, so a model that
+    // was trained before the rename is not silently lost.
+    const legacy = localStorage.getItem(LEGACY_PERSISTED_KEY)
+    if (!legacy) return {}
+
+    const parsed = JSON.parse(legacy) as Record<string, TrainedPipelineArtifact>
+    localStorage.setItem(PERSISTED_KEY, legacy)
+    localStorage.removeItem(LEGACY_PERSISTED_KEY)
+    return parsed
   } catch {
     return {}
   }

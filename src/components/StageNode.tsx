@@ -121,8 +121,8 @@ function StageNodeInner({ data, selected }: NodeProps) {
         </span>
 
         <div className="min-w-0 flex-1 pt-px">
-          <div className="truncate text-[12.5px] font-medium leading-tight text-ink">{d.label}</div>
-          <div className="mt-1 truncate font-mono text-[10px] leading-tight text-ink-faint">
+          <div className="truncate text-[14.5px] font-medium leading-tight text-ink">{d.label}</div>
+          <div className="mt-1 truncate font-mono text-[12px] leading-tight text-ink-faint">
             {d.subtitle}
           </div>
         </div>
@@ -135,7 +135,7 @@ function StageNodeInner({ data, selected }: NodeProps) {
       </div>
 
       <div
-        className="mt-2 truncate font-mono text-[9.5px] leading-tight transition-colors duration-200"
+        className="mt-2 truncate font-mono text-[11.5px] leading-tight transition-colors duration-200"
         style={{ color: idle || blocked ? '#55575D' : '#8B8E95' }}
       >
         {blocked ? 'blocked / upstream failed' : footer}

@@ -51,7 +51,7 @@ function Histogram({
           />
         ))}
       </div>
-      <div className="mt-1 flex justify-between font-mono text-[8px] text-ink-faint">
+      <div className="mt-1 flex justify-between font-mono text-[10.5px] text-ink-faint">
         <span>{lo.toFixed(2)}</span>
         <span>{hi.toFixed(2)}</span>
       </div>
@@ -121,7 +121,7 @@ export function PreprocessStep({ config, patch, locked }: Props) {
               ]}
             />
           </div>
-          <p className="mt-2 font-mono text-[9px] leading-relaxed text-ink-faint/85">
+          <p className="mt-2 font-mono text-[11px] leading-relaxed text-ink-faint/85">
             {preview.dropped > 0
               ? `${preview.dropped} rows removed`
               : preview.filled > 0
@@ -134,7 +134,7 @@ export function PreprocessStep({ config, patch, locked }: Props) {
           <div className="flex items-baseline justify-between">
             <SectionLabel>scaling</SectionLabel>
             <span
-              className="rounded-[4px] px-1.5 py-[1px] font-mono text-[8.5px]"
+              className="rounded-[4px] px-1.5 py-[1px] font-mono text-[11px]"
               style={{ color: LANE_COLOR.classical, background: alpha(LANE_COLOR.classical, 0.1) }}
             >
               required
@@ -160,7 +160,7 @@ export function PreprocessStep({ config, patch, locked }: Props) {
               border: `1px solid ${alpha(LANE_COLOR.quantum, 0.2)}`,
             }}
           >
-            <p className="font-mono text-[9px] leading-relaxed text-ink-dim">
+            <p className="font-mono text-[11px] leading-relaxed text-ink-dim">
               Scaling is not optional here. Quantum encoding turns each value into a{' '}
               <Tooltip
                 term="Rotation angle"
@@ -195,7 +195,7 @@ export function PreprocessStep({ config, patch, locked }: Props) {
           </div>
           <div className="mt-2.5 space-y-1">
             {[...preview.counts].map(([label, count]) => (
-              <div key={label} className="flex items-center justify-between font-mono text-[9.5px]">
+              <div key={label} className="flex items-center justify-between font-mono text-[11.5px]">
                 <span className="text-ink-faint">class {label}</span>
                 <span className="tabular-nums text-ink-dim">{count}</span>
               </div>
@@ -208,7 +208,7 @@ export function PreprocessStep({ config, patch, locked }: Props) {
         <div className="mb-3 flex items-baseline justify-between">
           <div>
             <SectionLabel>distribution: before and after</SectionLabel>
-            <p className="mt-1 font-mono text-[9px] text-ink-faint">
+            <p className="mt-1 font-mono text-[11px] text-ink-faint">
               column <span className="text-ink-dim">{preview.column}</span>, the widest range in
               this dataset
             </p>
@@ -219,15 +219,15 @@ export function PreprocessStep({ config, patch, locked }: Props) {
         <div className="grid grid-cols-2 gap-5">
           <Field label="before scaling">
             <Histogram values={preview.before} color={LANE_COLOR.classical} />
-            <p className="mt-1.5 font-mono text-[9px] text-ink-faint">
+            <p className="mt-1.5 font-mono text-[11px] text-ink-faint">
               raw clinical units, unbounded
             </p>
           </Field>
 
           <Field label="after scaling">
             <Histogram values={preview.after} color={LANE_COLOR.quantum} />
-            <p className="mt-1.5 font-mono text-[9px] text-ink-faint">
-              range {angleMin.toFixed(2)} to {angleMax.toFixed(2)} — safe to encode
+            <p className="mt-1.5 font-mono text-[11px] text-ink-faint">
+              range {angleMin.toFixed(2)} to {angleMax.toFixed(2)}, safe to encode
             </p>
           </Field>
         </div>
@@ -244,7 +244,7 @@ export function PreprocessStep({ config, patch, locked }: Props) {
             className="mt-[5px] h-[6px] w-[6px] shrink-0 rounded-full"
             style={{ background: '#5FA88C' }}
           />
-          <p className="font-mono text-[9.5px] leading-relaxed text-ink-faint">
+          <p className="font-mono text-[11.5px] leading-relaxed text-ink-faint">
             The scaler is fitted on the{' '}
             <span className="text-ink-dim">{preview.trainSize} training rows only</span>, then
             applied to the test fold. Fitting on the full dataset would leak test statistics into

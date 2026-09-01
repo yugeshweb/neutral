@@ -1,4 +1,4 @@
-# Netural
+# Neutral
 
 Hybrid quantum-classical ML platform for early disease detection, built for the
 *Hybrid Quantum Machine Learning Platform for Early Disease Detection* problem

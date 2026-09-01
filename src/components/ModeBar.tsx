@@ -40,7 +40,7 @@ export function ModeBar({ mode, onHome }: Props) {
 
       <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
 
-      <span className="text-[13px] text-ink-dim">{LABEL[mode]}</span>
+      <span className="text-[14.5px] text-ink-dim">{LABEL[mode]}</span>
     </header>
   )
 }

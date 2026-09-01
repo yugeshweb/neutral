@@ -100,27 +100,22 @@ export function UploadPanel({ onReady, disabled }: Props) {
         }}
       >
         <div className="mb-2.5 flex items-baseline justify-between">
-          <span className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+          <span className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
             {stage.summary.name}
           </span>
-          <span className="font-mono text-[9px] text-ink-faint">
+          <span className="font-mono text-[11px] text-ink-faint">
             {stage.summary.rows} rows x {stage.summary.columns} cols
           </span>
         </div>
 
-        <label htmlFor="label-col" className="mb-1.5 block font-mono text-[10px] text-ink-dim">
+        <label htmlFor="label-col" className="mb-1.5 block font-mono text-[12px] text-ink-dim">
           label column - what the model predicts
         </label>
         <select
           id="label-col"
           value={stage.labelColumn}
           onChange={(e) => setStage({ ...stage, labelColumn: e.target.value })}
-          className="w-full cursor-pointer rounded-[6px] px-2 py-1.5 font-mono text-[11px] text-ink outline-none"
-          style={{
-            background: '#0D0E10',
-            border: '1px solid rgba(255,255,255,0.05)',
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
-          }}
+          className="select w-full px-2 py-1.5 font-mono text-[13px]"
         >
           {binaryColumns.length === 0 && <option value={stage.labelColumn}>{stage.labelColumn}</option>}
           {binaryColumns.map((c) => (
@@ -131,7 +126,7 @@ export function UploadPanel({ onReady, disabled }: Props) {
         </select>
 
         {labelCol && (
-          <p className="mt-1.5 font-mono text-[8.5px] leading-relaxed text-ink-faint/80">
+          <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-ink-faint/80">
             values seen: {labelCol.sample.join(', ')}
             {binaryColumns.length === 0 && ' - only binary columns can be a label; none were found'}
           </p>
@@ -198,18 +193,18 @@ export function UploadPanel({ onReady, disabled }: Props) {
       >
         <IconUpload className="h-4 w-4 text-ink-faint" />
         <span className="text-[11.5px] text-ink-dim">Drop a file, or browse</span>
-        <span className="font-mono text-[9.5px] text-ink-faint">
+        <span className="font-mono text-[11.5px] text-ink-faint">
           CSV, FHIR JSON or HL7 v2 / max {formatBytes(MAX_UPLOAD_BYTES)}
         </span>
       </button>
 
       {stage.step === 'error' && (
-        <div className="mt-2 font-mono text-[9.5px]" style={{ color: '#A3543D' }} role="alert">
+        <div className="mt-2 font-mono text-[11.5px]" style={{ color: '#A3543D' }} role="alert">
           {stage.message}
         </div>
       )}
 
-      <p className="mt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/70">
+      <p className="mt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/70">
         Parsed in your browser. The label column must have exactly two values - this
         pipeline trains binary classifiers only.
       </p>

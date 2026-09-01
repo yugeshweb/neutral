@@ -95,16 +95,16 @@ export function LaunchScreen({ onSelect }: Props) {
     <div className="console-scroll h-full overflow-y-auto bg-canvas">
       <div className="mx-auto flex min-h-full w-full max-w-[1120px] flex-col justify-center px-8 py-14">
         <div className="mb-9 text-center">
-          <h1 aria-label="Netural">
+          <h1 aria-label="Neutral">
             <Wordmark size={38} />
           </h1>
-          <p className="mt-4 text-[13px] text-ink-dim">
+          <p className="mt-4 text-[14.5px] text-ink-dim">
             Hybrid quantum-classical machine learning platform for early disease detection.
           </p>
           <button
             type="button"
             onClick={tour.start}
-            className="mt-3 cursor-pointer font-mono text-[9.5px] text-ink-faint underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-ink"
+            className="mt-3 cursor-pointer font-mono text-[11.5px] text-ink-faint underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-ink"
           >
             take the tour
           </button>
@@ -147,7 +147,7 @@ export function LaunchScreen({ onSelect }: Props) {
                 >
                   {card.icon}
                 </span>
-                <span className="font-mono text-[10px] tracking-[0.06em] text-ink-faint">
+                <span className="font-mono text-[12px] tracking-[0.06em] text-ink-faint">
                   {card.index}
                 </span>
               </div>

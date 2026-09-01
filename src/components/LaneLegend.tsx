@@ -20,7 +20,7 @@ export function LaneLegend() {
       {ITEMS.map((i) => (
         <span key={i.label} className="flex items-center gap-1.5">
           <span className="h-[5px] w-[5px] rounded-full" style={{ background: i.color }} />
-          <span className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+          <span className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
             {i.label}
           </span>
         </span>

@@ -54,7 +54,7 @@ function ConfusionGrid({
     <div>
       <div className="mb-2 flex items-center gap-2">
         <span className="h-[6px] w-[6px] rounded-full" style={{ background: color }} />
-        <span className="min-w-0 truncate font-mono text-[10px] text-ink-dim">{title}</span>
+        <span className="min-w-0 truncate font-mono text-[12px] text-ink-dim">{title}</span>
       </div>
       <div className="grid grid-cols-2 gap-1.5">
         {cells.map((cell) => (
@@ -68,16 +68,16 @@ function ConfusionGrid({
             }}
           >
             <div
-              className="font-mono text-[15px] tabular-nums"
+              className="font-mono text-[16px] tabular-nums"
               style={{ color: cell.good ? '#E8E9EB' : '#A3543D' }}
             >
               {cell.v}
             </div>
-            <div className="font-mono text-[8px] text-ink-faint">{cell.l}</div>
+            <div className="font-mono text-[10.5px] text-ink-faint">{cell.l}</div>
           </div>
         ))}
       </div>
-      <p className="mt-1.5 font-mono text-[8px] leading-relaxed text-ink-faint/70">
+      <p className="mt-1.5 font-mono text-[10.5px] leading-relaxed text-ink-faint/70">
         positive = {positiveLabel}, negative = {negativeLabel}
       </p>
     </div>
@@ -89,7 +89,7 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
     return (
       <Panel>
         <div className="grid place-items-center gap-3 py-14 text-center">
-          <p className="font-mono text-[11px] text-ink-faint">
+          <p className="font-mono text-[13px] text-ink-faint">
             {running
               ? 'Training is running now - come back here once it finishes.'
               : 'No results yet - train the model first, then come back here to compare it against the classical baselines.'}
@@ -132,17 +132,17 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
             />
             <div className="flex-1">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-[14px] font-medium text-ink">
+                <h2 className="text-[15.5px] font-medium text-ink">
                   {label(verdict.winner)} wins by {verdict.delta.toFixed(4)} accuracy
                 </h2>
                 <LiveChip label="measured" />
               </div>
 
-              <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-ink-faint">
+              <p className="mt-1.5 font-mono text-[12px] leading-relaxed text-ink-faint">
                 {verdict.classicalWon ? (
                   <>
                     The classical baseline beat the quantum model on this run. That is a real
-                    result and it is reported exactly as a quantum win would be — an honest
+                    result and it is reported exactly as a quantum win would be: an honest
                     benchmark is worth more than a flattering one.
                   </>
                 ) : (
@@ -151,10 +151,10 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
                 McNemar&apos;s test on the paired predictions gives p ={' '}
                 <span className="text-ink-dim">{verdict.pValue.toFixed(4)}</span>, which is{' '}
                 {verdict.significant ? (
-                  <span style={{ color: '#5FA88C' }}>below 0.05 — the gap is significant</span>
+                  <span style={{ color: '#5FA88C' }}>below 0.05: the gap is significant</span>
                 ) : (
                   <span style={{ color: LANE_COLOR.classical }}>
-                    above 0.05 — the gap is not distinguishable from noise
+                    above 0.05: the gap is not distinguishable from noise
                   </span>
                 )}{' '}
                 on {result.testSize} held-out samples.
@@ -163,10 +163,10 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
 
             <div className="shrink-0 text-right">
               <QubitBadge qubits={result.config.nFeatures} compact />
-              <div className="mt-1.5 font-mono text-[8.5px] text-ink-faint">
+              <div className="mt-1.5 font-mono text-[11px] text-ink-faint">
                 {result.config.vqc.backend} backend
               </div>
-              <div className="font-mono text-[8.5px] text-ink-faint">
+              <div className="font-mono text-[11px] text-ink-faint">
                 {result.config.vqc.shots === 0
                   ? 'exact expectation'
                   : `${result.config.vqc.shots} shots`}
@@ -179,8 +179,8 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
       {/* comparison table */}
       <Panel>
         <div className="mb-3 flex items-baseline justify-between">
-          <SectionLabel>comparison — all models on the same holdout</SectionLabel>
-          <span className="font-mono text-[9px] text-ink-faint">
+          <SectionLabel>comparison: all models on the same holdout</SectionLabel>
+          <span className="font-mono text-[11px] text-ink-faint">
             {result.testSize} test samples / seed {result.config.seed}
           </span>
         </div>
@@ -190,7 +190,7 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
             <thead>
               <tr>
                 <th
-                  className="pb-2 pr-3 font-mono text-[8.5px] text-ink-faint"
+                  className="pb-2 pr-3 font-mono text-[11px] text-ink-faint"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                 >
                   model
@@ -198,20 +198,20 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
                 {METRIC_COLUMNS.map((m) => (
                   <th
                     key={m.key}
-                    className="pb-2 pr-3 text-right font-mono text-[8.5px] text-ink-faint"
+                    className="pb-2 pr-3 text-right font-mono text-[11px] text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                   >
                     {m.label}
                   </th>
                 ))}
                 <th
-                  className="pb-2 pr-3 text-right font-mono text-[8.5px] text-ink-faint"
+                  className="pb-2 pr-3 text-right font-mono text-[11px] text-ink-faint"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                 >
                   train
                 </th>
                 <th
-                  className="pb-2 text-right font-mono text-[8.5px] text-ink-faint"
+                  className="pb-2 text-right font-mono text-[11px] text-ink-faint"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                 >
                   inference
@@ -237,10 +237,10 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
                           className="h-[6px] w-[6px] shrink-0 rounded-full"
                           style={{ background: colorFor(m.id, m.kind) }}
                         />
-                        <span className="font-mono text-[10px] text-ink">{label(m.id)}</span>
+                        <span className="font-mono text-[12px] text-ink">{label(m.id)}</span>
                         {m.kind === 'quantum' && (
                           <span
-                            className="rounded-[3px] px-1 py-[1px] font-mono text-[8px]"
+                            className="rounded-[3px] px-1 py-[1px] font-mono text-[10.5px]"
                             style={{
                               color: LANE_COLOR.quantum,
                               background: alpha(LANE_COLOR.quantum, 0.12),
@@ -258,7 +258,7 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
                       return (
                         <td
                           key={col.key}
-                          className="py-2 pr-3 text-right font-mono text-[10px] tabular-nums"
+                          className="py-2 pr-3 text-right font-mono text-[12px] tabular-nums"
                           style={{
                             borderBottom: '1px solid rgba(255,255,255,0.04)',
                             color: isMax ? '#5FA88C' : '#9A9CA1',
@@ -269,13 +269,13 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
                       )
                     })}
                     <td
-                      className="py-2 pr-3 text-right font-mono text-[9.5px] tabular-nums text-ink-faint"
+                      className="py-2 pr-3 text-right font-mono text-[11.5px] tabular-nums text-ink-faint"
                       style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                     >
                       {m.trainMs < 1000 ? `${m.trainMs.toFixed(0)}ms` : `${(m.trainMs / 1000).toFixed(1)}s`}
                     </td>
                     <td
-                      className="py-2 text-right font-mono text-[9.5px] tabular-nums text-ink-faint"
+                      className="py-2 text-right font-mono text-[11.5px] tabular-nums text-ink-faint"
                       style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                     >
                       {m.inferenceMs.toFixed(1)}ms
@@ -292,7 +292,7 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
         {/* ROC */}
         <Panel>
           <SectionLabel>ROC curves</SectionLabel>
-          <p className="mb-2 mt-1 font-mono text-[9px] text-ink-faint">
+          <p className="mb-2 mt-1 font-mono text-[11px] text-ink-faint">
             all models, one axis
           </p>
           <RocChart
@@ -310,8 +310,8 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
           <div className="mb-2 flex items-baseline justify-between">
             <div>
               <SectionLabel>cross-validation spread</SectionLabel>
-              <p className="mt-1 font-mono text-[9px] text-ink-faint">
-                {result.config.cvFolds}-fold accuracy — the range, not one number
+              <p className="mt-1 font-mono text-[11px] text-ink-faint">
+                {result.config.cvFolds}-fold accuracy: the range, not one number
               </p>
             </div>
             <LiveChip label="measured" />
@@ -330,14 +330,14 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
                     folds: m.cvFolds,
                   }))}
               />
-              <p className="mt-2 font-mono text-[9px] leading-relaxed text-ink-faint/85">
+              <p className="mt-2 font-mono text-[11px] leading-relaxed text-ink-faint/85">
                 A single accuracy figure proves nothing. The box shows the interquartile range
-                across folds and the dots are the individual fold scores — a wide box means the
+                across folds and the dots are the individual fold scores. A wide box means the
                 result depends heavily on which patients landed in which fold.
               </p>
             </>
           ) : (
-            <p className="py-8 text-center font-mono text-[10px] text-ink-faint">
+            <p className="py-8 text-center font-mono text-[12px] text-ink-faint">
               select a classical baseline to see cross-validation spread
             </p>
           )}
@@ -348,7 +348,7 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
       <Panel>
         <div className="mb-3 flex items-baseline justify-between">
           <SectionLabel>error breakdown</SectionLabel>
-          <span className="font-mono text-[9px] text-ink-faint">
+          <span className="font-mono text-[11px] text-ink-faint">
             false negatives are the costly errors in early detection
           </span>
         </div>
@@ -393,14 +393,14 @@ export function ResultsStep({ result, running, onStartTraining }: Props) {
                 boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
               }}
             >
-              <div className="font-mono text-[8.5px] text-ink-faint">{s.k}</div>
-              <div className="mt-0.5 font-mono text-[10px] text-ink-dim">{s.v}</div>
+              <div className="font-mono text-[11px] text-ink-faint">{s.k}</div>
+              <div className="mt-0.5 font-mono text-[12px] text-ink-dim">{s.v}</div>
             </div>
           ))}
         </div>
-        <p className="mt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/80">
+        <p className="mt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/80">
           Every figure on this page was computed by this browser from the configuration above.
-          The quantum lane ran on a statevector simulator — no real quantum hardware was used.
+          The quantum lane ran on a statevector simulator. No real quantum hardware was used.
         </p>
       </Panel>
 

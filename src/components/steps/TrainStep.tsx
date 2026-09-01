@@ -65,10 +65,10 @@ export function TrainStep({
                 boxShadow: phase === 'idle' ? 'none' : `0 0 5px ${alpha(PHASE_COLOR[phase], 0.9)}`,
               }}
             />
-            <span className="font-mono text-[11px] text-ink-dim">{phase}</span>
+            <span className="font-mono text-[13px] text-ink-dim">{phase}</span>
           </div>
 
-          <span className="font-mono text-[12px] tabular-nums text-ink-dim">
+          <span className="font-mono text-[14px] tabular-nums text-ink-dim">
             {formatElapsed(elapsed)}
           </span>
 
@@ -117,7 +117,7 @@ export function TrainStep({
             }}
           />
         </div>
-        <div className="mt-1.5 flex justify-between font-mono text-[9px] text-ink-faint">
+        <div className="mt-1.5 flex justify-between font-mono text-[11px] text-ink-faint">
           <span>
             {convergence.length > 0
               ? `quantum epoch ${convergence.length}/${config.epochs}`
@@ -132,7 +132,7 @@ export function TrainStep({
           <div className="mb-3 flex items-baseline justify-between">
             <div>
               <SectionLabel>convergence</SectionLabel>
-              <p className="mt-1 font-mono text-[9px] text-ink-faint">
+              <p className="mt-1 font-mono text-[11px] text-ink-faint">
                 cost function per iteration, computed live
               </p>
             </div>
@@ -142,14 +142,14 @@ export function TrainStep({
           <ConvergenceChart points={convergence} height={190} />
 
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
-            <span className="flex items-center gap-1.5 font-mono text-[9px] text-ink-faint">
+            <span className="flex items-center gap-1.5 font-mono text-[11px] text-ink-faint">
               <span
                 className="h-[2px] w-[12px] rounded-full"
                 style={{ background: LANE_COLOR.classical }}
               />
               loss (binary cross-entropy)
             </span>
-            <span className="flex items-center gap-1.5 font-mono text-[9px] text-ink-faint">
+            <span className="flex items-center gap-1.5 font-mono text-[11px] text-ink-faint">
               <span
                 className="h-[2px] w-[12px] rounded-full"
                 style={{ background: LANE_COLOR.quantum }}
@@ -174,8 +174,8 @@ export function TrainStep({
                     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
                   }}
                 >
-                  <div className="font-mono text-[8.5px] text-ink-faint">{s.k}</div>
-                  <div className="mt-0.5 font-mono text-[14px] tabular-nums text-ink">{s.v}</div>
+                  <div className="font-mono text-[11px] text-ink-faint">{s.k}</div>
+                  <div className="mt-0.5 font-mono text-[15.5px] tabular-nums text-ink">{s.v}</div>
                 </div>
               ))}
             </div>
@@ -183,10 +183,10 @@ export function TrainStep({
 
           {last && last.gradNorm < 0.01 && (
             <p
-              className="mt-2.5 font-mono text-[9px] leading-relaxed"
+              className="mt-2.5 font-mono text-[11px] leading-relaxed"
               style={{ color: LANE_COLOR.classical }}
             >
-              Gradient norm is very small — the optimiser may be on a barren plateau. Try fewer
+              Gradient norm is very small: the optimiser may be on a barren plateau. Try fewer
               qubits or fewer layers.
             </p>
           )}
@@ -195,7 +195,7 @@ export function TrainStep({
         <Panel>
           <div className="mb-2.5 flex items-baseline justify-between">
             <SectionLabel>log</SectionLabel>
-            <span className="font-mono text-[9px] text-ink-faint">
+            <span className="font-mono text-[11px] text-ink-faint">
               {logs.length + convergence.length} entries
             </span>
           </div>
@@ -210,13 +210,13 @@ export function TrainStep({
             }}
           >
             {logs.length === 0 && convergence.length === 0 ? (
-              <p className="font-mono text-[9.5px] text-ink-faint/60">
-                no entries — press run
+              <p className="font-mono text-[11.5px] text-ink-faint/60">
+                no entries, press run
               </p>
             ) : (
               <>
                 {logs.map((l) => (
-                  <div key={l.id} className="flex gap-2 py-[1px] font-mono text-[9px] leading-[1.6]">
+                  <div key={l.id} className="flex gap-2 py-[1px] font-mono text-[11px] leading-[1.6]">
                     <span className="shrink-0 text-ink-faint/50">[{l.phase}]</span>
                     <span className="min-w-0 flex-1 text-ink-dim">{l.message}</span>
                   </div>
@@ -224,7 +224,7 @@ export function TrainStep({
                 {convergence.map((c) => (
                   <div
                     key={`e${c.epoch}`}
-                    className="flex gap-2 py-[1px] font-mono text-[9px] leading-[1.6]"
+                    className="flex gap-2 py-[1px] font-mono text-[11px] leading-[1.6]"
                   >
                     <span className="shrink-0 text-ink-faint/50">[quantum]</span>
                     <span className="min-w-0 flex-1 text-ink-faint">

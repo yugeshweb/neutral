@@ -37,7 +37,7 @@ export function PushButton({
       disabled={disabled}
       className={[
         'inline-flex select-none items-center gap-2 rounded-[9px] px-3.5 py-2',
-        'text-[12px] font-medium tracking-tight',
+        'text-[14px] font-medium tracking-tight',
         'transition-[transform,box-shadow,background-color,color] duration-100 ease-out',
         'active:translate-y-[1px]',
         disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:text-ink',

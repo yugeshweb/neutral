@@ -243,14 +243,14 @@ export function CircuitDiagram({ config, featureNames }: Props) {
 
       {/* legend + live stats */}
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        <span className="flex items-center gap-1.5 font-mono text-[9px] text-ink-faint">
+        <span className="flex items-center gap-1.5 font-mono text-[11px] text-ink-faint">
           <span
             className="h-[8px] w-[8px] rounded-[2px] border"
             style={{ borderColor: alpha(LANE_COLOR.classical, 0.6) }}
           />
           data encoding
         </span>
-        <span className="flex items-center gap-1.5 font-mono text-[9px] text-ink-faint">
+        <span className="flex items-center gap-1.5 font-mono text-[11px] text-ink-faint">
           <span
             className="h-[8px] w-[8px] rounded-[2px] border"
             style={{ borderColor: alpha(LANE_COLOR.quantum, 0.6) }}
@@ -259,7 +259,7 @@ export function CircuitDiagram({ config, featureNames }: Props) {
         </span>
         <span className="flex-1" />
         {truncated && (
-          <span className="font-mono text-[9px]" style={{ color: LANE_COLOR.classical }}>
+          <span className="font-mono text-[11px]" style={{ color: LANE_COLOR.classical }}>
             showing 3 of {config.layers} layers
           </span>
         )}

@@ -16,13 +16,12 @@ export default {
         },
       },
       fontFamily: {
-        // One family everywhere. `mono` is retained as an alias so the many
-        // font-mono utilities keep working - it resolves to Inter with
-        // tabular, slashed-zero figures applied via the .font-mono class.
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        mono: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        // Geist for prose and labels; JetBrains Mono for anything numeric, so
+        // metrics stay column-aligned without the text face going technical.
+        sans: ['Geist', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
-      borderRadius: { panel: '14px' },
+      borderRadius: { panel: '8px' },
     },
   },
   plugins: [],

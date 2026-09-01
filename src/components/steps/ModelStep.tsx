@@ -27,7 +27,7 @@ const FEATURE_MAP_HELP: Record<FeatureMap, string> = {
 const ANSATZ_HELP: Record<AnsatzKind, string> = {
   'strongly-entangling': 'Three rotations per qubit per layer, with a ring of CNOTs whose stride grows each layer so correlations spread widely.',
   'basic-entangling': 'One rotation per qubit per layer plus a simple CNOT ring. Fewest parameters, least expressive.',
-  'hardware-efficient': 'Two rotations per qubit and a linear CNOT chain — matches the coupling map real devices actually have.',
+  'hardware-efficient': 'Two rotations per qubit and a linear CNOT chain, matching the coupling map real devices actually have.',
 }
 
 const BACKEND_HELP: Record<Backend, string> = {
@@ -111,7 +111,7 @@ export function ModelStep({ config, patch, locked }: Props) {
                 }}
               >
                 <span
-                  className="font-mono text-[9.5px]"
+                  className="font-mono text-[11.5px]"
                   style={{ color: config.vqc.ansatz === a ? '#E8E9EB' : '#9A9CA1' }}
                 >
                   {a}
@@ -121,7 +121,7 @@ export function ModelStep({ config, patch, locked }: Props) {
           </div>
 
           <div className="mt-3">
-            <Field label={`layers — ${config.vqc.layers}`}>
+            <Field label={`layers: ${config.vqc.layers}`}>
               <Slider
                 id="layers"
                 min={1}
@@ -160,7 +160,7 @@ export function ModelStep({ config, patch, locked }: Props) {
           {config.vqc.backend !== 'ideal' && (
             <div className="mt-3">
               <Field
-                label={`shots — ${config.vqc.shots}`}
+                label={`shots: ${config.vqc.shots}`}
                 hint="More shots means a more precise expectation value but a slower run."
               >
                 <Slider
@@ -178,10 +178,10 @@ export function ModelStep({ config, patch, locked }: Props) {
 
           {config.vqc.backend === 'hardware' && (
             <p
-              className="mt-2 font-mono text-[9px] leading-relaxed"
+              className="mt-2 font-mono text-[11px] leading-relaxed"
               style={{ color: LANE_COLOR.classical }}
             >
-              This models a device — it does not connect to one. No real quantum hardware is
+              This models a device. It does not connect to one. No real quantum hardware is
               used anywhere in this platform.
             </p>
           )}
@@ -200,14 +200,14 @@ export function ModelStep({ config, patch, locked }: Props) {
                   body="Variational Quantum Classifier - the only model type implemented in this build. QNN and QSVM are declared but not built; the delivery table records that honestly rather than hiding it."
                 >
                   <span
-                    className="rounded-[4px] px-1.5 py-[1px] font-mono text-[8.5px]"
+                    className="rounded-[4px] px-1.5 py-[1px] font-mono text-[11px]"
                     style={{ background: alpha(LANE_COLOR.quantum, 0.12), color: LANE_COLOR.quantum }}
                   >
                     VQC
                   </span>
                 </Tooltip>
               </div>
-              <p className="mt-1 font-mono text-[9px] text-ink-faint">
+              <p className="mt-1 font-mono text-[11px] text-ink-faint">
                 exactly what the simulator executes, redrawn as you change settings
               </p>
             </div>
@@ -237,9 +237,9 @@ export function ModelStep({ config, patch, locked }: Props) {
                   boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
                 }}
               >
-                <div className="font-mono text-[8.5px] text-ink-faint">{s.k}</div>
-                <div className="mt-0.5 font-mono text-[17px] tabular-nums text-ink">{s.v}</div>
-                <div className="font-mono text-[8px] text-ink-faint/70">{s.note}</div>
+                <div className="font-mono text-[11px] text-ink-faint">{s.k}</div>
+                <div className="mt-0.5 font-mono text-[19px] tabular-nums text-ink">{s.v}</div>
+                <div className="font-mono text-[10.5px] text-ink-faint/70">{s.note}</div>
               </div>
             ))}
           </div>
@@ -249,7 +249,7 @@ export function ModelStep({ config, patch, locked }: Props) {
         <Panel>
           <div className="mb-2.5 flex items-baseline justify-between">
             <SectionLabel>classical baselines</SectionLabel>
-            <span className="font-mono text-[9.5px] text-ink-faint">
+            <span className="font-mono text-[11.5px] text-ink-faint">
               {config.baselines.length} selected
             </span>
           </div>
@@ -278,7 +278,7 @@ export function ModelStep({ config, patch, locked }: Props) {
               className="mt-[5px] h-[6px] w-[6px] shrink-0 rounded-full"
               style={{ background: '#5FA88C' }}
             />
-            <p className="font-mono text-[9.5px] leading-relaxed text-ink-dim">
+            <p className="font-mono text-[11.5px] leading-relaxed text-ink-dim">
               Both paths use the <span className="text-ink">same split</span>, the{' '}
               <span className="text-ink">same seed ({config.seed})</span>, and the{' '}
               <span className="text-ink">same {config.nFeatures} features</span>. The scaler is
@@ -291,7 +291,7 @@ export function ModelStep({ config, patch, locked }: Props) {
         <Panel>
           <SectionLabel>optimiser</SectionLabel>
           <div className="mt-3 grid grid-cols-3 gap-4">
-            <Field label={`epochs — ${config.epochs}`}>
+            <Field label={`epochs: ${config.epochs}`}>
               <Slider
                 id="epochs"
                 min={5}
@@ -302,7 +302,7 @@ export function ModelStep({ config, patch, locked }: Props) {
                 onChange={(v) => patch({ epochs: v })}
               />
             </Field>
-            <Field label={`learning rate — ${config.learningRate.toFixed(2)}`}>
+            <Field label={`learning rate: ${config.learningRate.toFixed(2)}`}>
               <Slider
                 id="lr"
                 min={0.05}
@@ -313,7 +313,7 @@ export function ModelStep({ config, patch, locked }: Props) {
                 onChange={(v) => patch({ learningRate: v })}
               />
             </Field>
-            <Field label={`batch size — ${config.batchSize}`}>
+            <Field label={`batch size: ${config.batchSize}`}>
               <Slider
                 id="batch"
                 min={8}
@@ -325,7 +325,7 @@ export function ModelStep({ config, patch, locked }: Props) {
               />
             </Field>
           </div>
-          <p className="mt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/85">
+          <p className="mt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/85">
             Gradients use the{' '}
             <Tooltip
               term="Parameter shift"
@@ -335,7 +335,7 @@ export function ModelStep({ config, patch, locked }: Props) {
                 parameter-shift rule
               </span>
             </Tooltip>{' '}
-            — {stats.params} parameters x 2 evaluations x {config.batchSize} samples ={' '}
+            {stats.params} parameters x 2 evaluations x {config.batchSize} samples ={' '}
             {(stats.params * 2 * config.batchSize).toLocaleString()} circuit runs per epoch.
           </p>
         </Panel>

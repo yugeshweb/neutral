@@ -39,7 +39,7 @@ export function ScatterPlot({
         className="grid place-items-center rounded-[8px] panel-well"
         style={{ height }}
       >
-        <span className="font-mono text-[11px] text-ink-faint">
+        <span className="font-mono text-[13px] text-ink-faint">
           No feature projection data available
         </span>
       </div>
@@ -110,13 +110,13 @@ export function ScatterPlot({
       {/* Interactive 3D Rotation Controls if in 3D Mode */}
       {is3d && (
         <div className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-[6px] bg-black/60 px-2 py-1 backdrop-blur-sm">
-          <span className="font-mono text-[9px] text-ink-faint">Drag / Rotate:</span>
+          <span className="font-mono text-[11px] text-ink-faint">Drag / Rotate:</span>
           <button
             type="button"
             onClick={() => {
               setRotY((r) => r + 15)
             }}
-            className="cursor-pointer rounded bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-ink hover:bg-white/20"
+            className="cursor-pointer rounded bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-ink hover:bg-white/20"
           >
             Rot Y
           </button>
@@ -125,7 +125,7 @@ export function ScatterPlot({
             onClick={() => {
               setRotX((r) => (r + 10) % 360)
             }}
-            className="cursor-pointer rounded bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-ink hover:bg-white/20"
+            className="cursor-pointer rounded bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-ink hover:bg-white/20"
           >
             Rot X
           </button>
@@ -195,7 +195,7 @@ export function ScatterPlot({
               x={w / 2}
               y={h - 8}
               textAnchor="middle"
-              className="font-mono text-[9px] fill-ink-faint"
+              className="font-mono text-[11px] fill-ink-faint"
             >
               {xLabel} →
             </text>
@@ -204,7 +204,7 @@ export function ScatterPlot({
               y={h / 2}
               textAnchor="middle"
               transform={`rotate(-90 14 ${h / 2})`}
-              className="font-mono text-[9px] fill-ink-faint"
+              className="font-mono text-[11px] fill-ink-faint"
             >
               {yLabel} →
             </text>
@@ -226,7 +226,7 @@ export function ScatterPlot({
               x={w / 2}
               y={h - 10}
               textAnchor="middle"
-              className="font-mono text-[9px] fill-ink-faint"
+              className="font-mono text-[11px] fill-ink-faint"
             >
               Interactive 3D Projections ({xLabel}, {yLabel}, {zLabel})
             </text>
@@ -273,11 +273,11 @@ export function ScatterPlot({
                 background: hoveredPoint.label === 1 ? POS_COLOR : NEG_COLOR,
               }}
             />
-            <span className="font-mono text-[10px] font-medium text-ink">
+            <span className="font-mono text-[12px] font-medium text-ink">
               {hoveredPoint.label === 1 ? positiveLabel : negativeLabel}
             </span>
           </div>
-          <div className="mt-1 font-mono text-[9px] text-ink-faint">
+          <div className="mt-1 font-mono text-[11px] text-ink-faint">
             {xLabel.slice(0, 8)}: {hoveredPoint.x.toFixed(3)} | {yLabel.slice(0, 8)}:{' '}
             {hoveredPoint.y.toFixed(3)}
           </div>
@@ -286,7 +286,7 @@ export function ScatterPlot({
 
       {/* Legend */}
       <div className="mt-2 flex items-center justify-between px-3">
-        <div className="flex items-center gap-4 font-mono text-[10px]">
+        <div className="flex items-center gap-4 font-mono text-[12px]">
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: NEG_COLOR }} />
             <span className="text-ink-dim">{negativeLabel}</span>
@@ -296,7 +296,7 @@ export function ScatterPlot({
             <span className="text-ink-dim">{positiveLabel}</span>
           </span>
         </div>
-        <span className="font-mono text-[9px] text-ink-faint">
+        <span className="font-mono text-[11px] text-ink-faint">
           {points.length} samples projected into reduced feature space
         </span>
       </div>

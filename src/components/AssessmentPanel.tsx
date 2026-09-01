@@ -40,7 +40,7 @@ export function AssessmentPanel({ run }: Props) {
       {/* Synthetic banner if present */}
       {run.synthetic && (
         <div
-          className="rounded-panel px-4 py-3 font-mono text-[9px] font-medium tracking-[0.05em]"
+          className="rounded-panel px-4 py-3 font-mono text-[11px] font-medium tracking-[0.05em]"
           style={{ background: 'rgba(163, 84, 61, 0.3)', color: '#A3543D' }}
         >
           SYNTHETIC / DEMO RUN
@@ -52,7 +52,7 @@ export function AssessmentPanel({ run }: Props) {
         className="rounded-panel border border-solid px-4 py-3"
         style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(160,120,60,0.08)' }}
       >
-        <div className="text-[9.5px] leading-relaxed text-ink-faint">{run.disclaimer}</div>
+        <div className="text-[11.5px] leading-relaxed text-ink-faint">{run.disclaimer}</div>
       </div>
 
       {/* Routing table */}
@@ -63,7 +63,7 @@ export function AssessmentPanel({ run }: Props) {
           border: '1px solid rgba(255,255,255,0.06)',
         }}
       >
-        <div className="text-[10px]">
+        <div className="text-[12px]">
           {/* Header */}
           <div
             className="flex border-b border-solid px-4 py-2 font-medium text-ink-dim"
@@ -84,8 +84,8 @@ export function AssessmentPanel({ run }: Props) {
                 style={{ borderColor: 'rgba(255,255,255,0.04)' }}
               >
                 <div className="flex-1">
-                  <div className="font-mono text-[9px] text-ink">{decision.model_id}</div>
-                  <div className="text-[8.5px] text-ink-faint">{decision.model_version}</div>
+                  <div className="font-mono text-[11px] text-ink">{decision.model_id}</div>
+                  <div className="text-[11px] text-ink-faint">{decision.model_version}</div>
                 </div>
                 <div
                   className="w-24 rounded px-2 py-1 text-center font-medium"
@@ -93,7 +93,7 @@ export function AssessmentPanel({ run }: Props) {
                 >
                   {decision.status}
                 </div>
-                <div className="flex-1 text-[9.5px] leading-snug text-ink-faint">
+                <div className="flex-1 text-[11.5px] leading-snug text-ink-faint">
                   {decision.reason}
                 </div>
               </div>
@@ -104,7 +104,7 @@ export function AssessmentPanel({ run }: Props) {
 
       {/* Findings list */}
       <div className="space-y-3">
-        <div className="text-[11px] font-medium text-ink-dim">Findings</div>
+        <div className="text-[13px] font-medium text-ink-dim">Findings</div>
         <div className="space-y-3">
           {run.findings.map((finding) => (
             <FindingCard key={finding.finding_id} finding={finding} />
@@ -126,7 +126,7 @@ export function AssessmentPanel({ run }: Props) {
             onClick={() => setErrorsOpen(!errorsOpen)}
             className="flex w-full items-center justify-between px-4 py-3 text-left transition-opacity hover:opacity-80"
           >
-            <span className="text-[10px] font-medium text-lane-error">Errors ({run.errors.length})</span>
+            <span className="text-[12px] font-medium text-lane-error">Errors ({run.errors.length})</span>
             <span
               className="inline-flex transition-transform"
               style={{ transform: errorsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
@@ -140,7 +140,7 @@ export function AssessmentPanel({ run }: Props) {
               className="border-t border-solid px-4 py-3"
               style={{ borderColor: 'rgba(255,255,255,0.08)' }}
             >
-              <div className="mb-2 text-[9px] leading-relaxed text-ink-faint">
+              <div className="mb-2 text-[11px] leading-relaxed text-ink-faint">
                 One or more models encountered errors, but completed findings shown above remain valid and
                 should not be discredited.
               </div>
@@ -148,7 +148,7 @@ export function AssessmentPanel({ run }: Props) {
                 {run.errors.map((err, idx) => (
                   <div
                     key={idx}
-                    className="rounded px-2 py-1 font-mono text-[8.5px] leading-relaxed text-lane-error"
+                    className="rounded px-2 py-1 font-mono text-[11px] leading-relaxed text-lane-error"
                     style={{ background: 'rgba(163, 84, 61, 0.1)' }}
                   >
                     {err}

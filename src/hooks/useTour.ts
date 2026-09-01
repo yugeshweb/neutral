@@ -9,7 +9,8 @@ export type TourStop = {
   placement?: 'top' | 'bottom'
 }
 
-const STORAGE_PREFIX = 'netural.tour.seen.'
+// Renaming this only costs a one-time tour replay, so there is no migration.
+const STORAGE_PREFIX = 'neutral.tour.seen.'
 
 function hasSeen(id: string): boolean {
   try {

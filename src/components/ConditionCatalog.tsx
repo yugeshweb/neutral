@@ -31,8 +31,8 @@ function CatalogShell({ onHome, children }: Props & { children: ReactNode }) {
         <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
 
         <div>
-          <div className="text-[13px] text-ink">Neurological conditions</div>
-          <div className="font-mono text-[9px] text-ink-faint">
+          <div className="text-[14.5px] text-ink">Neurological conditions</div>
+          <div className="font-mono text-[11px] text-ink-faint">
             clinical registry served by the backend
           </div>
         </div>
@@ -80,8 +80,8 @@ export function ConditionCatalog({ onHome }: Props) {
         <div className="console-scroll h-full overflow-y-auto bg-canvas">
           <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col justify-center px-8 py-14">
             <div className="text-center">
-              <div className="text-[13px] text-ink-dim">Loading condition catalog…</div>
-              <div className="mt-2 font-mono text-[9.5px] text-ink-faint">GET /api/catalog</div>
+              <div className="text-[14.5px] text-ink-dim">Loading condition catalog…</div>
+              <div className="mt-2 font-mono text-[11.5px] text-ink-faint">GET /api/catalog</div>
             </div>
           </div>
         </div>
@@ -95,8 +95,8 @@ export function ConditionCatalog({ onHome }: Props) {
         <div className="console-scroll h-full overflow-y-auto bg-canvas">
           <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col justify-center px-8 py-14">
             <div className="rounded-panel border border-solid border-lane-error/30 bg-canvas p-4">
-              <div className="text-[13px] text-lane-error">{error}</div>
-              <p className="mt-2.5 font-mono text-[9.5px] leading-relaxed text-ink-faint">
+              <div className="text-[14.5px] text-lane-error">{error}</div>
+              <p className="mt-2.5 font-mono text-[11.5px] leading-relaxed text-ink-faint">
                 The condition registry is served by the Python backend. Start it with{' '}
                 <span className="text-ink-dim">python start_api.py 8765</span> from the
                 backend directory, then set{' '}
@@ -120,8 +120,8 @@ export function ConditionCatalog({ onHome }: Props) {
       <div className="mx-auto w-full max-w-4xl px-8 py-10">
         {/* the header carries the title; this states the scope caveat */}
         <div className="mb-10">
-          <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-dim">
-            This catalog is exhaustive only for the conditions listed below — it does not cover
+          <p className="max-w-2xl text-[14.5px] leading-relaxed text-ink-dim">
+            This catalog is exhaustive only for the conditions listed below. It does not cover
             every neurological disease. High-reference entries have a comparatively strong reference
             standard for research evaluation; research-only entries have a weaker or unapproved
             label policy and must be read as risk/progression signals, never a diagnosis.
@@ -133,7 +133,7 @@ export function ConditionCatalog({ onHome }: Props) {
           <div className="mb-10">
             <div className="mb-4 flex items-center gap-2">
               <h2 className="text-[16px] font-medium text-ink">High Reference</h2>
-              <span className="font-mono text-[10px] text-ink-faint">
+              <span className="font-mono text-[12px] text-ink-faint">
                 {highRef.length} condition{highRef.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -156,7 +156,7 @@ export function ConditionCatalog({ onHome }: Props) {
           <div>
             <div className="mb-4 flex items-center gap-2">
               <h2 className="text-[16px] font-medium text-ink">Research Only</h2>
-              <span className="font-mono text-[10px] text-ink-faint">
+              <span className="font-mono text-[12px] text-ink-faint">
                 {researchOnly.length} condition{researchOnly.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -176,7 +176,7 @@ export function ConditionCatalog({ onHome }: Props) {
 
         {catalog.length === 0 && (
           <div className="rounded-panel border border-solid border-line p-6 text-center">
-            <div className="text-[13px] text-ink-dim">No conditions available in the catalog.</div>
+            <div className="text-[14.5px] text-ink-dim">No conditions available in the catalog.</div>
           </div>
         )}
       </div>
@@ -214,21 +214,21 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h3 className="text-[13px] font-medium text-ink">{entry.condition.name}</h3>
+            <h3 className="text-[14.5px] font-medium text-ink">{entry.condition.name}</h3>
             <div className="mt-1.5 flex items-center gap-2">
-              <span className="font-mono text-[9px] text-ink-faint">
+              <span className="font-mono text-[11px] text-ink-faint">
                 {entry.condition.task_type}
               </span>
               {tier === 'research_only' && (
                 <span
-                  className="rounded px-1.5 py-0.5 font-mono text-[8px] font-medium"
+                  className="rounded px-1.5 py-0.5 font-mono text-[10.5px] font-medium"
                   style={{ background: 'rgba(160, 120, 60, 0.2)', color: '#C08A3E' }}
                 >
                   RESEARCH ONLY
                 </span>
               )}
               <span
-                className="rounded px-1.5 py-0.5 font-mono text-[8px] font-medium"
+                className="rounded px-1.5 py-0.5 font-mono text-[10.5px] font-medium"
                 style={{ background: availabilityColor.bg, color: availabilityColor.text }}
               >
                 {availabilityColor.label}
@@ -250,7 +250,7 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
           className="border-t border-solid px-5 py-4"
           style={{ borderColor: 'rgba(255,255,255,0.08)' }}
         >
-          <div className="space-y-4 text-[10px]">
+          <div className="space-y-4 text-[12px]">
             {/* Modalities */}
             <div>
               <div className="font-medium text-ink-dim">Required modalities</div>
@@ -258,7 +258,7 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
                 {entry.condition.required_modalities.map((m) => (
                   <span
                     key={m}
-                    className="rounded px-2 py-0.5 font-mono text-[8.5px]"
+                    className="rounded px-2 py-0.5 font-mono text-[11px]"
                     style={{ background: '#0D0E10', color: '#8A8F98' }}
                   >
                     {m}
@@ -274,7 +274,7 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
                   {entry.condition.optional_modalities.map((m) => (
                     <span
                       key={m}
-                      className="rounded px-2 py-0.5 font-mono text-[8.5px]"
+                      className="rounded px-2 py-0.5 font-mono text-[11px]"
                       style={{ background: '#0D0E10', color: '#6A6C72' }}
                     >
                       {m}
@@ -339,11 +339,11 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <div className="font-medium text-ink">{model.display_name}</div>
-                          <div className="mt-0.5 text-[9px] text-ink-faint">v{model.version}</div>
+                          <div className="mt-0.5 text-[11px] text-ink-faint">v{model.version}</div>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           <span
-                            className="rounded px-1.5 py-0.5 text-[7.5px] font-medium"
+                            className="rounded px-1.5 py-0.5 text-[11px] font-medium"
                             style={{
                               background:
                                 model.lifecycle === 'operational_reference'
@@ -359,7 +359,7 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
                           </span>
                           {model.quantum && (
                             <span
-                              className="rounded px-1.5 py-0.5 text-[7.5px] font-medium"
+                              className="rounded px-1.5 py-0.5 text-[11px] font-medium"
                               style={{ background: 'rgba(62, 140, 158, 0.2)', color: '#3E8C9E' }}
                             >
                               HYBRID
@@ -367,7 +367,7 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
                           )}
                           {!model.quantum && (
                             <span
-                              className="rounded px-1.5 py-0.5 text-[7.5px] font-medium"
+                              className="rounded px-1.5 py-0.5 text-[11px] font-medium"
                               style={{ background: 'rgba(138, 143, 152, 0.2)', color: '#8A8F98' }}
                             >
                               CLASSICAL
@@ -376,7 +376,7 @@ function ConditionItem({ entry, expanded, onToggle, tier }: ItemProps) {
                         </div>
                       </div>
                       {model.safety.disclaimer && (
-                        <div className="mt-2 border-t border-solid pt-2 text-[8.5px] leading-relaxed text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                        <div className="mt-2 border-t border-solid pt-2 text-[11px] leading-relaxed text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                           {model.safety.disclaimer}
                         </div>
                       )}

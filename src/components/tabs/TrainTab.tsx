@@ -31,6 +31,7 @@ import {
 } from '../../lib/ml/stats'
 import type { EpochRecord } from '../../lib/quantum/vqc'
 import { LANE_COLOR, alpha } from '../../lib/theme'
+import { InfoDot } from '../InfoDot'
 import { ConvergenceChart, RocChart } from '../charts'
 import { ScatterPlot } from '../charts/ScatterPlot'
 import {
@@ -206,7 +207,8 @@ export function TrainTab({
           const qModel = ev.result.models.find((m) => m.kind === 'quantum')
           const cModel = ev.result.models.find((m) => m.kind === 'classical')
 
-          if (qModel && cModel && previewData?.scaler) {
+          if (qModel && cModel) {
+            const fitted = ev.result.fitted
             const artifact: TrainedPipelineArtifact = {
               diseaseId: selectedDiseaseId,
               trainedAt: new Date().toISOString(),
@@ -214,7 +216,15 @@ export function TrainTab({
               rows: dataset.X.length,
               featureNames: dataset.featureNames,
               keptFeatures: ev.result.keptFeatures,
-              scaler: previewData.scaler,
+              // The scaler the run actually fitted on its training fold - not
+              // the preview's, which is fitted on the full matrix for display.
+              scaler: fitted.scaler,
+              keptIndices: fitted.keptIndices,
+              pca: fitted.pca,
+              imputeValues: fitted.imputeValues,
+              baselineVector: fitted.baselineVector,
+              quantumWeights: fitted.quantumWeights,
+              quantumConfig: fitted.quantumConfig,
               classicalMetrics: {
                 accuracy: cModel.metrics.accuracy,
                 precision: cModel.metrics.precision,
@@ -305,41 +315,34 @@ export function TrainTab({
 
 
   return (
-    <div className="console-scroll h-full overflow-y-auto bg-canvas">
-      <div className="mx-auto w-full max-w-[1240px] px-6 py-6 space-y-6">
+    <div className="console-scroll canvas-grid h-full overflow-y-auto">
+      <div className="screen">
         {/* Step Navigation Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[9.5px] text-ink-faint">
-                TAB 2 · PIPELINE TRAINER
-              </span>
-              <h1 className="text-[18px] font-medium text-ink">
-                Train on Your Own Clinical Dataset
-              </h1>
-            </div>
-            <p className="mt-1 text-[12px] text-ink-dim">
-              Bring custom data or ingest preset clinical cohorts to train both classical and hybrid quantum models with real-time feedback.
-            </p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[19px] font-medium text-ink">Train</h1>
+            <InfoDot label="About this screen">
+              Ingest a cohort or your own CSV, then train a classical baseline and a
+              variational quantum classifier on the same split. The fitted model is
+              saved and becomes the one the Predict tab scores with.
+            </InfoDot>
           </div>
 
           {/* Stepper Buttons */}
-          <div className="flex items-center gap-1.5 rounded-[8px] bg-[#141518] p-1 border border-white/5 font-mono text-[10px]">
+          <div className="flex items-center gap-1 rounded-[8px] bg-black/25 p-1 font-mono text-[12px]">
             <button
               type="button"
               onClick={() => setActiveStep('ingest')}
-              className={`cursor-pointer rounded-[6px] px-3 py-1.5 transition-all ${
-                activeStep === 'ingest' ? 'bg-white/10 text-white font-medium' : 'text-ink-faint hover:text-ink'
-              }`}
+              data-pressed={activeStep === 'ingest'}
+              className="key cursor-pointer rounded-[6px] px-3 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-white" 
             >
               1. Ingest & Route
             </button>
             <button
               type="button"
               onClick={() => setActiveStep('preview')}
-              className={`cursor-pointer rounded-[6px] px-3 py-1.5 transition-all ${
-                activeStep === 'preview' ? 'bg-white/10 text-white font-medium' : 'text-ink-faint hover:text-ink'
-              }`}
+              data-pressed={activeStep === 'preview'}
+              className="key cursor-pointer rounded-[6px] px-3 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-white" 
             >
               2. Feature Preview
             </button>
@@ -349,11 +352,8 @@ export function TrainTab({
                 if (trainingResult) setActiveStep('results')
                 else handleStartTraining()
               }}
-              className={`cursor-pointer rounded-[6px] px-3 py-1.5 transition-all ${
-                activeStep === 'training' || activeStep === 'results'
-                  ? 'bg-white/10 text-white font-medium'
-                  : 'text-ink-faint hover:text-ink'
-              }`}
+              data-pressed={activeStep === 'training' || activeStep === 'results'}
+              className="key cursor-pointer rounded-[6px] px-3 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-white" 
             >
               3. Train & Compare
             </button>
@@ -362,25 +362,22 @@ export function TrainTab({
 
         {/* STEP 1: INGESTION & DISEASE ROUTER */}
         {activeStep === 'ingest' && (
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {/* Left Column: Disease Selection (6 cols) */}
               <div
-                className="lg:col-span-6 rounded-panel p-5"
-                style={{
-                  background: '#16171A',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}
+                className="lg:col-span-6 panel-raised rounded-panel panel-pad"
               >
-                <div className="mb-3 flex items-center gap-2">
-                  <IconDatabase className="h-4 w-4 text-ink-faint" />
-                  <h2 className="text-[13px] font-medium text-ink">
-                    1. Select Target Disease Pipeline
-                  </h2>
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <IconDatabase className="h-4 w-4 text-ink-faint" />
+                    <h2 className="text-[14.5px] font-medium text-ink">Condition</h2>
+                  </div>
+                  <InfoDot label="About routing">
+                    The selected condition determines the preprocessing transformers,
+                    the feature-extraction recipe, and the quantum circuit ansatz.
+                  </InfoDot>
                 </div>
-                <p className="text-[11.5px] text-ink-dim mb-4">
-                  Routing determines the preprocessing transformers, feature extraction recipe, and quantum circuit ansatz.
-                </p>
 
                 <div className="space-y-2.5">
                   {DISEASE_PIPELINES.map((d) => {
@@ -401,15 +398,15 @@ export function TrainTab({
                         }}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-ink-faint">
+                          <span className="font-mono text-[11px] text-ink-faint">
                             {d.categoryLabel}
                           </span>
                           {active && (
                             <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.quantum }} />
                           )}
                         </div>
-                        <div className="text-[13.5px] font-medium text-ink mt-0.5">{d.name}</div>
-                        <div className="mt-1 flex items-center gap-3 font-mono text-[9.5px] text-ink-faint">
+                        <div className="text-[15px] font-medium text-ink mt-0.5">{d.name}</div>
+                        <div className="mt-1 flex items-center gap-3 font-mono text-[11.5px] text-ink-faint">
                           <span>Modality: {d.modality}</span>
                           <span>Input: {d.inputDimensionality.slice(0, 24)}...</span>
                         </div>
@@ -421,21 +418,19 @@ export function TrainTab({
 
               {/* Right Column: Ingestion Options & Upload (6 cols) */}
               <div
-                className="lg:col-span-6 rounded-panel p-5"
-                style={{
-                  background: '#16171A',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}
+                className="lg:col-span-6 panel-raised rounded-panel panel-pad"
               >
-                <div className="mb-3 flex items-center gap-2">
-                  <IconUpload className="h-4 w-4 text-ink-faint" />
-                  <h2 className="text-[13px] font-medium text-ink">
-                    2. Data Ingestion & Custom Upload
-                  </h2>
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <IconUpload className="h-4 w-4 text-ink-faint" />
+                    <h2 className="text-[14.5px] font-medium text-ink">Data</h2>
+                  </div>
+                  <InfoDot label="About ingestion">
+                    Records are validated and normalised before quantum state
+                    encoding. A custom CSV must be tabular with one target column;
+                    the last column is used unless a likelier label is detected.
+                  </InfoDot>
                 </div>
-                <p className="text-[11.5px] text-ink-dim mb-4">
-                  High-dimensional biomedical records are automatically ingested, validated, and normalized before quantum state embedding.
-                </p>
 
                 {/* Upload Box */}
                 <div
@@ -455,23 +450,24 @@ export function TrainTab({
                     className="cursor-pointer flex flex-col items-center gap-2"
                   >
                     <IconUpload className="h-6 w-6 text-ink-faint" />
-                    <span className="text-[12px] font-medium text-ink">
+                    <span className="text-[14px] font-medium text-ink">
                       {uploadFileName ? `Uploaded: ${uploadFileName}` : 'Upload Custom CSV Dataset'}
                     </span>
-                    <span className="font-mono text-[9.5px] text-ink-faint">
+                    <span className="font-mono text-[11.5px] text-ink-faint">
                       Supports comma-separated tabular records with target column
                     </span>
                   </label>
 
                   {uploadFileName && (
                     <div className="mt-3 flex items-center justify-center gap-2">
-                      <span className="rounded bg-[#5FA88C]/15 border border-[#5FA88C]/30 px-2 py-0.5 font-mono text-[9.5px] text-[#5FA88C]">
-                        ✓ Ingested {dataset.X.length} rows × {dataset.featureNames.length} features
+                      <span className="inline-flex items-center gap-1.5 rounded bg-[#3E8C9E]/15 border border-[#3E8C9E]/30 px-2 py-0.5 font-mono text-[11.5px] text-[#3E8C9E]">
+                        <IconCheck className="h-3 w-3" />
+                        Ingested {dataset.X.length} rows × {dataset.featureNames.length} features
                       </span>
                       <button
                         type="button"
                         onClick={handleResetUpload}
-                        className="cursor-pointer font-mono text-[9px] text-ink-faint hover:text-ink underline"
+                        className="cursor-pointer font-mono text-[11px] text-ink-faint hover:text-ink underline"
                       >
                         Reset to preset
                       </button>
@@ -479,12 +475,12 @@ export function TrainTab({
                   )}
 
                   {uploadError && (
-                    <div className="mt-2 text-[10.5px] text-[#A3543D]">{uploadError}</div>
+                    <div className="mt-2 text-[12.5px] text-[#A3543D]">{uploadError}</div>
                   )}
                 </div>
 
                 {/* Ingested Dataset Summary */}
-                <div className="mt-4 rounded-[8px] bg-[#0E0F11] p-3 border border-white/5 font-mono text-[10.5px] space-y-1.5">
+                <div className="panel-well mt-4 rounded-[8px] well-pad font-mono text-[12.5px] space-y-1.5">
                   <div className="flex justify-between text-ink-faint">
                     <span>Active Cohort:</span>
                     <span className="text-ink font-medium">{dataset.name}</span>
@@ -497,7 +493,7 @@ export function TrainTab({
                     <span>Labels:</span>
                     <span className="text-ink">
                       <span className="text-[#A3543D]">{dataset.positiveLabel}</span> /{' '}
-                      <span className="text-[#5FA88C]">{dataset.negativeLabel}</span>
+                      <span className="text-[#3E8C9E]">{dataset.negativeLabel}</span>
                     </span>
                   </div>
                 </div>
@@ -506,7 +502,7 @@ export function TrainTab({
                   <button
                     type="button"
                     onClick={() => setActiveStep('preview')}
-                    className="flex items-center gap-2 rounded-[7px] px-4 py-2 font-mono text-[11px] font-medium text-black cursor-pointer transition-transform duration-150 hover:scale-[1.02]"
+                    className="flex items-center gap-2 rounded-[6px] px-4 py-2 font-mono text-[13px] font-medium text-black cursor-pointer transition-transform duration-150 hover:scale-[1.02]"
                     style={{ background: LANE_COLOR.quantum }}
                   >
                     Proceed to Feature Preview <IconArrowRight className="h-3.5 w-3.5" />
@@ -519,98 +515,94 @@ export function TrainTab({
 
         {/* STEP 2: PREPROCESSING & FEATURE PREVIEW */}
         {activeStep === 'preview' && previewData && (
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Preprocessing Stages Visualization */}
             <div
-              className="rounded-panel p-5"
-              style={{
-                background: '#16171A',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
+              className="panel-raised rounded-panel panel-pad"
             >
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <IconFlask className="h-4 w-4 text-ink-faint" />
-                  <h2 className="text-[13px] font-medium text-ink">
+                  <h2 className="text-[14.5px] font-medium text-ink">
                     Preprocessing & Dimensionality Reduction Stages
                   </h2>
                 </div>
-                <span className="font-mono text-[10px] text-ink-faint">
+                <span className="font-mono text-[12px] text-ink-faint">
                   High-Dimensional Pipeline Stream
                 </span>
               </div>
 
               {/* Stage Cards Flow */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 font-mono text-[10px]">
-                <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                  <div className="text-ink-faint uppercase text-[9px] mb-1">Stage 1 · Imputation</div>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono text-[12px]">
+                <div className="panel-well rounded-[8px] well-pad">
+                  <div className="text-ink-faint text-[11px] mb-1">Stage 1 · Imputation</div>
                   <div className="text-ink font-medium">Missing Cell Handler</div>
-                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[9.5px]">
+                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[11.5px]">
                     <span>Strategy:</span>
                     <select
                       value={imputeStrategy}
                       onChange={(e) => setImputeStrategy(e.target.value as ImputeStrategy)}
-                      className="bg-black/50 border border-white/10 rounded px-1.5 py-0.5 text-[9px] text-ink outline-none cursor-pointer"
+                      className="select font-mono text-[11px]"
                     >
                       <option value="median">Median</option>
                       <option value="mean">Mean</option>
                       <option value="drop">Drop</option>
                     </select>
                   </div>
-                  <div className="mt-2 text-ink-faint text-[9px]">
+                  <div className="mt-2 text-ink-faint text-[11px]">
                     {previewData.droppedRows > 0 ? `Dropped ${previewData.droppedRows} rows` : '0 missing dropped'}
                   </div>
                 </div>
 
-                <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                  <div className="text-ink-faint uppercase text-[9px] mb-1">Stage 2 · Normalization</div>
+                <div className="panel-well rounded-[8px] well-pad">
+                  <div className="text-ink-faint text-[11px] mb-1">Stage 2 · Normalization</div>
                   <div className="text-ink font-medium">Feature Scaling</div>
-                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[9.5px]">
+                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[11.5px]">
                     <span>Method:</span>
                     <select
                       value={scalerType}
                       onChange={(e) => setScalerType(e.target.value as Scaler['kind'])}
-                      className="bg-black/50 border border-white/10 rounded px-1.5 py-0.5 text-[9px] text-ink outline-none cursor-pointer"
+                      className="select font-mono text-[11px]"
                     >
                       <option value="standard">Standard (z-score)</option>
                       <option value="robust">Robust (IQR)</option>
                       <option value="minmax">Min-Max (0..1)</option>
                     </select>
                   </div>
-                  <div className="mt-2 text-ink-faint text-[9px]">
+                  <div className="mt-2 text-ink-faint text-[11px]">
                     Fitted on train fold strictly
                   </div>
                 </div>
 
-                <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                  <div className="text-ink-faint uppercase text-[9px] mb-1">Stage 3 · Reduction</div>
+                <div className="panel-well rounded-[8px] well-pad">
+                  <div className="text-ink-faint text-[11px] mb-1">Stage 3 · Reduction</div>
                   <div className="text-ink font-medium">Dimensionality Reducer</div>
-                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[9.5px]">
+                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[11.5px]">
                     <span>Selector:</span>
                     <select
                       value={reductionMethod}
                       onChange={(e) => setReductionMethod(e.target.value as SelectionMethod)}
-                      className="bg-black/50 border border-white/10 rounded px-1.5 py-0.5 text-[9px] text-ink outline-none cursor-pointer"
+                      className="select font-mono text-[11px]"
                     >
                       <option value="mutual-info">Mutual Info</option>
                       <option value="f-score">ANOVA F-test</option>
                       <option value="pca">PCA Projection</option>
                     </select>
                   </div>
-                  <div className="mt-2 text-ink-faint text-[9px]">
+                  <div className="mt-2 text-ink-faint text-[11px]">
                     {dataset.featureNames.length} dims → {nFeatures} components
                   </div>
                 </div>
 
-                <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                  <div className="text-ink-faint uppercase text-[9px] mb-1">Stage 4 · Quantum State</div>
+                <div className="panel-well rounded-[8px] well-pad">
+                  <div className="text-ink-faint text-[11px] mb-1">Stage 4 · Quantum State</div>
                   <div className="text-ink font-medium" style={{ color: LANE_COLOR.quantum }}>
                     Hilbert Space Mapping
                   </div>
-                  <div className="mt-1 text-ink-dim text-[9.5px]">
+                  <div className="mt-1 text-ink-dim text-[11.5px]">
                     Encoding: <span className="text-ink">{nFeatures} Qubits (RY/RZ)</span>
                   </div>
-                  <div className="mt-2 text-ink-faint text-[9px]">
+                  <div className="mt-2 text-ink-faint text-[11px]">
                     State dim: 2^{nFeatures} = {Math.pow(2, nFeatures)} amplitudes
                   </div>
                 </div>
@@ -618,26 +610,22 @@ export function TrainTab({
             </div>
 
             {/* Feature Space Visualization: 2D/3D Scatter Plot */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {/* Scatter Plot Projection (8 cols) */}
               <div
-                className="lg:col-span-8 rounded-panel p-5"
-                style={{
-                  background: '#16171A',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}
+                className="lg:col-span-8 panel-raised rounded-panel panel-pad"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <div>
-                    <h3 className="text-[13px] font-medium text-ink">
+                    <h3 className="text-[14.5px] font-medium text-ink">
                       Reduced Feature Space Separability Preview
                     </h3>
-                    <p className="mt-0.5 text-[11px] text-ink-dim">
+                    <p className="mt-0.5 text-[13px] text-ink-dim">
                       Class clustering in projected Hilbert component space prior to training commitment
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 font-mono text-[9.5px]">
+                  <div className="flex items-center gap-2 font-mono text-[11.5px]">
                     <button
                       type="button"
                       onClick={() => setIs3DScatter(false)}
@@ -670,18 +658,14 @@ export function TrainTab({
 
               {/* Training Parameters & Trigger (4 cols) */}
               <div
-                className="lg:col-span-4 rounded-panel p-5 flex flex-col justify-between"
-                style={{
-                  background: '#16171A',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}
+                className="lg:col-span-4 panel-raised rounded-panel panel-pad flex flex-col justify-between"
               >
                 <div>
-                  <h3 className="text-[13px] font-medium text-ink mb-3">
+                  <h3 className="text-[14.5px] font-medium text-ink mb-3">
                     Training Configuration
                   </h3>
 
-                  <div className="space-y-3 font-mono text-[10.5px]">
+                  <div className="space-y-3 font-mono text-[12.5px]">
                     <div>
                       <label className="text-ink-faint block mb-1">
                         Quantum Qubits / Features: <span className="text-ink">{nFeatures}</span>
@@ -692,8 +676,9 @@ export function TrainTab({
                         max={8}
                         step={1}
                         value={nFeatures}
+                        aria-label="Quantum qubits / features"
                         onChange={(e) => setNFeatures(Number(e.target.value))}
-                        className="w-full cursor-pointer accent-[#C08A3E]"
+                        className="w-full cursor-pointer accent-[#3E8C9E]"
                       />
                     </div>
 
@@ -707,12 +692,13 @@ export function TrainTab({
                         max={48}
                         step={6}
                         value={epochs}
+                        aria-label="VQC epochs"
                         onChange={(e) => setEpochs(Number(e.target.value))}
-                        className="w-full cursor-pointer accent-[#C08A3E]"
+                        className="w-full cursor-pointer accent-[#3E8C9E]"
                       />
                     </div>
 
-                    <div className="pt-2 border-t border-white/5 space-y-1 text-[9.5px] text-ink-faint">
+                    <div className="pt-2 border-t border-white/5 space-y-1 text-[11.5px] text-ink-faint">
                       <div>• Classical Baseline: Gradient Boosted Trees / SVM</div>
                       <div>• Quantum Ansatz: Strongly Entangling Layers</div>
                       <div>• Optimizer: Adam (lr = 0.2, batch = 20)</div>
@@ -724,7 +710,7 @@ export function TrainTab({
                   <button
                     type="button"
                     onClick={handleStartTraining}
-                    className="w-full flex items-center justify-center gap-2 rounded-[7px] py-2.5 font-mono text-[11px] font-medium text-black cursor-pointer transition-transform duration-150 hover:scale-[1.02]"
+                    className="w-full flex items-center justify-center gap-2 rounded-[6px] py-2.5 font-mono text-[13px] font-medium text-black cursor-pointer transition-transform duration-150 hover:scale-[1.02]"
                     style={{ background: LANE_COLOR.quantum }}
                   >
                     <IconPulse className="h-4 w-4" /> Start Dual-Lane Training
@@ -738,20 +724,16 @@ export function TrainTab({
         {/* STEP 3: LIVE TRAINING PROGRESS */}
         {activeStep === 'training' && (
           <div
-            className="rounded-panel p-6 space-y-5"
-            style={{
-              background: '#16171A',
-              border: '1px solid rgba(255,255,255,0.06)',
-            }}
+            className="panel-raised rounded-panel panel-pad space-y-4"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <span className="h-3 w-3 rounded-full animate-ping" style={{ background: LANE_COLOR.quantum }} />
-                <h2 className="text-[15px] font-medium text-ink">
+                <h2 className="text-[16px] font-medium text-ink">
                   Training Classical & Quantum Models in Parallel...
                 </h2>
               </div>
-              <span className="font-mono text-[11px] text-ink-faint">
+              <span className="font-mono text-[13px] text-ink-faint">
                 {Math.round(currentProgress * 100)}% Complete
               </span>
             </div>
@@ -768,18 +750,18 @@ export function TrainTab({
             </div>
 
             {/* Convergence Chart & Live Logs */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              <div className="lg:col-span-7 rounded-[8px] bg-[#0E0F11] p-4 border border-white/5">
-                <div className="mb-2 flex items-center justify-between font-mono text-[10px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div className="lg:col-span-7 panel-well rounded-[8px] well-pad">
+                <div className="mb-2 flex items-center justify-between font-mono text-[12px]">
                   <span className="text-ink-dim">VQC Quantum Loss & Accuracy Convergence</span>
                   <span className="text-ink-faint">Live Adam Optimization</span>
                 </div>
                 <ConvergenceChart points={convergenceData} height={180} />
               </div>
 
-              <div className="lg:col-span-5 rounded-[8px] bg-[#0E0F11] p-3.5 border border-white/5 font-mono text-[9.5px] flex flex-col justify-between">
+              <div className="lg:col-span-5 panel-well rounded-[8px] well-pad font-mono text-[11.5px] flex flex-col justify-between">
                 <div>
-                  <div className="text-ink-faint uppercase text-[9px] mb-2">Live Execution Log</div>
+                  <div className="text-ink-faint text-[11px] mb-2">Live Execution Log</div>
                   <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1 console-scroll">
                     {trainingLogs.map((log, i) => (
                       <div key={i} className="text-ink-dim flex items-start gap-2">
@@ -788,15 +770,15 @@ export function TrainTab({
                       </div>
                     ))}
                     {convergenceData.length > 0 && (
-                      <div className="text-[#5FA88C]">
+                      <div className="text-[#3E8C9E]">
                         Quantum Epoch {convergenceData[convergenceData.length - 1].epoch} / {epochs} · Loss:{' '}
                         {convergenceData[convergenceData.length - 1].loss.toFixed(4)}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="pt-2 text-[9px] text-ink-faint border-t border-white/5">
-                  Statevector simulator non-blocking web execution
+                <div className="pt-2 text-[11px] text-ink-faint border-t border-white/5">
+                  Statevector simulator
                 </div>
               </div>
             </div>
@@ -805,34 +787,28 @@ export function TrainTab({
 
         {/* STEP 4: POST-TRAINING RESULTS & BENCHMARK COMPARISON */}
         {activeStep === 'results' && trainingResult && trainedClassical && trainedQuantum && (
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Completion Header */}
             <div
-              className="rounded-panel p-4 flex items-center justify-between"
-              style={{
-                background: '#181A1E',
-                border: '1px solid rgba(255,255,255,0.07)',
-              }}
+              className="panel-raised rounded-panel panel-pad flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <span className="h-6 w-6 grid place-items-center rounded-full bg-[#5FA88C]/20 text-[#5FA88C]">
+                <span className="h-6 w-6 grid place-items-center rounded-full bg-[#3E8C9E]/20 text-[#3E8C9E]">
                   <IconCheck className="h-3.5 w-3.5" />
                 </span>
-                <div>
-                  <h2 className="text-[14px] font-medium text-ink">
-                    Training Complete & Models Persisted for Inference
-                  </h2>
-                  <p className="font-mono text-[10px] text-ink-dim">
-                    Fitted transformers and quantum weights saved to registry. Ready for Tab 3 Predict.
-                  </p>
-                </div>
+                <h2 className="text-[15.5px] font-medium text-ink">Training complete</h2>
+                <InfoDot label="What was saved">
+                  The fitted scaler, feature selection and trained circuit parameters
+                  were saved. The Predict tab reloads them and scores with this exact
+                  model.
+                </InfoDot>
               </div>
 
               {onNavigateToPredict && (
                 <button
                   type="button"
                   onClick={() => onNavigateToPredict(selectedDiseaseId)}
-                  className="flex items-center gap-1.5 rounded-[7px] px-3 py-1.5 font-mono text-[10.5px] font-medium text-black cursor-pointer transition-transform hover:scale-105"
+                  className="flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 font-mono text-[12.5px] font-medium text-black cursor-pointer transition-transform hover:scale-105"
                   style={{ background: LANE_COLOR.quantum }}
                 >
                   Test in Predict Tab <IconArrowRight className="h-3.5 w-3.5" />
@@ -842,20 +818,16 @@ export function TrainTab({
 
             {/* Unified Evaluation Metrics of the Newly Trained Models */}
             <div
-              className="rounded-panel p-5"
-              style={{
-                background: '#16171A',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
+              className="panel-raised rounded-panel panel-pad"
             >
-              <h3 className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-faint mb-3">
+              <h3 className="font-mono text-[13px] font-medium text-ink-faint mb-3">
                 Newly Trained Run Metrics (Holdout Evaluation)
               </h3>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-mono text-[11px]">
+              <div className="console-scroll overflow-x-auto">
+                <table className="w-full text-left font-mono text-[13px]">
                   <thead>
-                    <tr className="border-b border-white/10 text-[9.5px] uppercase tracking-wider text-ink-faint">
+                    <tr className="border-b border-white/10 text-[11.5px] text-ink-faint">
                       <th className="py-2 font-normal">Metric</th>
                       <th className="py-2 text-right font-normal">Trained Classical</th>
                       <th className="py-2 text-right font-normal">Trained Quantum (VQC)</th>
@@ -881,10 +853,10 @@ export function TrainTab({
                           </td>
                           <td className="py-2 text-right tabular-nums">
                             <span
-                              className="rounded px-1.5 py-0.5 text-[10px]"
+                              className="rounded px-1.5 py-0.5 text-[12px]"
                               style={{
-                                background: delta > 0 ? alpha('#5FA88C', 0.15) : delta < 0 ? alpha('#A3543D', 0.15) : 'transparent',
-                                color: delta > 0 ? '#5FA88C' : delta < 0 ? '#A3543D' : '#6A6C72',
+                                background: delta > 0 ? alpha('#3E8C9E', 0.15) : delta < 0 ? alpha('#A3543D', 0.15) : 'transparent',
+                                color: delta > 0 ? '#3E8C9E' : delta < 0 ? '#A3543D' : '#6A6C72',
                               }}
                             >
                               {delta >= 0 ? '+' : ''}
@@ -900,66 +872,62 @@ export function TrainTab({
             </div>
 
             {/* Confusion Matrices & Comparison vs Platform Stored Benchmark */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {/* Confusion Matrices (6 cols) */}
               <div
-                className="lg:col-span-6 rounded-panel p-5"
-                style={{
-                  background: '#16171A',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}
+                className="lg:col-span-6 panel-raised rounded-panel panel-pad"
               >
-                <h3 className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-faint mb-3">
+                <h3 className="font-mono text-[13px] font-medium text-ink-faint mb-3">
                   Confusion Matrices (Trained Models)
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4">
                   {/* Classical Matrix */}
-                  <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                    <div className="font-mono text-[9.5px] text-ink-faint mb-2" style={{ color: LANE_COLOR.classical }}>
+                  <div className="panel-well rounded-[8px] well-pad">
+                    <div className="font-mono text-[11.5px] text-ink-faint mb-2" style={{ color: LANE_COLOR.classical }}>
                       Classical ({trainedClassical.label})
                     </div>
-                    <div className="grid grid-cols-2 gap-1 font-mono text-[11px] text-center">
+                    <div className="grid grid-cols-2 gap-1 font-mono text-[13px] text-center">
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#E8E9EB] font-bold text-[14px]">{trainedClassical.metrics.confusion.tp}</div>
-                        <div className="text-[8px] text-ink-faint">TP</div>
+                        <div className="text-[#E8E9EB] font-bold text-[15.5px]">{trainedClassical.metrics.confusion.tp}</div>
+                        <div className="text-[10.5px] text-ink-faint">TP</div>
                       </div>
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#A3543D] font-bold text-[14px]">{trainedClassical.metrics.confusion.fp}</div>
-                        <div className="text-[8px] text-ink-faint">FP</div>
+                        <div className="text-[#A3543D] font-bold text-[15.5px]">{trainedClassical.metrics.confusion.fp}</div>
+                        <div className="text-[10.5px] text-ink-faint">FP</div>
                       </div>
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#A3543D] font-bold text-[14px]">{trainedClassical.metrics.confusion.fn}</div>
-                        <div className="text-[8px] text-ink-faint">FN</div>
+                        <div className="text-[#A3543D] font-bold text-[15.5px]">{trainedClassical.metrics.confusion.fn}</div>
+                        <div className="text-[10.5px] text-ink-faint">FN</div>
                       </div>
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#E8E9EB] font-bold text-[14px]">{trainedClassical.metrics.confusion.tn}</div>
-                        <div className="text-[8px] text-ink-faint">TN</div>
+                        <div className="text-[#E8E9EB] font-bold text-[15.5px]">{trainedClassical.metrics.confusion.tn}</div>
+                        <div className="text-[10.5px] text-ink-faint">TN</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Quantum Matrix */}
-                  <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                    <div className="font-mono text-[9.5px] text-ink-faint mb-2" style={{ color: LANE_COLOR.quantum }}>
+                  <div className="panel-well rounded-[8px] well-pad">
+                    <div className="font-mono text-[11.5px] text-ink-faint mb-2" style={{ color: LANE_COLOR.quantum }}>
                       Quantum ({trainedQuantum.label})
                     </div>
-                    <div className="grid grid-cols-2 gap-1 font-mono text-[11px] text-center">
+                    <div className="grid grid-cols-2 gap-1 font-mono text-[13px] text-center">
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#E8E9EB] font-bold text-[14px]">{trainedQuantum.metrics.confusion.tp}</div>
-                        <div className="text-[8px] text-ink-faint">TP</div>
+                        <div className="text-[#E8E9EB] font-bold text-[15.5px]">{trainedQuantum.metrics.confusion.tp}</div>
+                        <div className="text-[10.5px] text-ink-faint">TP</div>
                       </div>
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#A3543D] font-bold text-[14px]">{trainedQuantum.metrics.confusion.fp}</div>
-                        <div className="text-[8px] text-ink-faint">FP</div>
+                        <div className="text-[#A3543D] font-bold text-[15.5px]">{trainedQuantum.metrics.confusion.fp}</div>
+                        <div className="text-[10.5px] text-ink-faint">FP</div>
                       </div>
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#A3543D] font-bold text-[14px]">{trainedQuantum.metrics.confusion.fn}</div>
-                        <div className="text-[8px] text-ink-faint">FN</div>
+                        <div className="text-[#A3543D] font-bold text-[15.5px]">{trainedQuantum.metrics.confusion.fn}</div>
+                        <div className="text-[10.5px] text-ink-faint">FN</div>
                       </div>
                       <div className="rounded bg-white/5 p-2">
-                        <div className="text-[#E8E9EB] font-bold text-[14px]">{trainedQuantum.metrics.confusion.tn}</div>
-                        <div className="text-[8px] text-ink-faint">TN</div>
+                        <div className="text-[#E8E9EB] font-bold text-[15.5px]">{trainedQuantum.metrics.confusion.tn}</div>
+                        <div className="text-[10.5px] text-ink-faint">TN</div>
                       </div>
                     </div>
                   </div>
@@ -968,21 +936,21 @@ export function TrainTab({
 
               {/* Direct Comparison: Newly Trained vs Platform Stored Benchmark (6 cols) */}
               <div
-                className="lg:col-span-6 rounded-panel p-5"
-                style={{
-                  background: '#16171A',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}
+                className="lg:col-span-6 panel-raised rounded-panel panel-pad"
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-faint">
-                    Trained Run vs Platform Baseline Benchmark
+                  <h3 className="font-mono text-[13px] font-medium text-ink-faint">
+                    This run vs stored benchmark
                   </h3>
-                  <span className="font-mono text-[9px] text-ink-faint">Generalization Check</span>
+                  <InfoDot label="About this comparison">
+                    The stored benchmark is a previously recorded result for{' '}
+                    {disease.name}, shown for reference only. It is not a paired test,
+                    a difference here is not evidence of a real gain.
+                  </InfoDot>
                 </div>
 
-                <div className="space-y-3 font-mono text-[10.5px]">
-                  <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5 space-y-2">
+                <div className="space-y-3 font-mono text-[12.5px]">
+                  <div className="panel-well rounded-[8px] well-pad space-y-2">
                     <div className="flex justify-between items-center text-ink-dim">
                       <span>Quantum Accuracy:</span>
                       <span>
@@ -1006,30 +974,19 @@ export function TrainTab({
                     </div>
                   </div>
 
-                  <p className="text-[10px] leading-relaxed text-ink-dim">
-                    This newly trained run achieves{' '}
-                    <span className="text-ink font-medium">
-                      {trainedQuantum.metrics.accuracy >= benchmarkQuantum.metrics.accuracy ? 'comparable/superior' : 'close'}
-                    </span>{' '}
-                    generalization compared to the platform's pre-established baseline benchmark for {disease.name}.
-                  </p>
                 </div>
               </div>
             </div>
 
             {/* ROC Curves for Newly Trained Models */}
             <div
-              className="rounded-panel p-5"
-              style={{
-                background: '#16171A',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
+              className="panel-raised rounded-panel panel-pad"
             >
               <div className="mb-2 flex items-baseline justify-between">
-                <h3 className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-faint">
+                <h3 className="font-mono text-[13px] font-medium text-ink-faint">
                   ROC Curves for Newly Trained Models
                 </h3>
-                <span className="font-mono text-[9.5px] text-ink-faint">Holdout Validation Split</span>
+                <span className="font-mono text-[11.5px] text-ink-faint">Holdout Validation Split</span>
               </div>
               <div className="max-w-[420px] mx-auto">
                 <RocChart curves={trainedRocCurves} size={240} />

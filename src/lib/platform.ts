@@ -275,7 +275,7 @@ export interface CatalogEntry {
 // API Fetch Functions (section 4 routes)
 // ============================================================================
 
-// `request()` already prepends qmlApi's own API_ROOT (VITE_QML_API_URL) — this
+// `request()` already prepends qmlApi's own API_ROOT (VITE_QML_API_URL). This
 // module targets the same local dashboard server, so paths here must be relative,
 // not prefixed again, or the two base URLs would concatenate.
 

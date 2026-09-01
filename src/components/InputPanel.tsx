@@ -109,7 +109,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
       aria-label="Input data"
     >
       <div className="mb-2.5 flex items-baseline justify-between">
-        <h2 className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+        <h2 className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
           input data
         </h2>
         {upload ? (
@@ -117,7 +117,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
             type="button"
             onClick={clear}
             disabled={locked}
-            className="flex cursor-pointer items-center gap-1 font-mono text-[9.5px] text-ink-faint transition-colors duration-150 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex cursor-pointer items-center gap-1 font-mono text-[11.5px] text-ink-faint transition-colors duration-150 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
           >
             <IconClose className="h-3 w-3" />
             clear
@@ -126,7 +126,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
           <button
             type="button"
             onClick={() => setShowSources((s) => !s)}
-            className="cursor-pointer font-mono text-[9.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
+            className="cursor-pointer font-mono text-[11.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
             aria-expanded={showSources}
           >
             {showSources ? 'hide sources' : 'sources'}
@@ -174,14 +174,14 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
           >
             <IconUpload className="h-4 w-4 text-ink-faint" />
             <span className="text-[11.5px] text-ink-dim">Drop a file, or browse</span>
-            <span className="font-mono text-[9.5px] text-ink-faint">
+            <span className="font-mono text-[11.5px] text-ink-faint">
               csv, fhir json or image / max {formatBytes(MAX_UPLOAD_BYTES)}
             </span>
           </button>
 
           {showSources && (
             <div className="mt-2.5">
-              <p className="mb-2 font-mono text-[9px] leading-relaxed text-ink-faint/80">
+              <p className="mb-2 font-mono text-[11px] leading-relaxed text-ink-faint/80">
                 Hospital data rarely arrives as a CSV. Each source below is a separate
                 adapter converging on one numeric matrix.
               </p>
@@ -199,12 +199,12 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
           }}
         >
           <div className="flex items-baseline gap-1.5">
-            <div className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-ink" title={upload.name}>
+            <div className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-ink" title={upload.name}>
               {upload.name}
             </div>
             {format && (
               <span
-                className="shrink-0 rounded-[4px] px-1.5 py-[1px] font-mono text-[8.5px]"
+                className="shrink-0 rounded-[4px] px-1.5 py-[1px] font-mono text-[11px]"
                 style={{
                   color: LANE_COLOR.quantum,
                   background: alpha(LANE_COLOR.quantum, 0.1),
@@ -217,7 +217,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
 
           {upload.kind === 'image' ? (
             <>
-              <div className="mt-1.5 flex gap-3 font-mono text-[9.5px] text-ink-faint">
+              <div className="mt-1.5 flex gap-3 font-mono text-[11.5px] text-ink-faint">
                 <span>
                   {upload.imageSize?.w} x {upload.imageSize?.h}
                 </span>
@@ -241,7 +241,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
               <button
                 type="button"
                 onClick={onView}
-                className="mt-2 w-full cursor-pointer rounded-[7px] py-1.5 font-mono text-[9.5px] text-ink-dim transition-colors duration-150 hover:text-ink"
+                className="mt-2 w-full cursor-pointer rounded-[7px] py-1.5 font-mono text-[11.5px] text-ink-dim transition-colors duration-150 hover:text-ink"
                 style={{ background: 'rgba(255,255,255,0.04)' }}
               >
                 view flagged regions
@@ -249,7 +249,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
             </>
           ) : (
             <>
-              <div className="mt-1.5 flex gap-3 font-mono text-[9.5px] text-ink-faint">
+              <div className="mt-1.5 flex gap-3 font-mono text-[11.5px] text-ink-faint">
                 <span>{upload.rows} rows</span>
                 <span>{upload.columns} cols</span>
                 <span>{formatBytes(upload.sizeBytes)}</span>
@@ -261,7 +261,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
                   {notes.map((n) => (
                     <li
                       key={n}
-                      className="flex gap-1.5 font-mono text-[9px] leading-relaxed text-ink-faint/85"
+                      className="flex gap-1.5 font-mono text-[11px] leading-relaxed text-ink-faint/85"
                     >
                       <span className="text-ink-faint/50">-</span>
                       {n}
@@ -273,7 +273,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
               {/* resolved schema, with the coding system each column came from */}
               {schema.length > 0 && (
                 <div className="mt-2.5">
-                  <div className="mb-1 font-mono text-[9px] tracking-[0.02em] text-ink-faint/70">
+                  <div className="mb-1 font-mono text-[11px] tracking-[0.02em] text-ink-faint/70">
                     schema / {schema.length} columns
                   </div>
                   <div className="console-scroll max-h-[168px] space-y-[2px] overflow-y-auto pr-1">
@@ -284,20 +284,20 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
                           style={{ background: TYPE_COLOR[f.type] }}
                         />
                         <span
-                          className="min-w-0 flex-1 truncate font-mono text-[9px] text-ink-dim"
+                          className="min-w-0 flex-1 truncate font-mono text-[11px] text-ink-dim"
                           title={f.name}
                         >
                           {f.name}
                         </span>
                         {f.coding && (
                           <span
-                            className="shrink-0 font-mono text-[8px] text-ink-faint/70"
+                            className="shrink-0 font-mono text-[10.5px] text-ink-faint/70"
                             title={`${f.coding.system} ${f.coding.code}`}
                           >
                             {f.coding.system}
                           </span>
                         )}
-                        <span className="shrink-0 font-mono text-[8.5px] tabular-nums text-ink-faint/70">
+                        <span className="shrink-0 font-mono text-[11px] tabular-nums text-ink-faint/70">
                           {f.present}/{upload.rows}
                         </span>
                       </div>
@@ -311,7 +311,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
                 {upload.headers.slice(0, 5).map((h) => (
                   <span
                     key={h}
-                    className="truncate rounded-[4px] px-1.5 py-[2px] font-mono text-[9px] text-ink-faint"
+                    className="truncate rounded-[4px] px-1.5 py-[2px] font-mono text-[11px] text-ink-faint"
                     style={{ background: 'rgba(255,255,255,0.04)', maxWidth: '96px' }}
                     title={h}
                   >
@@ -319,7 +319,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
                   </span>
                 ))}
                 {upload.headers.length > 5 && (
-                  <span className="px-1 py-[2px] font-mono text-[9px] text-ink-faint">
+                  <span className="px-1 py-[2px] font-mono text-[11px] text-ink-faint">
                     +{upload.headers.length - 5}
                   </span>
                 )}
@@ -328,7 +328,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
           )}
 
           {upload.warnings.map((w) => (
-            <div key={w} className="mt-2 font-mono text-[9.5px]" style={{ color: '#C08A3E' }}>
+            <div key={w} className="mt-2 font-mono text-[11.5px]" style={{ color: '#C08A3E' }}>
               {w}
             </div>
           ))}
@@ -346,7 +346,7 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
           role="status"
         >
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-mono text-[9.5px]" style={{ color: '#C08A3E' }}>
+            <span className="font-mono text-[11.5px]" style={{ color: '#C08A3E' }}>
               {blocked.label}
             </span>
             <button
@@ -358,19 +358,19 @@ export function InputPanel({ upload, onUpload, onView, locked }: Props) {
               <IconClose className="h-3 w-3" />
             </button>
           </div>
-          <p className="mt-1.5 font-mono text-[9px] leading-relaxed text-ink-faint">
+          <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-ink-faint">
             <span className="text-ink-dim">Would require:</span> {blocked.requires}
           </p>
         </div>
       )}
 
       {error && (
-        <div className="mt-2 font-mono text-[9.5px]" style={{ color: '#A3543D' }} role="alert">
+        <div className="mt-2 font-mono text-[11.5px]" style={{ color: '#A3543D' }} role="alert">
           {error}
         </div>
       )}
 
-      <p className="mt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/70">
+      <p className="mt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/70">
         Files are parsed in-browser for display only. The demo pipeline does not train on
         uploaded data, and nothing is sent to a server.
       </p>

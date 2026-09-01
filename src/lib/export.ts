@@ -63,7 +63,7 @@ export function buildReport(args: {
   })
 
   return {
-    schema: 'netural.run-report/v1',
+    schema: 'neutral.run-report/v1',
     generatedAt: new Date().toISOString(),
     synthetic: true,
     disclaimer: DISCLAIMER,

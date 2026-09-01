@@ -61,22 +61,22 @@ export function SourcePicker({ activeFormat, onPick, disabled }: Props) {
                   <IconLock className="h-[8px] w-[8px]" />
                 )}
               </span>
-              <span className="min-w-0 flex-1 truncate font-mono text-[10px] text-ink-dim">
+              <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink-dim">
                 {a.label}
               </span>
-              <span className="shrink-0 font-mono text-[8.5px] text-ink-faint">
+              <span className="shrink-0 font-mono text-[11px] text-ink-faint">
                 {a.extensions[0]}
               </span>
             </div>
 
             <div className="mt-1 flex items-center gap-1.5 pl-[19px]">
-              <span className="font-mono text-[8.5px] text-ink-faint/80">
+              <span className="font-mono text-[11px] text-ink-faint/80">
                 {SYSTEM_NOTE[a.system] ?? a.system}
               </span>
               {a.vocabularies.length > 0 && (
                 <>
                   <span className="text-ink-faint/40">/</span>
-                  <span className="font-mono text-[8.5px] text-ink-faint/80">
+                  <span className="font-mono text-[11px] text-ink-faint/80">
                     {a.vocabularies.join(' + ')}
                   </span>
                 </>

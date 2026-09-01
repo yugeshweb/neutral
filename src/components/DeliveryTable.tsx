@@ -44,12 +44,12 @@ export function DeliveryTable() {
       aria-label="Expected deliverables"
     >
       <div className="mb-1 flex items-baseline justify-between gap-3">
-        <h2 className="text-[13px] font-medium text-ink">Delivery table</h2>
-        <span className="font-mono text-[9.5px] text-ink-faint">
+        <h2 className="text-[14.5px] font-medium text-ink">Delivery table</h2>
+        <span className="font-mono text-[11.5px] text-ink-faint">
           {DELIVERABLES.length} requirements
         </span>
       </div>
-      <p className="mb-3 font-mono text-[9.5px] leading-relaxed text-ink-faint">
+      <p className="mb-3 font-mono text-[11.5px] leading-relaxed text-ink-faint">
         every expected deliverable in the problem statement, mapped to the section and
         module that satisfies it
       </p>
@@ -59,7 +59,7 @@ export function DeliveryTable() {
         {(['live', 'partial', 'mocked'] as const).map((s) => (
           <span
             key={s}
-            className="inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[9.5px]"
+            className="inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[11.5px]"
             style={{
               color: STATUS_COLOR[s],
               background: alpha(STATUS_COLOR[s], 0.09),
@@ -92,7 +92,7 @@ export function DeliveryTable() {
             type="button"
             onClick={() => setFilter(f)}
             aria-pressed={filter === f}
-            className="flex-1 cursor-pointer px-2.5 py-1.5 font-mono text-[9.5px] transition-colors duration-150"
+            className="flex-1 cursor-pointer px-2.5 py-1.5 font-mono text-[11.5px] transition-colors duration-150"
             style={{
               background: filter === f ? 'rgba(255,255,255,0.06)' : 'transparent',
               color: filter === f ? '#E8E9EB' : '#6A6C72',
@@ -113,7 +113,7 @@ export function DeliveryTable() {
                   <th
                     key={h}
                     scope="col"
-                    className="pb-2 font-mono text-[9px] font-medium tracking-[0.02em] text-ink-faint"
+                    className="pb-2 font-mono text-[11px] font-medium tracking-[0.02em] text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                   >
                     {h}
@@ -126,7 +126,7 @@ export function DeliveryTable() {
             {rows.map((d) => (
               <tr key={d.id}>
                 <td
-                  className="w-[190px] py-2.5 pr-3 align-top text-[11px] leading-relaxed text-ink"
+                  className="w-[190px] py-2.5 pr-3 align-top text-[13px] leading-relaxed text-ink"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                 >
                   {d.requirement}
@@ -137,7 +137,7 @@ export function DeliveryTable() {
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                 >
                   <span
-                    className="inline-block rounded-[4px] px-1.5 py-[2px] font-mono text-[9px]"
+                    className="inline-block rounded-[4px] px-1.5 py-[2px] font-mono text-[11px]"
                     style={{
                       color: SECTION_COLOR[d.section],
                       background: alpha(SECTION_COLOR[d.section], 0.09),
@@ -148,14 +148,14 @@ export function DeliveryTable() {
                 </td>
 
                 <td
-                  className="py-2.5 pr-3 align-top text-[11px] leading-relaxed text-ink-dim"
+                  className="py-2.5 pr-3 align-top text-[13px] leading-relaxed text-ink-dim"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                 >
                   {d.delivered}
                 </td>
 
                 <td
-                  className="w-[150px] py-2.5 pr-3 align-top font-mono text-[9.5px] leading-relaxed text-ink-faint"
+                  className="w-[150px] py-2.5 pr-3 align-top font-mono text-[11.5px] leading-relaxed text-ink-faint"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                 >
                   {d.module}
@@ -166,7 +166,7 @@ export function DeliveryTable() {
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                 >
                   <span
-                    className="inline-flex items-center gap-1.5 font-mono text-[9.5px]"
+                    className="inline-flex items-center gap-1.5 font-mono text-[11.5px]"
                     style={{ color: STATUS_COLOR[d.status] }}
                   >
                     <span
@@ -183,7 +183,7 @@ export function DeliveryTable() {
       </div>
 
       <p
-        className="mt-3.5 pt-3 font-mono text-[9px] leading-relaxed text-ink-faint/80"
+        className="mt-3.5 pt-3 font-mono text-[11px] leading-relaxed text-ink-faint/80"
         style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
       >
         <span style={{ color: STATUS_COLOR.live }}>implemented</span> means the code runs

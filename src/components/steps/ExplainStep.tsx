@@ -110,7 +110,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
     return (
       <Panel>
         <div className="grid place-items-center gap-3 py-14 text-center">
-          <p className="font-mono text-[11px] text-ink-faint">
+          <p className="font-mono text-[13px] text-ink-faint">
             {running
               ? 'Training is running now - come back here once it finishes.'
               : 'No model to explain yet - train it first, then come back here to see what drove each prediction.'}
@@ -164,8 +164,8 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
           <div className="mb-3 flex items-baseline justify-between">
             <div>
               <SectionLabel>global feature importance</SectionLabel>
-              <p className="mt-1 font-mono text-[9px] text-ink-faint">
-                permutation importance on the hybrid model — how much shuffling each input
+              <p className="mt-1 font-mono text-[11px] text-ink-faint">
+                permutation importance on the hybrid model: how much shuffling each input
                 degrades performance
               </p>
             </div>
@@ -174,7 +174,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
 
           <ImportanceBars items={global.map((g) => ({ name: g.name, score: g.value, kept: true }))} />
 
-          <p className="mt-3 font-mono text-[9px] leading-relaxed text-ink-faint/85">
+          <p className="mt-3 font-mono text-[11px] leading-relaxed text-ink-faint/85">
             Model-agnostic: the same procedure runs identically on the quantum circuit and any
             classical baseline, so the numbers are comparable across lanes.
           </p>
@@ -192,7 +192,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
               className="feature-slider w-full cursor-pointer"
               aria-label="Patient index"
             />
-            <div className="mt-1 flex justify-between font-mono text-[9px] text-ink-faint">
+            <div className="mt-1 flex justify-between font-mono text-[11px] text-ink-faint">
               <span>record {idx}</span>
               <span>{Fte.length} in holdout</span>
             </div>
@@ -206,11 +206,11 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
               >
                 {(probability * 100).toFixed(1)}
               </span>
-              <span className="font-mono text-[10px] text-ink-faint">% risk</span>
+              <span className="font-mono text-[12px] text-ink-faint">% risk</span>
             </div>
 
             <div
-              className="mt-2 inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[9px]"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[11px]"
               style={{
                 color: BAND_COLOR[band],
                 background: alpha(BAND_COLOR[band], 0.1),
@@ -222,7 +222,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
             </div>
 
             <div
-              className="mt-2.5 flex justify-between pt-2 font-mono text-[9px]"
+              className="mt-2.5 flex justify-between pt-2 font-mono text-[11px]"
               style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
             >
               <span className="text-ink-faint">actual label</span>
@@ -230,7 +230,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
                 {trueLabel === 1 ? data.positiveLabel : data.negativeLabel}
               </span>
             </div>
-            <div className="flex justify-between font-mono text-[9px]">
+            <div className="flex justify-between font-mono text-[11px]">
               <span className="text-ink-faint">prediction</span>
               <span className="text-ink-dim">
                 {probability >= 0.5 ? data.positiveLabel : data.negativeLabel}
@@ -247,9 +247,9 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <SectionLabel>
-              why this patient — contributions in clinical terms
+              why this patient: contributions in clinical terms
             </SectionLabel>
-            <p className="mt-1 font-mono text-[9px] leading-relaxed text-ink-faint">
+            <p className="mt-1 font-mono text-[11px] leading-relaxed text-ink-faint">
               {pcaResult
                 ? 'Attributions computed in component space, then pushed back through the PCA rotation onto the original measurements.'
                 : 'Attribution by occlusion: each feature is replaced with the population mean and the prediction re-run.'}
@@ -261,11 +261,11 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
         {pcaResult && (
           <div className="mb-4 grid grid-cols-2 gap-4">
             <Well className="p-3">
-              <div className="mb-2 font-mono text-[9px] text-ink-faint">
-                1. raw component attribution — not clinically usable
+              <div className="mb-2 font-mono text-[11px] text-ink-faint">
+                1. raw component attribution, not clinically usable
               </div>
               {localRaw.slice(0, 4).map((a) => (
-                <div key={a.name} className="flex justify-between py-[2px] font-mono text-[9.5px]">
+                <div key={a.name} className="flex justify-between py-[2px] font-mono text-[11.5px]">
                   <span className="text-ink-faint">{a.name}</span>
                   <span className="tabular-nums text-ink-dim">
                     {a.value >= 0 ? '+' : ''}
@@ -273,18 +273,18 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
                   </span>
                 </div>
               ))}
-              <p className="mt-2 font-mono text-[8.5px] leading-relaxed text-ink-faint/70">
-                &quot;PC1 contributed +0.4&quot; tells a clinician nothing — each component is a
+              <p className="mt-2 font-mono text-[11px] leading-relaxed text-ink-faint/70">
+                &quot;PC1 contributed +0.4&quot; tells a clinician nothing. Each component is a
                 blend of every measurement.
               </p>
             </Well>
 
             <Well className="p-3">
-              <div className="mb-2 font-mono text-[9px] text-ink-faint">
+              <div className="mb-2 font-mono text-[11px] text-ink-faint">
                 2. what PC1 is actually made of
               </div>
               {componentComposition(pcaResult, 0, data.featureNames, 4).map((c) => (
-                <div key={c.name} className="flex justify-between py-[2px] font-mono text-[9.5px]">
+                <div key={c.name} className="flex justify-between py-[2px] font-mono text-[11.5px]">
                   <span className="min-w-0 truncate text-ink-faint">{c.name}</span>
                   <span className="shrink-0 tabular-nums text-ink-dim">
                     {c.loading >= 0 ? '+' : ''}
@@ -292,7 +292,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
                   </span>
                 </div>
               ))}
-              <p className="mt-2 font-mono text-[8.5px] leading-relaxed text-ink-faint/70">
+              <p className="mt-2 font-mono text-[11px] leading-relaxed text-ink-faint/70">
                 Each component&apos;s attribution distributes over the originals in proportion to
                 these loadings.
               </p>
@@ -307,7 +307,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
             border: `1px solid ${alpha(LANE_COLOR.quantum, 0.2)}`,
           }}
         >
-          <div className="mb-3 font-mono text-[9.5px]" style={{ color: LANE_COLOR.quantum }}>
+          <div className="mb-3 font-mono text-[11.5px]" style={{ color: LANE_COLOR.quantum }}>
             {pcaResult ? '3. mapped back to real measurements' : 'feature contributions'}
           </div>
 
@@ -324,7 +324,7 @@ export function ExplainStep({ result, running, onStartTraining }: Props) {
           />
         </div>
 
-        <p className="mt-3 font-mono text-[9px] leading-relaxed text-ink-faint/80">
+        <p className="mt-3 font-mono text-[11px] leading-relaxed text-ink-faint/80">
           This is decision support, not a diagnosis. The platform is a research prototype and
           has not been clinically validated.
         </p>

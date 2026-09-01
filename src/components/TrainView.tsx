@@ -85,7 +85,7 @@ export function TrainView({ onHome, onTrained }: Props) {
   const handleDownload = (format: 'json' | 'csv') => {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
     if (format === 'csv') {
-      downloadText(`netural-metrics-${stamp}.csv`, 'text/csv', buildMetricsCsv())
+      downloadText(`neutral-metrics-${stamp}.csv`, 'text/csv', buildMetricsCsv())
       return
     }
     const report = buildReport({
@@ -97,7 +97,7 @@ export function TrainView({ onHome, onTrained }: Props) {
       upload,
     })
     downloadText(
-      `netural-run-report-${stamp}.json`,
+      `neutral-run-report-${stamp}.json`,
       'application/json',
       JSON.stringify(report, null, 2),
     )

@@ -118,11 +118,11 @@ function MetricRow({
     >
       <div className="mb-2 flex items-baseline justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[12px] font-medium text-ink">{label}</div>
-          <div className="mt-0.5 font-mono text-[9.5px] text-ink-faint">{note}</div>
+          <div className="text-[14px] font-medium text-ink">{label}</div>
+          <div className="mt-0.5 font-mono text-[11.5px] text-ink-faint">{note}</div>
         </div>
         <span
-          className="shrink-0 rounded-[5px] px-1.5 py-[2px] font-mono text-[9.5px] tabular-nums"
+          className="shrink-0 rounded-[5px] px-1.5 py-[2px] font-mono text-[11.5px] tabular-nums"
           style={{
             color: leader === 'tie' ? '#6A6C72' : '#5FA88C',
             background: leader === 'tie' ? 'transparent' : alpha('#5FA88C', 0.1),
@@ -141,7 +141,7 @@ function MetricRow({
         ] as const
       ).map((m) => (
         <div key={m.name} className="mt-1.5 flex items-center gap-2.5">
-          <span className="w-[54px] shrink-0 font-mono text-[9.5px] text-ink-faint">
+          <span className="w-[54px] shrink-0 font-mono text-[11.5px] text-ink-faint">
             {m.name}
           </span>
           <div className="h-[5px] flex-1 overflow-hidden rounded-full panel-well">
@@ -150,7 +150,7 @@ function MetricRow({
               style={{ width: `${m.value * 100}%`, background: alpha(m.color, 0.78) }}
             />
           </div>
-          <span className="w-[44px] shrink-0 text-right font-mono text-[11px] tabular-nums text-ink">
+          <span className="w-[44px] shrink-0 text-right font-mono text-[13px] tabular-nums text-ink">
             {m.value.toFixed(3)}
           </span>
         </div>
@@ -180,7 +180,7 @@ function Confusion({
     <div className="flex-1">
       <div className="mb-2 flex items-center gap-2">
         <span className="h-[6px] w-[6px] rounded-full" style={{ background: color }} />
-        <span className="font-mono text-[10px] text-ink-dim">{title}</span>
+        <span className="font-mono text-[12px] text-ink-dim">{title}</span>
       </div>
       <div className="grid grid-cols-2 gap-1.5">
         {cells.map((c) => (
@@ -199,7 +199,7 @@ function Confusion({
             >
               {c.value}
             </div>
-            <div className="mt-0.5 font-mono text-[9px] text-ink-faint">{c.label}</div>
+            <div className="mt-0.5 font-mono text-[11px] text-ink-faint">{c.label}</div>
           </div>
         ))}
       </div>
@@ -216,7 +216,7 @@ export function CompareView({ trained }: Props) {
 
   const handleCsv = () => {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-    downloadText(`netural-metrics-${stamp}.csv`, 'text/csv', buildMetricsCsv())
+    downloadText(`neutral-metrics-${stamp}.csv`, 'text/csv', buildMetricsCsv())
   }
 
   return (
@@ -227,7 +227,7 @@ export function CompareView({ trained }: Props) {
             <h1 className="text-[16px] font-medium tracking-[-0.01em] text-ink">
               Model comparison
             </h1>
-            <p className="mt-1 font-mono text-[10px] text-ink-faint">
+            <p className="mt-1 font-mono text-[12px] text-ink-faint">
               hybrid quantum vs classical baseline / 86-sample holdout /{' '}
               {trained ? 'this session' : 'bundled reference run'}
             </p>
@@ -256,10 +256,10 @@ export function CompareView({ trained }: Props) {
             style={{ background: '#C08A3E' }}
           />
           <div>
-            <div className="text-[12.5px] font-medium text-ink">
+            <div className="text-[14.5px] font-medium text-ink">
               Quantum leads on every metric, but not significantly
             </div>
-            <p className="mt-1 font-mono text-[10px] leading-relaxed text-ink-faint">
+            <p className="mt-1 font-mono text-[12px] leading-relaxed text-ink-faint">
               The hybrid model is ahead by +0.012 accuracy and +0.019 sensitivity. A
               McNemar test on the paired holdout predictions gives p = 0.21, above the
               0.05 threshold - on a sample this size the gap is not distinguishable from
@@ -281,10 +281,10 @@ export function CompareView({ trained }: Props) {
             aria-label="Detection metrics"
           >
             <div className="flex items-baseline justify-between py-2.5">
-              <h2 className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+              <h2 className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
                 detection quality
               </h2>
-              <span className="flex gap-3 font-mono text-[9px]">
+              <span className="flex gap-3 font-mono text-[11px]">
                 <span style={{ color: LANE_COLOR.classical }}>classical</span>
                 <span style={{ color: LANE_COLOR.quantum }}>quantum</span>
               </span>
@@ -316,14 +316,14 @@ export function CompareView({ trained }: Props) {
             }}
             aria-label="Computational efficiency"
           >
-            <h2 className="mb-3 font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+            <h2 className="mb-3 font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
               computational cost
             </h2>
 
             <div className="space-y-3">
               {EFFICIENCY.map((row) => (
                 <div key={row.label}>
-                  <div className="mb-1 font-mono text-[10px] text-ink-dim">{row.label}</div>
+                  <div className="mb-1 font-mono text-[12px] text-ink-dim">{row.label}</div>
                   <div className="flex gap-1.5">
                     {(['classical', 'quantum'] as const).map((side) => (
                       <div
@@ -339,9 +339,9 @@ export function CompareView({ trained }: Props) {
                           boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
                         }}
                       >
-                        <div className="font-mono text-[9px] text-ink-faint">{side}</div>
+                        <div className="font-mono text-[11px] text-ink-faint">{side}</div>
                         <div
-                          className="mt-0.5 font-mono text-[11px] tabular-nums"
+                          className="mt-0.5 font-mono text-[13px] tabular-nums"
                           style={{ color: row.favours === side ? '#5FA88C' : '#9A9CA1' }}
                         >
                           {row[side]}
@@ -354,7 +354,7 @@ export function CompareView({ trained }: Props) {
             </div>
 
             <p
-              className="mt-3.5 pt-3 font-mono text-[9px] leading-relaxed text-ink-faint/80"
+              className="mt-3.5 pt-3 font-mono text-[11px] leading-relaxed text-ink-faint/80"
               style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
             >
               The quantum lane runs on a simulator. Its latency reflects shot sampling, not
@@ -375,10 +375,10 @@ export function CompareView({ trained }: Props) {
           aria-label="Confusion matrices"
         >
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+            <h2 className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
               error breakdown
             </h2>
-            <span className="font-mono text-[9.5px] text-ink-faint">86 holdout samples</span>
+            <span className="font-mono text-[11.5px] text-ink-faint">86 holdout samples</span>
           </div>
 
           <div className="flex gap-5">
@@ -396,7 +396,7 @@ export function CompareView({ trained }: Props) {
           </div>
 
           <p
-            className="mt-3.5 pt-3 font-mono text-[9px] leading-relaxed text-ink-faint/80"
+            className="mt-3.5 pt-3 font-mono text-[11px] leading-relaxed text-ink-faint/80"
             style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
           >
             The whole difference between the two models is a single case: one malignant
@@ -417,10 +417,10 @@ export function CompareView({ trained }: Props) {
           aria-label="About this comparison"
         >
           <div className="mb-3.5 flex items-baseline justify-between">
-            <h2 className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+            <h2 className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
               about this comparison
             </h2>
-            <span className="font-mono text-[9.5px] text-ink-faint">methodology</span>
+            <span className="font-mono text-[11.5px] text-ink-faint">methodology</span>
           </div>
 
           {/* the two architectures, side by side */}
@@ -432,16 +432,16 @@ export function CompareView({ trained }: Props) {
                     className="h-[6px] w-[6px] rounded-full"
                     style={{ background: arch.color }}
                   />
-                  <span className="text-[12px] font-medium text-ink">{arch.name}</span>
+                  <span className="text-[14px] font-medium text-ink">{arch.name}</span>
                 </div>
-                <p className="mb-2.5 text-[11px] leading-relaxed text-ink-dim">
+                <p className="mb-2.5 text-[13px] leading-relaxed text-ink-dim">
                   {arch.body}
                 </p>
                 <dl className="space-y-1">
                   {arch.spec.map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-3">
-                      <dt className="font-mono text-[9.5px] text-ink-faint">{k}</dt>
-                      <dd className="truncate font-mono text-[9.5px] text-ink-dim" title={v}>
+                      <dt className="font-mono text-[11.5px] text-ink-faint">{k}</dt>
+                      <dd className="truncate font-mono text-[11.5px] text-ink-dim" title={v}>
                         {v}
                       </dd>
                     </div>
@@ -456,7 +456,7 @@ export function CompareView({ trained }: Props) {
             className="mt-4 pt-3.5"
             style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
           >
-            <h3 className="mb-2.5 font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+            <h3 className="mb-2.5 font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
               experimental setup
             </h3>
             <div className="grid grid-cols-4 gap-2">
@@ -470,14 +470,14 @@ export function CompareView({ trained }: Props) {
                     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
                   }}
                 >
-                  <div className="font-mono text-[9px] text-ink-faint">{s.label}</div>
-                  <div className="mt-0.5 font-mono text-[10.5px] text-ink-dim">
+                  <div className="font-mono text-[11px] text-ink-faint">{s.label}</div>
+                  <div className="mt-0.5 font-mono text-[12.5px] text-ink-dim">
                     {s.value}
                   </div>
                 </div>
               ))}
             </div>
-            <p className="mt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/80">
+            <p className="mt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/80">
               Both models see the identical 8-feature matrix, the same stratified split and
               the same random seed. The scaler and feature selector are fitted on the
               training fold only, so nothing from the holdout leaks into either lane.
@@ -489,7 +489,7 @@ export function CompareView({ trained }: Props) {
             className="mt-4 pt-3.5"
             style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
           >
-            <h3 className="mb-2.5 font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+            <h3 className="mb-2.5 font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
               how to read this
             </h3>
             <ul className="space-y-2">
@@ -499,7 +499,7 @@ export function CompareView({ trained }: Props) {
                     className="mt-[6px] h-[3px] w-[3px] shrink-0 rounded-full"
                     style={{ background: LANE_COLOR.shared }}
                   />
-                  <p className="text-[11px] leading-relaxed text-ink-dim">
+                  <p className="text-[13px] leading-relaxed text-ink-dim">
                     <span className="text-ink">{r.point}</span> {r.body}
                   </p>
                 </li>
@@ -512,7 +512,7 @@ export function CompareView({ trained }: Props) {
           <DeliveryTable />
         </div>
 
-        <p className="mt-5 max-w-[620px] font-mono text-[9px] leading-relaxed text-ink-faint/70">
+        <p className="mt-5 max-w-[620px] font-mono text-[11px] leading-relaxed text-ink-faint/70">
           All figures on this page are placeholder values produced by a mock runner. No
           model was trained and no dataset was evaluated. Do not cite these figures as
           results.

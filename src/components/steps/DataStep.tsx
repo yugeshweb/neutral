@@ -78,7 +78,7 @@ export function DataStep({ config, patch, locked }: Props) {
               }}
             >
               <div className="flex items-baseline justify-between">
-                <span className="text-[12.5px] font-medium text-ink">{m.name}</span>
+                <span className="text-[14.5px] font-medium text-ink">{m.name}</span>
                 {active && (
                   <span
                     className="h-[6px] w-[6px] rounded-full"
@@ -86,8 +86,8 @@ export function DataStep({ config, patch, locked }: Props) {
                   />
                 )}
               </div>
-              <div className="mt-1 font-mono text-[9px] text-ink-faint">{m.source}</div>
-              <div className="mt-2 flex gap-3 font-mono text-[9.5px] text-ink-dim">
+              <div className="mt-1 font-mono text-[11px] text-ink-faint">{m.source}</div>
+              <div className="mt-2 flex gap-3 font-mono text-[11.5px] text-ink-dim">
                 <span>{m.rows} rows</span>
                 <span>{Object.keys(m.featureDescriptions).length} features</span>
               </div>
@@ -119,7 +119,7 @@ export function DataStep({ config, patch, locked }: Props) {
               }}
             >
               <div className="flex items-baseline justify-between">
-                <span className="flex items-center gap-1.5 text-[12.5px] font-medium text-ink">
+                <span className="flex items-center gap-1.5 text-[14.5px] font-medium text-ink">
                   <IconUpload className="h-3.5 w-3.5 text-ink-faint" />
                   {hasCustomDataset() ? datasetMeta(CUSTOM_DATASET_ID)?.name : 'Upload'}
                 </span>
@@ -130,10 +130,10 @@ export function DataStep({ config, patch, locked }: Props) {
                   />
                 )}
               </div>
-              <div className="mt-1 font-mono text-[9px] text-ink-faint">
+              <div className="mt-1 font-mono text-[11px] text-ink-faint">
                 CSV, FHIR, HL7 v2
               </div>
-              <div className="mt-2 flex gap-3 font-mono text-[9.5px] text-ink-dim">
+              <div className="mt-2 flex gap-3 font-mono text-[11.5px] text-ink-dim">
                 {hasCustomDataset() ? (
                   <span>{datasetMeta(CUSTOM_DATASET_ID)?.rows} rows</span>
                 ) : (
@@ -160,7 +160,7 @@ export function DataStep({ config, patch, locked }: Props) {
         <Panel>
           <div className="mb-2.5 flex items-baseline justify-between">
             <SectionLabel>table preview</SectionLabel>
-            <span className="font-mono text-[9.5px] text-ink-faint">
+            <span className="font-mono text-[11.5px] text-ink-faint">
               {data.X.length} rows x {data.featureNames.length} columns
             </span>
           </div>
@@ -170,7 +170,7 @@ export function DataStep({ config, patch, locked }: Props) {
               <thead>
                 <tr>
                   <th
-                    className="whitespace-nowrap pb-1.5 pr-3 font-mono text-[8.5px] text-ink-faint"
+                    className="whitespace-nowrap pb-1.5 pr-3 font-mono text-[11px] text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                   >
                     #
@@ -178,7 +178,7 @@ export function DataStep({ config, patch, locked }: Props) {
                   {data.featureNames.slice(0, 7).map((h) => (
                     <th
                       key={h}
-                      className="whitespace-nowrap pb-1.5 pr-3 font-mono text-[8.5px] text-ink-faint"
+                      className="whitespace-nowrap pb-1.5 pr-3 font-mono text-[11px] text-ink-faint"
                       style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                       title={meta.featureDescriptions[h]}
                     >
@@ -186,7 +186,7 @@ export function DataStep({ config, patch, locked }: Props) {
                     </th>
                   ))}
                   <th
-                    className="pb-1.5 font-mono text-[8.5px]"
+                    className="pb-1.5 font-mono text-[11px]"
                     style={{
                       borderBottom: '1px solid rgba(255,255,255,0.08)',
                       color: LANE_COLOR.classical,
@@ -200,7 +200,7 @@ export function DataStep({ config, patch, locked }: Props) {
                 {data.X.slice(0, 6).map((row, i) => (
                   <tr key={i}>
                     <td
-                      className="py-1 pr-3 font-mono text-[9px] tabular-nums text-ink-faint"
+                      className="py-1 pr-3 font-mono text-[11px] tabular-nums text-ink-faint"
                       style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                     >
                       {i}
@@ -208,14 +208,14 @@ export function DataStep({ config, patch, locked }: Props) {
                     {row.slice(0, 7).map((v, j) => (
                       <td
                         key={j}
-                        className="whitespace-nowrap py-1 pr-3 font-mono text-[9.5px] tabular-nums text-ink-dim"
+                        className="whitespace-nowrap py-1 pr-3 font-mono text-[11.5px] tabular-nums text-ink-dim"
                         style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                       >
                         {v < 0.01 ? v.toExponential(1) : v.toFixed(2)}
                       </td>
                     ))}
                     <td
-                      className="py-1 font-mono text-[9.5px]"
+                      className="py-1 font-mono text-[11.5px]"
                       style={{
                         borderBottom: '1px solid rgba(255,255,255,0.04)',
                         color: data.y[i] === 1 ? '#A3543D' : '#5FA88C',
@@ -228,7 +228,7 @@ export function DataStep({ config, patch, locked }: Props) {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 font-mono text-[9px] text-ink-faint/70">
+          <p className="mt-2 font-mono text-[11px] text-ink-faint/70">
             showing 6 of {data.X.length} rows, 7 of {data.featureNames.length} columns
           </p>
         </Panel>
@@ -239,10 +239,10 @@ export function DataStep({ config, patch, locked }: Props) {
 
           <div className="mt-3">
             <div className="mb-1.5 flex items-baseline justify-between">
-              <label htmlFor="split" className="font-mono text-[10px] text-ink-dim">
+              <label htmlFor="split" className="font-mono text-[12px] text-ink-dim">
                 train / test split
               </label>
-              <span className="font-mono text-[10px] tabular-nums text-ink">
+              <span className="font-mono text-[12px] tabular-nums text-ink">
                 {Math.round((1 - config.testFraction) * 100)} / {Math.round(config.testFraction * 100)}
               </span>
             </div>
@@ -257,14 +257,14 @@ export function DataStep({ config, patch, locked }: Props) {
               onChange={(e) => patch({ testFraction: Number(e.target.value) })}
               className="feature-slider w-full cursor-pointer"
             />
-            <div className="mt-1 flex justify-between font-mono text-[8.5px] text-ink-faint">
+            <div className="mt-1 flex justify-between font-mono text-[11px] text-ink-faint">
               <span>{Math.round(data.X.length * (1 - config.testFraction))} train</span>
               <span>{Math.round(data.X.length * config.testFraction)} test</span>
             </div>
           </div>
 
           <div className="mt-4">
-            <label htmlFor="seed" className="mb-1.5 block font-mono text-[10px] text-ink-dim">
+            <label htmlFor="seed" className="mb-1.5 block font-mono text-[12px] text-ink-dim">
               random seed
             </label>
             <input
@@ -273,14 +273,14 @@ export function DataStep({ config, patch, locked }: Props) {
               value={config.seed}
               disabled={locked}
               onChange={(e) => patch({ seed: Number(e.target.value) || 0 })}
-              className="w-full rounded-[6px] px-2 py-1.5 font-mono text-[11px] tabular-nums text-ink outline-none disabled:opacity-50"
+              className="w-full rounded-[6px] px-2 py-1.5 font-mono text-[13px] tabular-nums text-ink outline-none disabled:opacity-50"
               style={{
                 background: '#0D0E10',
                 border: '1px solid rgba(255,255,255,0.05)',
                 boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
               }}
             />
-            <p className="mt-1.5 font-mono text-[8.5px] leading-relaxed text-ink-faint/80">
+            <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-ink-faint/80">
               Both lanes use this seed, so the comparison is on an identical split.
             </p>
           </div>
@@ -291,7 +291,7 @@ export function DataStep({ config, patch, locked }: Props) {
               <div style={{ width: `${100 - posPct}%`, background: alpha('#5FA88C', 0.7) }} />
               <div style={{ width: `${posPct}%`, background: alpha('#A3543D', 0.7) }} />
             </div>
-            <div className="mt-1.5 flex justify-between font-mono text-[9px]">
+            <div className="mt-1.5 flex justify-between font-mono text-[11px]">
               <span style={{ color: '#5FA88C' }}>
                 {meta.negativeLabel} {negative}
               </span>
@@ -300,8 +300,8 @@ export function DataStep({ config, patch, locked }: Props) {
               </span>
             </div>
             {Math.abs(posPct - 50) > 20 && (
-              <p className="mt-1.5 font-mono text-[9px]" style={{ color: LANE_COLOR.classical }}>
-                imbalanced — consider handling this in preprocessing
+              <p className="mt-1.5 font-mono text-[11px]" style={{ color: LANE_COLOR.classical }}>
+                imbalanced: consider handling this in preprocessing
               </p>
             )}
           </div>
@@ -312,7 +312,7 @@ export function DataStep({ config, patch, locked }: Props) {
       <Panel>
         <div className="mb-2.5 flex items-baseline justify-between">
           <SectionLabel>data health</SectionLabel>
-          <span className="font-mono text-[9.5px] text-ink-faint">
+          <span className="font-mono text-[11.5px] text-ink-faint">
             {health.reduce((n, h) => n + h.missing, 0)} missing cells across{' '}
             {health.length} columns
           </span>
@@ -325,7 +325,7 @@ export function DataStep({ config, patch, locked }: Props) {
                 {['column', 'type', 'missing', 'mean', 'std', 'range'].map((h) => (
                   <th
                     key={h}
-                    className="pb-1.5 pr-3 font-mono text-[8.5px] text-ink-faint"
+                    className="pb-1.5 pr-3 font-mono text-[11px] text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
                   >
                     {h}
@@ -337,20 +337,20 @@ export function DataStep({ config, patch, locked }: Props) {
               {health.map((h) => (
                 <tr key={h.name}>
                   <td
-                    className="py-1 pr-3 font-mono text-[9.5px] text-ink-dim"
+                    className="py-1 pr-3 font-mono text-[11.5px] text-ink-dim"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                     title={meta.featureDescriptions[h.name]}
                   >
                     {h.name}
                   </td>
                   <td
-                    className="py-1 pr-3 font-mono text-[9px] text-ink-faint"
+                    className="py-1 pr-3 font-mono text-[11px] text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                   >
                     {h.type}
                   </td>
                   <td
-                    className="py-1 pr-3 font-mono text-[9px] tabular-nums"
+                    className="py-1 pr-3 font-mono text-[11px] tabular-nums"
                     style={{
                       borderBottom: '1px solid rgba(255,255,255,0.04)',
                       color: h.missing > 0 ? LANE_COLOR.classical : '#6A6C72',
@@ -359,22 +359,22 @@ export function DataStep({ config, patch, locked }: Props) {
                     {h.missing}
                   </td>
                   <td
-                    className="py-1 pr-3 font-mono text-[9px] tabular-nums text-ink-faint"
+                    className="py-1 pr-3 font-mono text-[11px] tabular-nums text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                   >
                     {h.mean < 0.01 ? h.mean.toExponential(1) : h.mean.toFixed(2)}
                   </td>
                   <td
-                    className="py-1 pr-3 font-mono text-[9px] tabular-nums text-ink-faint"
+                    className="py-1 pr-3 font-mono text-[11px] tabular-nums text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                   >
                     {h.std < 0.01 ? h.std.toExponential(1) : h.std.toFixed(2)}
                   </td>
                   <td
-                    className="py-1 font-mono text-[9px] tabular-nums text-ink-faint"
+                    className="py-1 font-mono text-[11px] tabular-nums text-ink-faint"
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                   >
-                    {h.min.toFixed(1)} – {h.max.toFixed(1)}
+                    {h.min.toFixed(1)} - {h.max.toFixed(1)}
                   </td>
                 </tr>
               ))}

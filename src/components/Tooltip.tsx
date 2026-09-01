@@ -63,12 +63,12 @@ export function Tooltip({ term, body, children }: Props) {
           }}
         >
           <span
-            className="mb-1 block font-mono text-[9.5px] tracking-[0.02em]"
+            className="mb-1 block font-mono text-[11.5px] tracking-[0.02em]"
             style={{ color: LANE_COLOR.quantum }}
           >
             {term}
           </span>
-          <span className="block text-[11px] leading-relaxed text-ink-dim">{body}</span>
+          <span className="block text-[13px] leading-relaxed text-ink-dim">{body}</span>
         </span>
       )}
     </span>

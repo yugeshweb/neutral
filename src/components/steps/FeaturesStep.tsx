@@ -71,7 +71,7 @@ export function FeaturesStep({ config, patch, locked }: Props) {
                 }}
               >
                 <span
-                  className="font-mono text-[9.5px]"
+                  className="font-mono text-[11.5px]"
                   style={{ color: config.selection === m ? '#E8E9EB' : '#9A9CA1' }}
                 >
                   {m}
@@ -92,7 +92,7 @@ export function FeaturesStep({ config, patch, locked }: Props) {
             <span className="font-mono text-[34px] font-medium leading-none tabular-nums text-ink">
               {config.nFeatures}
             </span>
-            <span className="font-mono text-[11px] text-ink-faint">
+            <span className="font-mono text-[13px] text-ink-faint">
               of {data.featureNames.length} features
             </span>
           </div>
@@ -118,15 +118,15 @@ export function FeaturesStep({ config, patch, locked }: Props) {
             }}
           >
             <div className="flex items-center justify-center gap-2.5">
-              <span className="font-mono text-[13px] tabular-nums text-ink">
+              <span className="font-mono text-[14.5px] tabular-nums text-ink">
                 {config.nFeatures} features
               </span>
-              <span className="font-mono text-[13px] text-ink-faint">=</span>
+              <span className="font-mono text-[14.5px] text-ink-faint">=</span>
               <QubitBadge qubits={config.nFeatures} compact />
             </div>
 
             <div
-              className="mt-2.5 flex items-center justify-between pt-2.5 font-mono text-[9px]"
+              className="mt-2.5 flex items-center justify-between pt-2.5 font-mono text-[11px]"
               style={{ borderTop: `1px solid ${alpha(LANE_COLOR.quantum, 0.18)}` }}
             >
               <span className="text-ink-faint">simulated state</span>
@@ -134,7 +134,7 @@ export function FeaturesStep({ config, patch, locked }: Props) {
                 2^{config.nFeatures} = {(2 ** config.nFeatures).toLocaleString()} amplitudes
               </span>
             </div>
-            <p className="mt-2 font-mono text-[8.5px] leading-relaxed text-ink-faint/85">
+            <p className="mt-2 font-mono text-[11px] leading-relaxed text-ink-faint/85">
               One retained feature is one qubit. Every qubit added doubles the simulation
               cost and deepens the{' '}
               <Tooltip
@@ -145,7 +145,7 @@ export function FeaturesStep({ config, patch, locked }: Props) {
                   barren plateau
                 </span>
               </Tooltip>{' '}
-              risk — which is why this slider is the binding constraint on the whole pipeline.
+              risk, which is why this slider is the binding constraint on the whole pipeline.
             </p>
           </div>
         </Panel>
@@ -154,10 +154,10 @@ export function FeaturesStep({ config, patch, locked }: Props) {
           <Panel>
             <SectionLabel>variance retained</SectionLabel>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-mono text-[22px] tabular-nums text-ink">
+              <span className="font-mono text-[26px] tabular-nums text-ink">
                 {((varianceRetained ?? 0) * 100).toFixed(1)}%
               </span>
-              <span className="font-mono text-[9.5px] text-ink-faint">
+              <span className="font-mono text-[11.5px] text-ink-faint">
                 in {config.nFeatures} components
               </span>
             </div>
@@ -171,7 +171,7 @@ export function FeaturesStep({ config, patch, locked }: Props) {
             </div>
             <div className="mt-2.5 space-y-1">
               {analysis.pca.explained.map((e, i) => (
-                <div key={i} className="flex items-center justify-between font-mono text-[9px]">
+                <div key={i} className="flex items-center justify-between font-mono text-[11px]">
                   <span className="text-ink-faint">PC{i + 1}</span>
                   <span className="tabular-nums text-ink-dim">{(e * 100).toFixed(1)}%</span>
                 </div>
@@ -185,8 +185,8 @@ export function FeaturesStep({ config, patch, locked }: Props) {
         <Panel>
           <div className="mb-3 flex items-baseline justify-between">
             <div>
-              <SectionLabel>ranked importance — all {data.featureNames.length} features</SectionLabel>
-              <p className="mt-1 font-mono text-[9px] text-ink-faint">
+              <SectionLabel>ranked importance: all {data.featureNames.length} features</SectionLabel>
+              <p className="mt-1 font-mono text-[11px] text-ink-faint">
                 scored by {config.selection} on the training fold
               </p>
             </div>
@@ -203,7 +203,7 @@ export function FeaturesStep({ config, patch, locked }: Props) {
 
         <div className="grid grid-cols-2 gap-4">
           <Panel>
-            <SectionLabel>kept — {kept.length}</SectionLabel>
+            <SectionLabel>kept: {kept.length}</SectionLabel>
             <div className="console-scroll mt-2.5 max-h-[170px] space-y-1.5 overflow-y-auto pr-1">
               {(analysis.pca
                 ? Array.from({ length: config.nFeatures }, (_, i) => ({
@@ -223,10 +223,10 @@ export function FeaturesStep({ config, patch, locked }: Props) {
                       className="h-[4px] w-[4px] shrink-0 rounded-full"
                       style={{ background: LANE_COLOR.quantum }}
                     />
-                    <span className="font-mono text-[10px] text-ink-dim">{f.name}</span>
+                    <span className="font-mono text-[12px] text-ink-dim">{f.name}</span>
                   </div>
                   {f.detail && (
-                    <p className="ml-[10px] font-mono text-[8.5px] leading-relaxed text-ink-faint/75">
+                    <p className="ml-[10px] font-mono text-[11px] leading-relaxed text-ink-faint/75">
                       {f.detail.slice(0, 62)}
                       {f.detail.length > 62 ? '…' : ''}
                     </p>
@@ -237,14 +237,14 @@ export function FeaturesStep({ config, patch, locked }: Props) {
           </Panel>
 
           <Panel>
-            <SectionLabel>dropped — {dropped.length}</SectionLabel>
+            <SectionLabel>dropped: {dropped.length}</SectionLabel>
             <div className="console-scroll mt-2.5 max-h-[170px] space-y-1 overflow-y-auto pr-1">
               {dropped.map((d) => (
                 <div key={d.name} className="flex items-baseline justify-between gap-2">
-                  <span className="min-w-0 truncate font-mono text-[9.5px] text-ink-faint">
+                  <span className="min-w-0 truncate font-mono text-[11.5px] text-ink-faint">
                     {d.name}
                   </span>
-                  <span className="shrink-0 font-mono text-[8.5px] tabular-nums text-ink-faint/60">
+                  <span className="shrink-0 font-mono text-[11px] tabular-nums text-ink-faint/60">
                     {d.score.toFixed(3)}
                   </span>
                 </div>
@@ -256,11 +256,11 @@ export function FeaturesStep({ config, patch, locked }: Props) {
                 className="mt-2.5 pt-2.5"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
               >
-                <div className="font-mono text-[8.5px] text-ink-faint/70">
+                <div className="font-mono text-[11px] text-ink-faint/70">
                   collinear pairs found (|r| &gt; 0.92)
                 </div>
                 {analysis.collinear.dropped.slice(0, 3).map((c) => (
-                  <div key={c.name} className="mt-1 font-mono text-[8.5px] text-ink-faint">
+                  <div key={c.name} className="mt-1 font-mono text-[11px] text-ink-faint">
                     {c.name} ≈ {c.against}{' '}
                     <span style={{ color: LANE_COLOR.classical }}>r={c.r.toFixed(2)}</span>
                   </div>

@@ -45,7 +45,7 @@ function SchemaTable({ fields, rows }: { fields: SchemaField[]; rows: string[][]
               <th
                 key={heading}
                 scope="col"
-                className="border-b pb-2 font-mono text-[9px] font-medium uppercase tracking-[0.04em] text-ink-faint"
+                className="border-b pb-2 font-mono text-[11px] font-medium text-ink-faint"
                 style={{ borderColor: 'rgba(255,255,255,0.08)' }}
               >
                 {heading}
@@ -56,17 +56,17 @@ function SchemaTable({ fields, rows }: { fields: SchemaField[]; rows: string[][]
         <tbody>
           {fields.map((field, index) => (
             <tr key={field.name}>
-              <td className="max-w-[220px] truncate border-b py-2 pr-3 font-mono text-[9.5px] text-ink-dim" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+              <td className="max-w-[220px] truncate border-b py-2 pr-3 font-mono text-[11.5px] text-ink-dim" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
                 {field.name}
               </td>
-              <td className="border-b py-2 pr-3 font-mono text-[9px] text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+              <td className="border-b py-2 pr-3 font-mono text-[11px] text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
                 {field.type}
               </td>
-              <td className="border-b py-2 pr-3 font-mono text-[9px] tabular-nums text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+              <td className="border-b py-2 pr-3 font-mono text-[11px] tabular-nums text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
                 {field.present}
               </td>
-              <td className="max-w-[220px] truncate border-b py-2 font-mono text-[9px] text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                {rows[0]?.[index] || '—'}
+              <td className="max-w-[220px] truncate border-b py-2 font-mono text-[11px] text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                {rows[0]?.[index] || 'n/a'}
               </td>
             </tr>
           ))}
@@ -86,7 +86,7 @@ function RoutingTable({ decisions }: { decisions: RoutingDecision[] }) {
               <th
                 key={heading}
                 scope="col"
-                className="border-b pb-2 font-mono text-[9px] font-medium uppercase tracking-[0.04em] text-ink-faint"
+                className="border-b pb-2 font-mono text-[11px] font-medium text-ink-faint"
                 style={{ borderColor: 'rgba(255,255,255,0.08)' }}
               >
                 {heading}
@@ -99,16 +99,16 @@ function RoutingTable({ decisions }: { decisions: RoutingDecision[] }) {
             const tone = statusTone(decision.status)
             return (
               <tr key={`${decision.model_id}-${decision.model_version}`}>
-                <td className="border-b py-2.5 pr-3 font-mono text-[9px] text-ink" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                <td className="border-b py-2.5 pr-3 font-mono text-[11px] text-ink" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
                   {decision.model_id}
                   <span className="ml-2 text-ink-faint">v{decision.model_version}</span>
                 </td>
                 <td className="border-b py-2.5 pr-3" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                  <span className="rounded px-1.5 py-1 font-mono text-[8.5px]" style={{ color: tone.color, background: tone.background }}>
+                  <span className="rounded px-1.5 py-1 font-mono text-[11px]" style={{ color: tone.color, background: tone.background }}>
                     {decision.status}
                   </span>
                 </td>
-                <td className="border-b py-2.5 text-[10px] leading-relaxed text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                <td className="border-b py-2.5 text-[12px] leading-relaxed text-ink-faint" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
                   {decision.reason}
                 </td>
               </tr>
@@ -125,8 +125,8 @@ function ValidationResult({ result }: { result: EhrValidationResult }) {
     <section className="space-y-4" aria-label="Validation result" aria-live="polite">
       <div className="flex items-center gap-2 rounded-panel px-4 py-3" style={{ background: alpha('#5FA88C', 0.1), border: `1px solid ${alpha('#5FA88C', 0.25)}` }}>
         <IconCheck className="h-3.5 w-3.5 text-[#5FA88C]" />
-        <span className="font-mono text-[10px] text-ink">cohort contract validated</span>
-        <span className="ml-auto font-mono text-[9px] text-ink-faint">{result.endpoint}</span>
+        <span className="font-mono text-[12px] text-ink">cohort contract validated</span>
+        <span className="ml-auto font-mono text-[11px] text-ink-faint">{result.endpoint}</span>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
@@ -137,19 +137,19 @@ function ValidationResult({ result }: { result: EhrValidationResult }) {
           ['compatible models', String(result.checks.find((check) => check.name === 'model_routing')?.detail.match(/^\d+/)?.[0] ?? 0)],
         ].map(([label, value]) => (
           <div key={label} className="rounded-panel px-3 py-3" style={PANEL}>
-            <div className="font-mono text-[9px] uppercase tracking-[0.04em] text-ink-faint">{label}</div>
-            <div className="mt-1 font-mono text-[17px] tabular-nums text-ink">{value}</div>
+            <div className="font-mono text-[11px] text-ink-faint">{label}</div>
+            <div className="mt-1 font-mono text-[19px] tabular-nums text-ink">{value}</div>
           </div>
         ))}
       </div>
 
       <div className="rounded-panel p-4" style={PANEL}>
-        <h2 className="text-[12px] font-medium text-ink">Checks</h2>
+        <h2 className="text-[14px] font-medium text-ink">Checks</h2>
         <div className="mt-3 space-y-2">
           {result.checks.map((check) => {
             const tone = statusTone(check.status)
             return (
-              <div key={check.name} className="flex items-start gap-2 text-[10px]">
+              <div key={check.name} className="flex items-start gap-2 text-[12px]">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: tone.color }} />
                 <span className="w-32 shrink-0 font-mono text-ink-dim">{check.name}</span>
                 <span className="leading-relaxed text-ink-faint">{check.detail}</span>
@@ -161,13 +161,13 @@ function ValidationResult({ result }: { result: EhrValidationResult }) {
 
       <div className="rounded-panel p-4" style={PANEL}>
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="text-[12px] font-medium text-ink">Registered neurological models</h2>
-          <span className="font-mono text-[9px] text-ink-faint">routing preview only</span>
+          <h2 className="text-[14px] font-medium text-ink">Registered neurological models</h2>
+          <span className="font-mono text-[11px] text-ink-faint">routing preview only</span>
         </div>
         <RoutingTable decisions={result.routing} />
       </div>
 
-      <p className="font-mono text-[9px] leading-relaxed text-ink-faint/80">{result.disclaimer}</p>
+      <p className="font-mono text-[11px] leading-relaxed text-ink-faint/80">{result.disclaimer}</p>
     </section>
   )
 }
@@ -250,22 +250,22 @@ export function EhrValidationView() {
   const dataset = loaded?.result.dataset
 
   return (
-    <div className="min-h-full overflow-y-auto bg-canvas">
+    <div className="console-scroll min-h-full overflow-y-auto bg-canvas">
       <header className="flex h-14 items-center gap-3 border-b px-4" style={{ background: '#111214', borderColor: 'rgba(255,255,255,0.06)' }}>
         <a href="/" className="flex items-center gap-2 rounded-[8px] px-2 py-1.5 text-ink-faint transition-colors hover:text-ink" aria-label="Back to main dashboard">
           <IconArrowLeft className="h-3.5 w-3.5" />
           <Wordmark size={14} />
         </a>
         <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
-        <span className="text-[13px] text-ink-dim">EHR validation</span>
-        <span className="ml-auto font-mono text-[9px] text-ink-faint">/ehr-validation</span>
+        <span className="text-[14.5px] text-ink-dim">EHR validation</span>
+        <span className="ml-auto font-mono text-[11px] text-ink-faint">/ehr-validation</span>
       </header>
 
       <main className="mx-auto w-full max-w-[1180px] px-6 py-10">
         <div className="mb-8 max-w-[720px]">
-          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.08em]" style={{ color: LANE_COLOR.quantum }}>isolated test surface</div>
+          <div className="mb-2 font-mono text-[11px] tracking-[0.08em]" style={{ color: LANE_COLOR.quantum }}>isolated test surface</div>
           <h1 className="text-[25px] font-semibold tracking-[-0.03em] text-ink">Validate an EHR cohort</h1>
-          <p className="mt-3 text-[12px] leading-relaxed text-ink-dim">
+          <p className="mt-3 text-[14px] leading-relaxed text-ink-dim">
             Upload a CSV export or FHIR R4 Bundle. The existing adapter normalizes it to a numeric cohort, then the separate validation endpoint checks labels, missingness, fingerprints, and every registered neurological model contract.
           </p>
         </div>
@@ -273,14 +273,14 @@ export function EhrValidationView() {
         <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
           <section className="rounded-panel p-4" style={PANEL} aria-label="Cohort input">
             <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="font-mono text-[9.5px] uppercase tracking-[0.04em] text-ink-faint">cohort input</h2>
-              <span className="font-mono text-[9px] text-ink-faint">CSV / FHIR JSON</span>
+              <h2 className="font-mono text-[11.5px] text-ink-faint">cohort input</h2>
+              <span className="font-mono text-[11px] text-ink-faint">CSV / FHIR JSON</span>
             </div>
 
             <label className="flex cursor-pointer flex-col items-center gap-2 rounded-[9px] px-3 py-6 text-center" style={{ background: '#0D0E10', border: '1px dashed rgba(255,255,255,0.11)' }}>
               <IconUpload className="h-4 w-4 text-ink-faint" />
-              <span className="text-[11px] text-ink-dim">Choose a cohort file</span>
-              <span className="font-mono text-[9px] text-ink-faint">max {formatBytes(MAX_UPLOAD_BYTES)}</span>
+              <span className="text-[13px] text-ink-dim">Choose a cohort file</span>
+              <span className="font-mono text-[11px] text-ink-faint">max {formatBytes(MAX_UPLOAD_BYTES)}</span>
               <input className="sr-only" type="file" accept=".csv,.json" onChange={(event) => {
                 const file = event.target.files?.[0]
                 if (file) void acceptFile(file)
@@ -288,14 +288,14 @@ export function EhrValidationView() {
               }} />
             </label>
 
-            <button type="button" onClick={() => void loadSample()} disabled={sampleLoading || busy} className="mt-2 w-full cursor-pointer rounded-[7px] py-2 font-mono text-[9.5px] text-ink-dim transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50" style={{ background: alpha(LANE_COLOR.quantum, 0.08), border: `1px solid ${alpha(LANE_COLOR.quantum, 0.2)}` }}>
+            <button type="button" onClick={() => void loadSample()} disabled={sampleLoading || busy} className="mt-2 w-full cursor-pointer rounded-[7px] py-2 font-mono text-[11.5px] text-ink-dim transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50" style={{ background: alpha(LANE_COLOR.quantum, 0.08), border: `1px solid ${alpha(LANE_COLOR.quantum, 0.2)}` }}>
               {sampleLoading ? 'loading sample…' : 'load sample FHIR bundle'}
             </button>
 
             {loaded && (
               <div className="mt-3 rounded-[8px] p-2.5" style={{ background: '#0D0E10', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div className="truncate font-mono text-[10px] text-ink" title={loaded.name}>{loaded.name}</div>
-                <div className="mt-1 flex gap-3 font-mono text-[9px] text-ink-faint">
+                <div className="truncate font-mono text-[12px] text-ink" title={loaded.name}>{loaded.name}</div>
+                <div className="mt-1 flex gap-3 font-mono text-[11px] text-ink-faint">
                   <span>{loaded.sourceFormat}</span>
                   <span>{dataset?.rows} rows</span>
                   <span>{dataset?.columns} cols</span>
@@ -305,36 +305,36 @@ export function EhrValidationView() {
 
             <div className="mt-4 space-y-3">
               <div>
-                <label htmlFor="ehr-target" className="mb-1 block font-mono text-[9px] text-ink-faint">target column</label>
-                <input id="ehr-target" value={target} onChange={(event) => setTarget(event.target.value)} className="w-full rounded-[6px] px-2.5 py-2 font-mono text-[10px] text-ink outline-none" style={{ background: '#0D0E10', border: '1px solid rgba(255,255,255,0.07)' }} />
+                <label htmlFor="ehr-target" className="mb-1 block font-mono text-[11px] text-ink-faint">target column</label>
+                <input id="ehr-target" value={target} onChange={(event) => setTarget(event.target.value)} className="w-full rounded-[6px] px-2.5 py-2 font-mono text-[12px] text-ink outline-none" style={{ background: '#0D0E10', border: '1px solid rgba(255,255,255,0.07)' }} />
               </div>
               <div>
-                <label htmlFor="ehr-id" className="mb-1 block font-mono text-[9px] text-ink-faint">patient ID column <span className="text-ink-faint/60">optional</span></label>
-                <input id="ehr-id" value={idColumn} onChange={(event) => setIdColumn(event.target.value)} className="w-full rounded-[6px] px-2.5 py-2 font-mono text-[10px] text-ink outline-none" style={{ background: '#0D0E10', border: '1px solid rgba(255,255,255,0.07)' }} />
+                <label htmlFor="ehr-id" className="mb-1 block font-mono text-[11px] text-ink-faint">patient ID column <span className="text-ink-faint/60">optional</span></label>
+                <input id="ehr-id" value={idColumn} onChange={(event) => setIdColumn(event.target.value)} className="w-full rounded-[6px] px-2.5 py-2 font-mono text-[12px] text-ink outline-none" style={{ background: '#0D0E10', border: '1px solid rgba(255,255,255,0.07)' }} />
               </div>
             </div>
 
-            <button type="button" onClick={() => void validate()} disabled={!loaded || busy || sampleLoading} className="mt-4 w-full cursor-pointer rounded-[7px] py-2.5 font-mono text-[10px] font-medium text-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40" style={{ background: LANE_COLOR.classical }}>
+            <button type="button" onClick={() => void validate()} disabled={!loaded || busy || sampleLoading} className="mt-4 w-full cursor-pointer rounded-[7px] py-2.5 font-mono text-[12px] font-medium text-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40" style={{ background: LANE_COLOR.classical }}>
               {busy ? 'validating cohort…' : 'validate cohort'}
             </button>
 
-            {error && <div className="mt-3 font-mono text-[9.5px] leading-relaxed" style={{ color: '#A3543D' }} role="alert">{error}</div>}
+            {error && <div className="mt-3 font-mono text-[11.5px] leading-relaxed" style={{ color: '#A3543D' }} role="alert">{error}</div>}
 
-            <p className="mt-4 font-mono text-[9px] leading-relaxed text-ink-faint/70">
+            <p className="mt-4 font-mono text-[11px] leading-relaxed text-ink-faint/70">
               The endpoint receives only the adapter’s canonical table. It does not accept live EHR credentials, store PHI, train a model, or produce a patient diagnosis.
             </p>
           </section>
 
           <section className="rounded-panel p-4" style={PANEL} aria-label="Normalized cohort">
             <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="font-mono text-[9.5px] uppercase tracking-[0.04em] text-ink-faint">normalized cohort</h2>
-              {dataset && <span className="font-mono text-[9px] text-ink-faint">adapter output</span>}
+              <h2 className="font-mono text-[11.5px] text-ink-faint">normalized cohort</h2>
+              {dataset && <span className="font-mono text-[11px] text-ink-faint">adapter output</span>}
             </div>
             {!loaded || !dataset ? (
               <div className="grid min-h-[290px] place-items-center rounded-[8px] text-center" style={{ background: '#0D0E10', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div>
-                  <div className="text-[11px] text-ink-dim">No cohort loaded</div>
-                  <div className="mt-1 font-mono text-[9px] text-ink-faint">The normalized schema and preview will appear here.</div>
+                  <div className="text-[13px] text-ink-dim">No cohort loaded</div>
+                  <div className="mt-1 font-mono text-[11px] text-ink-faint">The normalized schema and preview will appear here.</div>
                 </div>
               </div>
             ) : (
@@ -345,18 +345,18 @@ export function EhrValidationView() {
                     ['columns', dataset.columns],
                     ['warnings', dataset.warnings.length],
                   ].map(([label, value]) => (
-                    <span key={label} className="rounded-[5px] px-2 py-1 font-mono text-[9px] text-ink-faint" style={{ background: '#0D0E10' }}>{label} <span className="text-ink-dim">{value}</span></span>
+                    <span key={label} className="rounded-[5px] px-2 py-1 font-mono text-[11px] text-ink-faint" style={{ background: '#0D0E10' }}>{label} <span className="text-ink-dim">{value}</span></span>
                   ))}
                 </div>
                 <SchemaTable fields={loaded.result.schema} rows={dataset.preview} />
                 {loaded.result.notes.length > 0 && (
                   <div className="mt-4 space-y-1 border-t pt-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                    {loaded.result.notes.map((note) => <div key={note} className="font-mono text-[9px] leading-relaxed text-ink-faint">— {note}</div>)}
+                    {loaded.result.notes.map((note) => <div key={note} className="font-mono text-[11px] leading-relaxed text-ink-faint">{note}</div>)}
                   </div>
                 )}
                 {dataset.warnings.length > 0 && (
                   <div className="mt-3 space-y-1">
-                    {dataset.warnings.map((warning) => <div key={warning} className="font-mono text-[9px] leading-relaxed" style={{ color: '#C08A3E' }}>! {warning}</div>)}
+                    {dataset.warnings.map((warning) => <div key={warning} className="font-mono text-[11px] leading-relaxed" style={{ color: '#C08A3E' }}>! {warning}</div>)}
                   </div>
                 )}
               </>

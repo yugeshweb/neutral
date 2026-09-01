@@ -132,16 +132,69 @@ const HEART_SPECS: FeatureSpec[] = [
 // ---- Brain Seizure EEG -----------------------------------------------------
 
 const SEIZURE_SPECS: FeatureSpec[] = [
-  { name: 'delta_power', description: 'Normalized power in 0.5–4 Hz delta oscillation band', negMean: 0.32, posMean: 0.14, negSd: 0.08, posSd: 0.05 },
-  { name: 'theta_power', description: 'Normalized power in 4–8 Hz theta band', negMean: 0.26, posMean: 0.16, negSd: 0.06, posSd: 0.04 },
-  { name: 'alpha_power', description: 'Normalized power in 8–13 Hz alpha band', negMean: 0.28, posMean: 0.10, negSd: 0.07, posSd: 0.03 },
-  { name: 'beta_power', description: 'Normalized power in 13–30 Hz beta band', negMean: 0.11, posMean: 0.31, negSd: 0.03, posSd: 0.08, skewed: true },
-  { name: 'gamma_power', description: 'Normalized power in 30–80 Hz gamma paroxysm band', negMean: 0.03, posMean: 0.29, negSd: 0.015, posSd: 0.09, skewed: true },
+  { name: 'delta_power', description: 'Normalized power in 0.5-4 Hz delta oscillation band', negMean: 0.32, posMean: 0.14, negSd: 0.08, posSd: 0.05 },
+  { name: 'theta_power', description: 'Normalized power in 4-8 Hz theta band', negMean: 0.26, posMean: 0.16, negSd: 0.06, posSd: 0.04 },
+  { name: 'alpha_power', description: 'Normalized power in 8-13 Hz alpha band', negMean: 0.28, posMean: 0.10, negSd: 0.07, posSd: 0.03 },
+  { name: 'beta_power', description: 'Normalized power in 13-30 Hz beta band', negMean: 0.11, posMean: 0.31, negSd: 0.03, posSd: 0.08, skewed: true },
+  { name: 'gamma_power', description: 'Normalized power in 30-80 Hz gamma paroxysm band', negMean: 0.03, posMean: 0.29, negSd: 0.015, posSd: 0.09, skewed: true },
   { name: 'spectral_entropy', description: 'Fourier spectral distribution entropy', negMean: 0.82, posMean: 0.52, negSd: 0.06, posSd: 0.09 },
   { name: 'hjorth_mobility', description: 'Mean frequency estimation ratio', negMean: 0.74, posMean: 1.88, negSd: 0.18, posSd: 0.35 },
   { name: 'hjorth_complexity', description: 'Frequency spread / sinusoidal deviation', negMean: 1.12, posMean: 2.38, negSd: 0.22, posSd: 0.45 },
   { name: 'sample_entropy', description: 'Non-linear regularity metric', negMean: 1.28, posMean: 0.58, negSd: 0.25, posSd: 0.15 },
   { name: 'line_length', description: 'Total trajectory variation (sharp spikes)', negMean: 58.0, posMean: 235.0, negSd: 14.0, posSd: 62.0, skewed: true },
+]
+
+// ---- Stroke clinical risk (P1) ---------------------------------------------
+// Field names match the backend's input contract for
+// `stroke-clinical-risk-tabular`, so a cohort prepared for one works in the
+// other. Class statistics follow the Kaggle stroke table, which is severely
+// imbalanced (4.87% positive).
+
+const STROKE_SPECS: FeatureSpec[] = [
+  { name: 'age', description: 'Age in years', negMean: 41.8, posMean: 67.7, negSd: 22.3, posSd: 12.7 },
+  { name: 'avg_glucose_level', description: 'Average blood glucose (mg/dL)', negMean: 104.8, posMean: 132.5, negSd: 43.8, posSd: 61.9, skewed: true },
+  { name: 'bmi', description: 'Body mass index', negMean: 28.8, posMean: 30.5, negSd: 7.8, posSd: 6.3 },
+  { name: 'hypertension', description: 'Diagnosed hypertension', negMean: 0.09, posMean: 0.27, negSd: 0.28, posSd: 0.44 },
+  { name: 'heart_disease', description: 'Diagnosed heart disease', negMean: 0.05, posMean: 0.19, negSd: 0.21, posSd: 0.39 },
+  { name: 'ever_married', description: 'Has ever been married', negMean: 0.65, posMean: 0.88, negSd: 0.48, posSd: 0.32 },
+  { name: 'work_type', description: 'Employment category code', negMean: 2.17, posMean: 2.35, negSd: 1.08, posSd: 0.86 },
+  { name: 'residence_type', description: 'Urban residence', negMean: 0.51, posMean: 0.54, negSd: 0.50, posSd: 0.50 },
+  { name: 'smoking_status', description: 'Smoking status code, higher is heavier exposure', negMean: 1.38, posMean: 1.73, negSd: 1.06, posSd: 1.02 },
+  { name: 'gender', description: 'Recorded gender code', negMean: 0.41, posMean: 0.44, negSd: 0.49, posSd: 0.50 },
+]
+
+// ---- Alzheimer's clinical (P5) ---------------------------------------------
+// OASIS-1 cross-sectional. Scoped as a same-visit dementia association, not
+// longitudinal progression: no OASIS-1 data supports a progression claim.
+
+const ALZHEIMERS_SPECS: FeatureSpec[] = [
+  { name: 'MMSE', description: 'Mini-Mental State Examination, 0 to 30, lower is worse', negMean: 29.2, posMean: 24.3, negSd: 0.9, posSd: 4.5 },
+  { name: 'nWBV', description: 'Normalized whole-brain volume', negMean: 0.74, posMean: 0.71, negSd: 0.04, posSd: 0.03 },
+  { name: 'Age', description: 'Age at visit in years', negMean: 73.5, posMean: 76.8, negSd: 9.8, posSd: 7.1 },
+  { name: 'eTIV', description: 'Estimated total intracranial volume (mm3)', negMean: 1481.0, posMean: 1478.0, negSd: 168.0, posSd: 172.0 },
+  { name: 'ASF', description: 'Atlas scaling factor', negMean: 1.20, posMean: 1.20, negSd: 0.14, posSd: 0.14 },
+  { name: 'Educ', description: 'Years of education band', negMean: 3.18, posMean: 2.62, negSd: 1.30, posSd: 1.24 },
+  { name: 'SES', description: 'Socioeconomic status band, lower is higher status', negMean: 2.395, posMean: 2.75, negSd: 1.10, posSd: 1.15 },
+  { name: 'M_F', description: 'Recorded sex code', negMean: 0.38, posMean: 0.56, negSd: 0.49, posSd: 0.50 },
+]
+
+// ---- Parkinson's voice (P6) ------------------------------------------------
+// UCI sustained-phonation cohort. Scoped as diagnosed-vs-healthy, not
+// prodromal risk. Feature names follow the MDVP conventions of the source.
+
+const PARKINSONS_SPECS: FeatureSpec[] = [
+  { name: 'PPE', description: 'Pitch period entropy', negMean: 0.123, posMean: 0.234, negSd: 0.043, posSd: 0.084 },
+  { name: 'spread1', description: 'Nonlinear fundamental-frequency spread measure', negMean: -6.76, posMean: -5.33, negSd: 1.17, posSd: 1.02 },
+  { name: 'MDVP_Fo_Hz', description: 'Average vocal fundamental frequency (Hz)', negMean: 181.9, posMean: 145.2, negSd: 46.7, posSd: 33.8 },
+  { name: 'MDVP_Flo_Hz', description: 'Minimum vocal fundamental frequency (Hz)', negMean: 145.2, posMean: 106.9, negSd: 43.0, posSd: 34.1 },
+  { name: 'spread2', description: 'Second nonlinear frequency-spread measure', negMean: 0.161, posMean: 0.249, negSd: 0.070, posSd: 0.081 },
+  { name: 'MDVP_Jitter_pct', description: 'Cycle-to-cycle frequency variation (%)', negMean: 0.0039, posMean: 0.0070, negSd: 0.0019, posSd: 0.0053, skewed: true },
+  { name: 'MDVP_Shimmer', description: 'Cycle-to-cycle amplitude variation', negMean: 0.0176, posMean: 0.0335, negSd: 0.0086, posSd: 0.0199, skewed: true },
+  { name: 'HNR', description: 'Harmonics-to-noise ratio (dB)', negMean: 24.68, posMean: 20.97, negSd: 4.29, posSd: 4.31 },
+  { name: 'NHR', description: 'Noise-to-harmonics ratio', negMean: 0.0115, posMean: 0.0293, negSd: 0.0102, posSd: 0.0400, skewed: true },
+  { name: 'RPDE', description: 'Recurrence period density entropy', negMean: 0.443, posMean: 0.517, negSd: 0.086, posSd: 0.100 },
+  { name: 'DFA', description: 'Detrended fluctuation analysis exponent', negMean: 0.696, posMean: 0.725, negSd: 0.058, posSd: 0.056 },
+  { name: 'D2', description: 'Correlation dimension', negMean: 2.154, posMean: 2.456, negSd: 0.360, posSd: 0.383 },
 ]
 
 export const DATASET_META: DatasetMeta[] = [
@@ -175,12 +228,48 @@ export const DATASET_META: DatasetMeta[] = [
     featureDescriptions: Object.fromEntries(HEART_SPECS.map((s) => [s.name, s.description])),
     synthetic: true,
   },
+  {
+    id: 'stroke-risk',
+    name: 'Stroke Clinical Risk',
+    source: 'Kaggle stroke-prediction cohort (backend P1)',
+    rows: 5110,
+    positiveLabel: 'Stroke',
+    negativeLabel: 'No Stroke',
+    featureDescriptions: Object.fromEntries(STROKE_SPECS.map((s) => [s.name, s.description])),
+    synthetic: true,
+  },
+  {
+    id: 'alzheimers',
+    name: "Alzheimer's Dementia Association",
+    source: 'OASIS-1 cross-sectional (backend P5)',
+    rows: 235,
+    positiveLabel: 'Dementia (CDR > 0)',
+    negativeLabel: 'No Dementia (CDR 0)',
+    featureDescriptions: Object.fromEntries(ALZHEIMERS_SPECS.map((s) => [s.name, s.description])),
+    synthetic: true,
+  },
+  {
+    id: 'parkinsons',
+    name: "Parkinson's Voice Analysis",
+    source: "UCI Parkinson's voice cohort (backend P6)",
+    rows: 195,
+    positiveLabel: "Parkinson's",
+    negativeLabel: 'Healthy Control',
+    featureDescriptions: Object.fromEntries(PARKINSONS_SPECS.map((s) => [s.name, s.description])),
+    synthetic: true,
+  },
 ]
 
 const SPECS: Record<string, { specs: FeatureSpec[]; rows: number; rate: number }> = {
   'breast-cancer': { specs: WDBC_SPECS, rows: 569, rate: 0.373 },
   'brain-seizure': { specs: SEIZURE_SPECS, rows: 500, rate: 0.400 },
   'heart-disease': { specs: HEART_SPECS, rows: 303, rate: 0.459 },
+  // Prevalence figures are the real ones from each source cohort. Stroke stays
+  // deliberately imbalanced at 4.87% because that imbalance is the whole
+  // difficulty of the task; flattening it would make the demo misleadingly easy.
+  'stroke-risk': { specs: STROKE_SPECS, rows: 5110, rate: 0.0487 },
+  'alzheimers': { specs: ALZHEIMERS_SPECS, rows: 235, rate: 0.426 },
+  'parkinsons': { specs: PARKINSONS_SPECS, rows: 195, rate: 0.754 },
 }
 
 const cache = new Map<string, Dataset>()

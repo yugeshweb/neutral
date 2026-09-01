@@ -129,7 +129,7 @@ export function TourOverlay({
         }}
       >
         <div className="mb-2 flex items-start justify-between gap-3">
-          <span className="font-mono text-[9px] tracking-[0.04em] text-ink-faint">
+          <span className="font-mono text-[11px] tracking-[0.04em] text-ink-faint">
             {index + 1} / {total}
           </span>
           <button
@@ -142,7 +142,7 @@ export function TourOverlay({
           </button>
         </div>
 
-        <h3 className="text-[13px] font-medium text-ink">{stop.title}</h3>
+        <h3 className="text-[14.5px] font-medium text-ink">{stop.title}</h3>
         <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-dim">{stop.body}</p>
 
         <div className="mt-3.5 flex items-center gap-2">
@@ -150,7 +150,7 @@ export function TourOverlay({
             <button
               type="button"
               onClick={onPrev}
-              className="flex cursor-pointer items-center gap-1 rounded-[7px] px-2 py-1.5 font-mono text-[10px] text-ink-faint transition-colors duration-150 hover:text-ink"
+              className="flex cursor-pointer items-center gap-1 rounded-[7px] px-2 py-1.5 font-mono text-[12px] text-ink-faint transition-colors duration-150 hover:text-ink"
             >
               <IconArrowLeft className="h-3 w-3" />
               Back
@@ -160,14 +160,14 @@ export function TourOverlay({
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer rounded-[7px] px-2 py-1.5 font-mono text-[10px] text-ink-faint transition-colors duration-150 hover:text-ink"
+            className="cursor-pointer rounded-[7px] px-2 py-1.5 font-mono text-[12px] text-ink-faint transition-colors duration-150 hover:text-ink"
           >
             Skip
           </button>
           <button
             type="button"
             onClick={onNext}
-            className="flex cursor-pointer items-center gap-1.5 rounded-[7px] px-3 py-1.5 font-mono text-[10px] transition-colors duration-150"
+            className="flex cursor-pointer items-center gap-1.5 rounded-[7px] px-3 py-1.5 font-mono text-[12px] transition-colors duration-150"
             style={{ background: alpha(LANE_COLOR.quantum, 0.14), color: LANE_COLOR.quantum }}
           >
             {isLast ? 'Done' : 'Next'}

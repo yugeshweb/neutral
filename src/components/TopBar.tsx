@@ -71,7 +71,7 @@ export function TopBar({
 
       <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
 
-      <span className="text-[13px] text-ink-dim">Train</span>
+      <span className="text-[14.5px] text-ink-dim">Train</span>
 
       {/* dataset: the sample selector, or the uploaded file name */}
       {uploadName ? (
@@ -84,10 +84,10 @@ export function TopBar({
           }}
           title={uploadName}
         >
-          <span className="font-mono text-[9px] tracking-[0.02em] text-ink-faint">
+          <span className="font-mono text-[11px] tracking-[0.02em] text-ink-faint">
             upload
           </span>
-          <span className="max-w-[190px] truncate font-mono text-[11px] text-ink-dim">
+          <span className="max-w-[190px] truncate font-mono text-[13px] text-ink-dim">
             {uploadName}
           </span>
         </div>
@@ -101,12 +101,7 @@ export function TopBar({
             value={dataset}
             onChange={(e) => onDataset(e.target.value)}
             disabled={running}
-            className="cursor-pointer appearance-none rounded-[8px] py-1.5 pl-3 pr-8 text-[12px] text-ink-dim outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            style={{
-              background: '#0D0E10',
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
-            }}
+            className="select bg-[right_10px_center] py-1.5 pl-3 pr-8 text-[14px] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {DATASETS.map((d) => (
               <option key={d} value={d} style={{ background: '#17181B' }}>
@@ -136,13 +131,13 @@ export function TopBar({
             boxShadow: phase === 'idle' ? 'none' : `0 0 4px ${alpha(lamp, 0.9)}`,
           }}
         />
-        <span className="font-mono text-[10px] tracking-tight text-ink-dim">
+        <span className="font-mono text-[12px] tracking-tight text-ink-dim">
           {PHASE_TEXT[phase]}
         </span>
       </div>
 
       {/* elapsed */}
-      <span className="font-mono text-[12px] tabular-nums text-ink-dim">
+      <span className="font-mono text-[14px] tabular-nums text-ink-dim">
         {formatElapsed(elapsed)}
       </span>
 

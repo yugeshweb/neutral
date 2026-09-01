@@ -9,6 +9,8 @@ import {
   classCounts,
   fitScaler,
   imputeMissing,
+  mean,
+  median,
   oversample,
   stratifiedFolds,
   stratifiedSplit,
@@ -104,6 +106,23 @@ export type RunResult = {
   yTest: number[]
   models: ModelResult[]
   convergence: EpochRecord[]
+  /**
+   * The fitted state inference needs to replay this exact transform later.
+   * Carried on the result so the Predict screen scores with the model that was
+   * trained here, rather than approximating it.
+   */
+  fitted: {
+    scaler: Scaler
+    /** kept column indices; empty when the selector was PCA */
+    keptIndices: number[]
+    pca: { mean: number[]; scale: number[]; loadings: number[][] } | null
+    /** per-column value used to fill a missing cell */
+    imputeValues: number[]
+    /** column means in model space: the occlusion reference */
+    baselineVector: number[]
+    quantumWeights: number[]
+    quantumConfig: VqcConfig
+  }
   /** quantum vs the best classical model */
   verdict: {
     winner: string
@@ -328,11 +347,39 @@ export function* runPipeline(
 
   const counts = classCounts(imputed.y)
 
+  // Fill values for inference: the same statistic `imputeMissing` used here,
+  // taken over the training fold so no test information reaches a new case.
+  const imputeValues = Array.from({ length: data.featureNames.length }, (_, j) => {
+    const finite = Xtr.map((r) => r[j]).filter((v) => Number.isFinite(v))
+    if (finite.length === 0) return 0
+    return cfg.impute === 'mean' ? mean(finite) : median(finite)
+  })
+
+  // Occlusion reference in model space: the average case the circuit saw.
+  const baselineVector = Array.from({ length: Ftr[0]?.length ?? 0 }, (_, j) =>
+    mean(Ftr.map((r) => r[j])),
+  )
+
   yield {
     phase: 'done',
     result: {
       config: cfg,
       featureNames: data.featureNames,
+      fitted: {
+        scaler,
+        keptIndices: cfg.selection === 'pca' ? [] : keptIdx,
+        pca: pcaResult
+          ? {
+              mean: pcaResult.center,
+              scale: pcaResult.scale,
+              loadings: pcaResult.loadings,
+            }
+          : null,
+        imputeValues,
+        baselineVector,
+        quantumWeights: Array.from(model.params),
+        quantumConfig: vqcCfg,
+      },
       keptFeatures:
         cfg.selection === 'pca'
           ? Array.from({ length: cfg.nFeatures }, (_, i) => `PC${i + 1}`)

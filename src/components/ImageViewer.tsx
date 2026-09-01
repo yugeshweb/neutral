@@ -60,8 +60,8 @@ export function ImageViewer({ upload, onClose }: Props) {
           style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
         >
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-[13px] font-medium text-ink">{upload.name}</h2>
-            <p className="mt-0.5 font-mono text-[10px] text-ink-faint">
+            <h2 className="truncate text-[14.5px] font-medium text-ink">{upload.name}</h2>
+            <p className="mt-0.5 font-mono text-[12px] text-ink-faint">
               {upload.imageSize
                 ? `${upload.imageSize.w} x ${upload.imageSize.h} px`
                 : 'image'}{' '}
@@ -143,7 +143,7 @@ export function ImageViewer({ upload, onClose }: Props) {
           >
             {!active ? (
               <>
-                <p className="font-mono text-[10px] leading-relaxed text-ink-faint">
+                <p className="font-mono text-[12px] leading-relaxed text-ink-faint">
                   Select a marker on the image to inspect a flagged region.
                 </p>
                 <div className="mt-4 space-y-2">
@@ -160,8 +160,8 @@ export function ImageViewer({ upload, onClose }: Props) {
                         style={{ background: SEVERITY_COLOR[f.severity] }}
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[11px] text-ink-dim">{f.label}</span>
-                        <span className="font-mono text-[9px] text-ink-faint">{f.id}</span>
+                        <span className="block truncate text-[13px] text-ink-dim">{f.label}</span>
+                        <span className="font-mono text-[11px] text-ink-faint">{f.id}</span>
                       </span>
                     </button>
                   ))}
@@ -175,10 +175,10 @@ export function ImageViewer({ upload, onClose }: Props) {
                     style={{ background: SEVERITY_COLOR[active.severity] }}
                   />
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-[12.5px] font-medium leading-tight text-ink">
+                    <h3 className="text-[14.5px] font-medium leading-tight text-ink">
                       {active.label}
                     </h3>
-                    <p className="mt-1 font-mono text-[9.5px] text-ink-faint">
+                    <p className="mt-1 font-mono text-[11.5px] text-ink-faint">
                       {active.id} / {active.severity} severity
                     </p>
                   </div>
@@ -186,7 +186,7 @@ export function ImageViewer({ upload, onClose }: Props) {
                     type="button"
                     onClick={() => setActive(null)}
                     aria-label="Back to region list"
-                    className="cursor-pointer font-mono text-[9.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
+                    className="cursor-pointer font-mono text-[11.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
                   >
                     back
                   </button>
@@ -205,15 +205,15 @@ export function ImageViewer({ upload, onClose }: Props) {
                   }}
                 >
                   <div className="flex items-baseline justify-between py-[3px]">
-                    <span className="font-mono text-[10px] text-ink-faint">confidence</span>
-                    <span className="font-mono text-[10px] tabular-nums text-ink-dim">
+                    <span className="font-mono text-[12px] text-ink-faint">confidence</span>
+                    <span className="font-mono text-[12px] tabular-nums text-ink-dim">
                       {active.confidence.toFixed(2)}
                     </span>
                   </div>
                   {Object.entries(active.metrics).map(([k, v]) => (
                     <div key={k} className="flex items-baseline justify-between py-[3px]">
-                      <span className="font-mono text-[10px] text-ink-faint">{k}</span>
-                      <span className="font-mono text-[10px] tabular-nums text-ink-dim">{v}</span>
+                      <span className="font-mono text-[12px] text-ink-faint">{k}</span>
+                      <span className="font-mono text-[12px] tabular-nums text-ink-dim">{v}</span>
                     </div>
                   ))}
                 </div>
@@ -223,7 +223,7 @@ export function ImageViewer({ upload, onClose }: Props) {
                     {active.notes.map((n) => (
                       <li
                         key={n}
-                        className="flex gap-2 font-mono text-[9.5px] leading-relaxed text-ink-faint"
+                        className="flex gap-2 font-mono text-[11.5px] leading-relaxed text-ink-faint"
                       >
                         <span className="text-ink-faint/50">-</span>
                         <span className="flex-1">{n}</span>
@@ -237,7 +237,7 @@ export function ImageViewer({ upload, onClose }: Props) {
         </div>
 
         <div className="shrink-0 px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-          <p className="font-mono text-[9.5px] leading-relaxed text-ink-faint/70">
+          <p className="font-mono text-[11.5px] leading-relaxed text-ink-faint/70">
             Regions are generated for demonstration only. No detector was run on this image
             and nothing here is a diagnostic finding.
           </p>

@@ -49,10 +49,10 @@ export function Console({ logs, open, onToggle }: Props) {
             open ? '' : '-rotate-90'
           }`}
         />
-        <span className="font-mono text-[10px] font-medium tracking-[0.02em] text-ink-faint">
+        <span className="font-mono text-[12px] font-medium tracking-[0.02em] text-ink-faint">
           console
         </span>
-        <span className="font-mono text-[10px] text-ink-faint/70">{logs.length} lines</span>
+        <span className="font-mono text-[12px] text-ink-faint/70">{logs.length} lines</span>
       </button>
 
       {open && (
@@ -69,12 +69,12 @@ export function Console({ logs, open, onToggle }: Props) {
           }}
         >
           {logs.length === 0 ? (
-            <div className="pt-1 font-mono text-[11px] text-ink-faint/60">
+            <div className="pt-1 font-mono text-[13px] text-ink-faint/60">
               waiting for run to start
             </div>
           ) : (
             logs.map((l) => (
-              <div key={l.id} className="flex gap-2.5 py-[1.5px] font-mono text-[11px] leading-[1.5]">
+              <div key={l.id} className="flex gap-2.5 py-[1.5px] font-mono text-[13px] leading-[1.5]">
                 <span className="shrink-0 tabular-nums text-ink-faint/55">
                   {formatClock(l.timestamp)}
                 </span>

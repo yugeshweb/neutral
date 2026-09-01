@@ -27,7 +27,7 @@ export function QubitBadge({ qubits, depth, gates, params, compact }: Props) {
       body={`The quantum register is exactly as wide as the feature set: ${qubits} retained features means ${qubits} qubits. Simulating it costs 2^${qubits} = ${(2 ** qubits).toLocaleString()} amplitudes, which is why feature selection is the binding constraint on this platform rather than an optional tidy-up.`}
     >
       <span
-        className="inline-flex items-center gap-2 rounded-[6px] px-2 py-[3px] font-mono text-[10px]"
+        className="inline-flex items-center gap-2 rounded-[6px] px-2 py-[3px] font-mono text-[12px]"
         style={{
           color: accent,
           background: alpha(accent, 0.09),

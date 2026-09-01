@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&display=swap');
+/* Text face: Geist. Neutral, high-legibility grotesque with real optical
+   sizing at small UI sizes. Numerals come from JetBrains Mono so every metric,
+   ID and timestamp aligns in a column. */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import '@xyflow/react/dist/base.css';
 
 @tailwind base;
@@ -11,10 +14,27 @@
   --lane-quantum: #3e8c9e;
   --lane-error: #a3543d;
 
-  /* Single raised-panel recipe, reused by every surface. */
-  --edge-top: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --drop: 0 1px 2px rgba(0, 0, 0, 0.8), 0 14px 30px rgba(0, 0, 0, 0.6);
-  --well: inset 0 1px 2px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  /*
+   * Surfaces.
+   *
+   * The structural language here is n8n's: a canvas that reads as a work
+   * surface, panels that sit on it as discrete nodes, and a visible 1px border
+   * doing the separating rather than a shadow. Depth is present but shallow -
+   * a node lifts off the canvas, it does not emboss.
+   */
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* One shadow, low and soft: enough to lift a node off the grid. */
+  --lift: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --lift-hover: 0 2px 8px rgba(0, 0, 0, 0.5);
+
+  /* Retained for the few controls that genuinely depress. */
+  --well: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+
+  /* Canvas grid: the dotted work surface every n8n screen sits on. */
+  --grid-dot: rgba(255, 255, 255, 0.055);
+  --grid-size: 18px;
 }
 
 @layer base {
@@ -26,18 +46,12 @@
 
   body {
     @apply bg-canvas text-ink font-sans antialiased;
-    /* cv05: straight-leg l, disambiguates l/1/I at the small sizes used here */
-    font-feature-settings: 'cv05' 1;
   }
 
-  /*
-   * `.font-mono` no longer switches family - it switches figure style. Inter's
-   * tabular + slashed-zero features keep IDs, timestamps and metrics aligned
-   * in columns without a second typeface.
-   */
+  /* Numeric contexts: tabular figures with a slashed zero. */
   .font-mono {
-    font-feature-settings: 'tnum' 1, 'zero' 1, 'cv05' 1, 'ss01' 1;
-    letter-spacing: -0.005em;
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+    letter-spacing: -0.01em;
   }
 
   /* One focus treatment everywhere: a hairline ring, never a browser outline. */
@@ -51,17 +65,165 @@
 }
 
 @layer components {
-  /* The raised panel. The inset top line is what reads as a bevel. */
+  /*
+   * The node. n8n's core surface: a flat panel with a real border, a small
+   * radius, and only enough shadow to sit above the grid. The border does the
+   * separating - that is what keeps a screen full of these legible.
+   */
   .panel-raised {
     background: #17181b;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: var(--edge-top), var(--drop);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--lift);
   }
 
-  /* The recessed well: icon slots, progress channels, lamp housings. */
+  /* An inset region inside a node: code blocks, parameter groups, readouts.
+     Darker than its parent and outlined, not shadowed. */
   .panel-well {
     background: #0d0e10;
-    box-shadow: var(--well);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+  }
+
+  /*
+   * Controls. Flat by default with a visible border; the border brightens on
+   * hover and the surface lifts a shade. A selected control is marked by a
+   * lighter fill and a stronger border rather than by being pushed in.
+   */
+  .key {
+    background: #1b1d21;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition:
+      background 120ms ease,
+      border-color 120ms ease,
+      box-shadow 120ms ease;
+  }
+
+  .key:hover {
+    background: #212429;
+    border-color: var(--border-strong);
+  }
+
+  .key:active {
+    background: #16181c;
+  }
+
+  .key[data-pressed='true'] {
+    background: #262930;
+    border-color: var(--border-strong);
+    box-shadow: var(--lift);
+  }
+
+  /* A readout panel: the darkest surface, for numbers that should feel set
+     into the node rather than printed on it. */
+  .readout {
+    background: #0b0c0e;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+  }
+
+  /* Section label. Flat small-caps - no engraving, nothing to catch light. */
+  .engraved {
+    color: #6a6c72;
+  }
+
+  /*
+   * Select control.
+   *
+   * The native arrow and padding differ per platform, so the appearance is
+   * reset and a chevron is drawn in as a background image instead. `color-scheme:
+   * dark` is the part that matters: without it the browser renders the popup
+   * list itself in its light default, which is what breaks against a dark UI.
+   */
+  .select {
+    appearance: none;
+    -webkit-appearance: none;
+    color-scheme: dark;
+    background-color: #1b1d21;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3 3 3-3' fill='none' stroke='%239A9CA1' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: #e8e9eb;
+    /* Utilities sit in a later cascade layer, so a `px-*`/`py-*` on the element
+       overrides this default without needing !important. The right padding
+       must stay clear of the chevron drawn at the right edge. */
+    padding: 2px 20px 2px 6px;
+    cursor: pointer;
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+
+  .select:hover {
+    background-color: #212429;
+    border-color: var(--border-strong);
+  }
+
+  .select:focus {
+    outline: none;
+    border-color: var(--border-strong);
+  }
+
+  /* The popup list. Firefox and Chromium honour these on the option rows;
+     Safari ignores them, falling back to its own dark-mode rendering. */
+  .select option {
+    background: #17181b;
+    color: #e8e9eb;
+  }
+
+  /*
+   * The work surface. A dotted grid, exactly as an n8n canvas, sized so the
+   * dots read as texture at arm's length rather than as a pattern.
+   */
+  .canvas-grid {
+    background-color: #0b0b0d;
+    background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+  }
+
+  /*
+   * Layout system.
+   *
+   * Spacing here is a 4px scale used at four steps only - 8 / 12 / 16 / 24 -
+   * because an instrument screen reads as disordered the moment neighbouring
+   * panels are padded 14 and 20. Every screen shares one container width, so
+   * switching tabs does not shift the content edge.
+   */
+  .screen {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 24px;
+    padding-block: 24px;
+  }
+
+  /* Vertical rhythm between top-level sections of a screen. */
+  .screen > * + * {
+    margin-top: 24px;
+  }
+
+  /* Panel interior: one padding for every raised panel, no exceptions. */
+  .panel-pad {
+    padding: 20px;
+  }
+
+  /* Nested wells sit one step tighter than the panel that contains them. */
+  .well-pad {
+    padding: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .screen {
+      padding-inline: 16px;
+      padding-block: 16px;
+    }
+
+    .panel-pad {
+      padding: 16px;
+    }
   }
 }
 
@@ -153,22 +315,43 @@
 }
 
 /* Console autoscroll region */
+/*
+ * Scrollbars.
+ *
+ * Always visible rather than overlay-on-scroll: on a dense instrument screen
+ * the bar is also the position indicator, so hiding it until the user already
+ * scrolls removes the cue that there is anything below the fold. The track is
+ * drawn too, so the bar reads as a channel rather than a floating sliver.
+ */
 .console-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.22) rgba(0, 0, 0, 0.25);
 }
 
 .console-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.console-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  width: 10px;
+  height: 10px;
 }
 
 .console-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+}
+
+.console-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 5px;
+}
+
+.console-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.34);
+  background-clip: content-box;
+}
+
+/* Where both axes scroll, keep the corner from rendering as a light gap. */
+.console-scroll::-webkit-scrollbar-corner {
   background: transparent;
 }
 

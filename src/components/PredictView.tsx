@@ -42,8 +42,8 @@ function Readout({
       <div className="mb-3 flex items-center gap-2">
         <span className="h-[7px] w-[7px] rounded-full" style={{ background: accent }} />
         <div className="flex-1">
-          <div className="text-[12.5px] font-medium leading-tight text-ink">{title}</div>
-          <div className="mt-0.5 font-mono text-[9.5px] text-ink-faint">{subtitle}</div>
+          <div className="text-[14.5px] font-medium leading-tight text-ink">{title}</div>
+          <div className="mt-0.5 font-mono text-[11.5px] text-ink-faint">{subtitle}</div>
         </div>
       </div>
 
@@ -55,11 +55,11 @@ function Readout({
         >
           {pct.toFixed(1)}
         </span>
-        <span className="font-mono text-[12px] text-ink-faint">% malignant</span>
+        <span className="font-mono text-[14px] text-ink-faint">% malignant</span>
       </div>
 
       <div
-        className="mt-2 inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[9.5px] tracking-[0.02em]"
+        className="mt-2 inline-flex items-center gap-1.5 rounded-[5px] px-2 py-[3px] font-mono text-[11.5px] tracking-[0.02em]"
         style={{
           color: tone,
           background: alpha(tone, 0.1),
@@ -82,14 +82,14 @@ function Readout({
         />
       </div>
 
-      <div className="mt-1.5 flex justify-between font-mono text-[9px] text-ink-faint">
+      <div className="mt-1.5 flex justify-between font-mono text-[11px] text-ink-faint">
         <span>benign</span>
         <span>threshold 0.50</span>
         <span>malignant</span>
       </div>
 
       <div
-        className="mt-3 flex justify-between pt-2.5 font-mono text-[10px]"
+        className="mt-3 flex justify-between pt-2.5 font-mono text-[12px]"
         style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
       >
         <span className="text-ink-faint">decision margin</span>
@@ -114,10 +114,10 @@ function Attributions({ result }: { result: Prediction }) {
       }}
     >
       <div className="mb-1 flex items-baseline justify-between">
-        <h3 className="text-[12.5px] font-medium text-ink">Feature attribution</h3>
-        <span className="font-mono text-[9.5px] text-ink-faint">quantum head</span>
+        <h3 className="text-[14.5px] font-medium text-ink">Feature attribution</h3>
+        <span className="font-mono text-[11.5px] text-ink-faint">quantum head</span>
       </div>
-      <p className="mb-3.5 font-mono text-[9.5px] text-ink-faint">
+      <p className="mb-3.5 font-mono text-[11.5px] text-ink-faint">
         signed contribution to the malignant logit
       </p>
 
@@ -130,11 +130,11 @@ function Attributions({ result }: { result: Prediction }) {
           return (
             <div key={a.id}>
               <div className="mb-1 flex items-baseline justify-between gap-2">
-                <span className="truncate font-mono text-[10px] text-ink-dim">
+                <span className="truncate font-mono text-[12px] text-ink-dim">
                   {a.label}
                 </span>
                 <span
-                  className="shrink-0 font-mono text-[10px] tabular-nums"
+                  className="shrink-0 font-mono text-[12px] tabular-nums"
                   style={{ color: tone }}
                 >
                   {pushesMalignant ? '+' : ''}
@@ -163,7 +163,7 @@ function Attributions({ result }: { result: Prediction }) {
       </div>
 
       <div
-        className="mt-3.5 flex gap-4 pt-2.5 font-mono text-[9px] text-ink-faint"
+        className="mt-3.5 flex gap-4 pt-2.5 font-mono text-[11px] text-ink-faint"
         style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
       >
         <span className="flex items-center gap-1.5">
@@ -204,7 +204,7 @@ function FeatureRow({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="font-mono text-[10px] text-ink-dim">
+        <label htmlFor={id} className="font-mono text-[12px] text-ink-dim">
           {label}
         </label>
         <span className="flex items-baseline gap-1">
@@ -219,7 +219,7 @@ function FeatureRow({
               const n = Number(e.target.value)
               if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)))
             }}
-            className="w-[62px] rounded-[5px] px-1.5 py-[3px] text-right font-mono text-[10.5px] tabular-nums text-ink outline-none"
+            className="w-[62px] rounded-[5px] px-1.5 py-[3px] text-right font-mono text-[12.5px] tabular-nums text-ink outline-none"
             style={{
               background: '#0D0E10',
               border: '1px solid rgba(255,255,255,0.05)',
@@ -227,7 +227,7 @@ function FeatureRow({
             }}
           />
           {unit && (
-            <span className="w-[22px] font-mono text-[9px] text-ink-faint">{unit}</span>
+            <span className="w-[22px] font-mono text-[11px] text-ink-faint">{unit}</span>
           )}
         </span>
       </div>
@@ -302,7 +302,7 @@ export function PredictView({ trained }: Props) {
             <h1 className="text-[16px] font-medium tracking-[-0.01em] text-ink">
               Prediction
             </h1>
-            <p className="mt-1 font-mono text-[10px] text-ink-faint">
+            <p className="mt-1 font-mono text-[12px] text-ink-faint">
               single-case inference over the 8 retained features /{' '}
               {trained ? 'weights from this session' : 'bundled reference weights'}
             </p>
@@ -323,11 +323,11 @@ export function PredictView({ trained }: Props) {
             aria-label="Case features"
           >
             <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="text-[12.5px] font-medium text-ink">Case features</h2>
+              <h2 className="text-[14.5px] font-medium text-ink">Case features</h2>
               <button
                 type="button"
                 onClick={() => setValues(DEFAULT_VALUES)}
-                className="flex cursor-pointer items-center gap-1 font-mono text-[9.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
+                className="flex cursor-pointer items-center gap-1 font-mono text-[11.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
               >
                 <IconReset className="h-3 w-3" />
                 population mean
@@ -348,8 +348,8 @@ export function PredictView({ trained }: Props) {
                     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
                   }}
                 >
-                  <div className="font-mono text-[10px] text-ink-dim">{p.label}</div>
-                  <div className="mt-0.5 font-mono text-[9px] text-ink-faint">{p.note}</div>
+                  <div className="font-mono text-[12px] text-ink-dim">{p.label}</div>
+                  <div className="mt-0.5 font-mono text-[11px] text-ink-faint">{p.note}</div>
                 </button>
               ))}
             </div>
@@ -403,13 +403,13 @@ export function PredictView({ trained }: Props) {
                 className="h-[6px] w-[6px] shrink-0 rounded-full"
                 style={{ background: agree ? BENIGN : '#C08A3E' }}
               />
-              <span className="font-mono text-[10px] text-ink-dim">
+              <span className="font-mono text-[12px] text-ink-dim">
                 {agree
                   ? `both heads agree on ${quantum.label}`
                   : `heads disagree - quantum says ${quantum.label}, classical says ${classical.label}`}
               </span>
               <span className="flex-1" />
-              <span className="font-mono text-[10px] tabular-nums text-ink-faint">
+              <span className="font-mono text-[12px] tabular-nums text-ink-faint">
                 delta {(quantum.probability - classical.probability >= 0 ? '+' : '') +
                   (quantum.probability - classical.probability).toFixed(3)}
               </span>
@@ -427,13 +427,13 @@ export function PredictView({ trained }: Props) {
                   'inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 2px rgba(0,0,0,0.8), 0 14px 30px rgba(0,0,0,0.5)',
               }}
             >
-              <h3 className="mb-2.5 text-[12.5px] font-medium text-ink">
+              <h3 className="mb-2.5 text-[14.5px] font-medium text-ink">
                 Why this prediction
               </h3>
               <p className="text-[11.5px] leading-relaxed text-ink-dim">{rationale}</p>
 
               <p
-                className="mt-3 pt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/80"
+                className="mt-3 pt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/80"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
               >
                 Attribution is computed against the population mean, so a feature reads as
@@ -442,7 +442,7 @@ export function PredictView({ trained }: Props) {
               </p>
             </div>
 
-            <p className="font-mono text-[9px] leading-relaxed text-ink-faint/70">
+            <p className="font-mono text-[11px] leading-relaxed text-ink-faint/70">
               This readout is produced by a fixed logistic function over the eight
               features, not a trained model. It is deterministic and illustrative only -
               it must not inform any clinical decision.

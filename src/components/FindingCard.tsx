@@ -50,7 +50,7 @@ export function FindingCard({ finding }: Props) {
       {/* Synthetic banner if present */}
       {finding.synthetic && (
         <div
-          className="mb-4 inline-block rounded px-2 py-1 font-mono text-[9px] font-medium tracking-[0.05em]"
+          className="mb-4 inline-block rounded px-2 py-1 font-mono text-[11px] font-medium tracking-[0.05em]"
           style={{ background: 'rgba(163, 84, 61, 0.3)', color: '#A3543D' }}
         >
           SYNTHETIC / DEMO
@@ -60,11 +60,11 @@ export function FindingCard({ finding }: Props) {
       {/* Header: condition, status, model version */}
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex-1">
-          <h3 className="text-[13px] font-medium text-ink">{finding.condition_name}</h3>
-          <p className="mt-0.5 text-[10px] text-ink-faint">{finding.task_type}</p>
+          <h3 className="text-[14.5px] font-medium text-ink">{finding.condition_name}</h3>
+          <p className="mt-0.5 text-[12px] text-ink-faint">{finding.task_type}</p>
         </div>
         <span
-          className="shrink-0 rounded px-2 py-1 font-mono text-[9px] font-medium"
+          className="shrink-0 rounded px-2 py-1 font-mono text-[11px] font-medium"
           style={{ background: statusColor.bg, color: statusColor.text }}
         >
           {statusColor.label}
@@ -73,12 +73,12 @@ export function FindingCard({ finding }: Props) {
 
       {/* Model and score info */}
       <div className="mb-4 space-y-1 border-t border-solid border-line pt-3">
-        <div className="flex justify-between text-[10px]">
+        <div className="flex justify-between text-[12px]">
           <span className="text-ink-faint">Model version:</span>
           <span className="font-mono text-ink">{finding.model_version}</span>
         </div>
         {finding.score !== null && (
-          <div className="flex justify-between text-[10px]">
+          <div className="flex justify-between text-[12px]">
             <span className="text-ink-faint">Score:</span>
             <span className="font-mono text-ink">
               {finding.score.toFixed(3)} ({finding.score_type})
@@ -91,8 +91,8 @@ export function FindingCard({ finding }: Props) {
       {/* Uncertainty */}
       {finding.uncertainty && (
         <div className="mb-4 space-y-1 border-t border-solid border-line pt-3">
-          <div className="text-[10px] font-medium text-ink-dim">Uncertainty</div>
-          <div className="ml-1 space-y-0.5 text-[9.5px]">
+          <div className="text-[12px] font-medium text-ink-dim">Uncertainty</div>
+          <div className="ml-1 space-y-0.5 text-[11.5px]">
             <div className="flex justify-between">
               <span className="text-ink-faint">Kind:</span>
               <span className="text-ink">{finding.uncertainty.kind}</span>
@@ -107,7 +107,7 @@ export function FindingCard({ finding }: Props) {
               <div className="flex justify-between">
                 <span className="text-ink-faint">Range:</span>
                 <span className="font-mono text-ink">
-                  {finding.uncertainty.lower.toFixed(4)} – {finding.uncertainty.upper.toFixed(4)}
+                  {finding.uncertainty.lower.toFixed(4)} - {finding.uncertainty.upper.toFixed(4)}
                 </span>
               </div>
             )}
@@ -122,8 +122,8 @@ export function FindingCard({ finding }: Props) {
       {/* Input coverage */}
       {finding.input_coverage && (
         <div className="mb-4 space-y-2 border-t border-solid border-line pt-3">
-          <div className="text-[10px] font-medium text-ink-dim">Input coverage</div>
-          <div className="ml-1 space-y-1.5 text-[9.5px]">
+          <div className="text-[12px] font-medium text-ink-dim">Input coverage</div>
+          <div className="ml-1 space-y-1.5 text-[11.5px]">
             <div className="flex items-center justify-between">
               <span className="text-ink-faint">
                 {finding.input_coverage.required_present} / {finding.input_coverage.required_total}{' '}
@@ -152,12 +152,12 @@ export function FindingCard({ finding }: Props) {
               />
             </div>
             {finding.input_coverage.missing.length > 0 && (
-              <div className="text-[9px] text-ink-faint">
+              <div className="text-[11px] text-ink-faint">
                 Missing: {finding.input_coverage.missing.join(', ')}
               </div>
             )}
             {finding.input_coverage.quality_failed.length > 0 && (
-              <div className="text-[9px] text-lane-error">
+              <div className="text-[11px] text-lane-error">
                 Quality issues: {finding.input_coverage.quality_failed.join(', ')}
               </div>
             )}
@@ -168,19 +168,19 @@ export function FindingCard({ finding }: Props) {
       {/* Evidence or explanation message */}
       {explanationMsg && (
         <div className="mb-4 border-t border-solid border-line pt-3">
-          <div className="text-[10px] text-ink-dim">{explanationMsg}</div>
+          <div className="text-[12px] text-ink-dim">{explanationMsg}</div>
         </div>
       )}
 
       {finding.evidence.length > 0 && explanationMsg === '' && (
         <div className="mb-4 space-y-1.5 border-t border-solid border-line pt-3">
-          <div className="text-[10px] font-medium text-ink-dim">Evidence</div>
-          <div className="ml-1 space-y-1 text-[9.5px]">
+          <div className="text-[12px] font-medium text-ink-dim">Evidence</div>
+          <div className="ml-1 space-y-1 text-[11.5px]">
             {finding.evidence.map((item) => (
               <div key={item.evidence_id} className="flex justify-between">
                 <span className="text-ink-faint">{item.label}</span>
                 <span className="font-mono text-ink">
-                  {item.value !== null ? item.value.toFixed(4) : '—'}
+                  {item.value !== null ? item.value.toFixed(4) : 'n/a'}
                   {item.unit ? ` ${item.unit}` : ''}
                 </span>
               </div>
@@ -192,8 +192,8 @@ export function FindingCard({ finding }: Props) {
       {/* Limitations */}
       {finding.limitations.length > 0 && (
         <div className="mb-4 space-y-1 border-t border-solid border-line pt-3">
-          <div className="text-[10px] font-medium text-ink-dim">Limitations</div>
-          <ul className="ml-3 space-y-0.5 text-[9.5px] text-ink-faint">
+          <div className="text-[12px] font-medium text-ink-dim">Limitations</div>
+          <ul className="ml-3 space-y-0.5 text-[11.5px] text-ink-faint">
             {finding.limitations.map((lim) => (
               <li key={lim} className="list-disc">
                 {lim}
@@ -203,12 +203,12 @@ export function FindingCard({ finding }: Props) {
         </div>
       )}
 
-      {/* Disclaimer — always shown */}
+      {/* Disclaimer, always shown */}
       <div
         className="border-t border-solid border-line pt-3"
         style={{ borderColor: 'rgba(255,255,255,0.08)' }}
       >
-        <div className="text-[9px] leading-relaxed text-ink-faint">{finding.disclaimer}</div>
+        <div className="text-[11px] leading-relaxed text-ink-faint">{finding.disclaimer}</div>
       </div>
     </div>
   )

@@ -39,7 +39,7 @@ export function Stepper({ current, done, blocked = {}, onGo }: Props) {
 
   return (
     <nav
-      className="flex shrink-0 items-center gap-0 overflow-x-auto px-4 py-2"
+      className="console-scroll flex shrink-0 items-center gap-0 overflow-x-auto px-4 py-2"
       style={{
         background: '#0E0F11',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
@@ -85,7 +85,7 @@ export function Stepper({ current, done, blocked = {}, onGo }: Props) {
               }}
             >
               <span
-                className="grid h-[15px] w-[15px] shrink-0 place-items-center rounded-full font-mono text-[8.5px]"
+                className="grid h-[15px] w-[15px] shrink-0 place-items-center rounded-full font-mono text-[11px]"
                 style={{
                   background: isDone ? alpha('#5FA88C', 0.16) : 'rgba(255,255,255,0.05)',
                   color,
@@ -95,7 +95,7 @@ export function Stepper({ current, done, blocked = {}, onGo }: Props) {
                 {isDone ? <IconCheck className="h-[8px] w-[8px]" /> : i + 1}
               </span>
               <span
-                className="whitespace-nowrap text-[11px]"
+                className="whitespace-nowrap text-[13px]"
                 style={{ color: isCurrent ? '#E8E9EB' : isDone ? '#9A9CA1' : '#6A6C72' }}
               >
                 {step.label}

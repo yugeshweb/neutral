@@ -36,7 +36,7 @@ const WORKSPACE_TOUR: TourStop[] = [
 const TITLE: Record<StepId, { title: string; blurb: string }> = {
   data: { title: 'Data', blurb: 'Choose a dataset, inspect its health, set the split and seed' },
   preprocess: { title: 'Preprocessing', blurb: 'Handle missing values, scale features, address class imbalance' },
-  features: { title: 'Feature selection', blurb: 'Rank features and choose how many to keep — this sets the qubit count' },
+  features: { title: 'Feature selection', blurb: 'Rank features and choose how many to keep, which sets the qubit count' },
   model: { title: 'Model builder', blurb: 'Configure the circuit and pick the classical baselines to beat' },
   train: { title: 'Training', blurb: 'Run both lanes together and watch the cost function converge' },
   results: { title: 'Results', blurb: 'Compare every model on the same holdout split' },
@@ -123,8 +123,8 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
         <div className="h-5 w-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
 
         <div data-tour="workspace-title">
-          <div className="text-[13px] text-ink">{TITLE[step].title}</div>
-          <div className="font-mono text-[9px] text-ink-faint">{TITLE[step].blurb}</div>
+          <div className="text-[14.5px] text-ink">{TITLE[step].title}</div>
+          <div className="font-mono text-[11px] text-ink-faint">{TITLE[step].blurb}</div>
         </div>
 
         <div className="flex-1" />
@@ -143,7 +143,7 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
           className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full text-ink-faint transition-colors duration-150 hover:text-ink"
           style={{ background: 'rgba(255,255,255,0.05)' }}
         >
-          <span className="font-mono text-[10px]">?</span>
+          <span className="font-mono text-[12px]">?</span>
         </button>
       </header>
 
@@ -206,7 +206,7 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
           <button
             type="button"
             onClick={() => setStep(prev.id)}
-            className="flex cursor-pointer items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 font-mono text-[10px] text-ink-faint transition-colors duration-150 hover:text-ink"
+            className="flex cursor-pointer items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 font-mono text-[12px] text-ink-faint transition-colors duration-150 hover:text-ink"
           >
             <IconArrowLeft className="h-3 w-3" />
             {prev.label}
@@ -217,7 +217,7 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
 
         <div className="flex-1" />
 
-        <span className="font-mono text-[9px] text-ink-faint">
+        <span className="font-mono text-[11px] text-ink-faint">
           step {idx + 1} of {STEPS.length}
         </span>
 
@@ -228,7 +228,7 @@ export function Workspace({ onHome, initialStep = 'data' }: Props) {
             disabled={Boolean(nextBlocked)}
             title={nextBlocked}
             onClick={() => setStep(next.id)}
-            className="flex cursor-pointer items-center gap-1.5 rounded-[7px] px-3 py-1.5 font-mono text-[10px] transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex cursor-pointer items-center gap-1.5 rounded-[7px] px-3 py-1.5 font-mono text-[12px] transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40"
             style={{
               background: nextBlocked ? 'transparent' : 'rgba(255,255,255,0.05)',
               color: nextBlocked ? '#6A6C72' : LANE_COLOR.quantum,

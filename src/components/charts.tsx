@@ -35,7 +35,7 @@ export function ConvergenceChart({
         className="grid place-items-center rounded-[8px] panel-well"
         style={{ height }}
       >
-        <span className="font-mono text-[10px] text-ink-faint">
+        <span className="font-mono text-[12px] text-ink-faint">
           convergence appears once training starts
         </span>
       </div>
@@ -170,10 +170,10 @@ export function RocChart({
         {curves.map((c) => (
           <div key={c.label} className="flex items-center gap-2">
             <span className="h-[2px] w-[12px] shrink-0 rounded-full" style={{ background: c.color }} />
-            <span className="min-w-0 flex-1 truncate font-mono text-[9.5px] text-ink-dim">
+            <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-ink-dim">
               {c.label}
             </span>
-            <span className="font-mono text-[9.5px] tabular-nums text-ink">
+            <span className="font-mono text-[11.5px] tabular-nums text-ink">
               {c.auc.toFixed(3)}
             </span>
           </div>
@@ -306,15 +306,15 @@ export function ImportanceBars({
             {keepCount !== undefined && i === keepCount && (
               <div className="my-1.5 flex items-center gap-2">
                 <span className="h-px flex-1" style={{ background: alpha(LANE_COLOR.classical, 0.4) }} />
-                <span className="font-mono text-[8.5px]" style={{ color: LANE_COLOR.classical }}>
-                  cut — {keepCount} kept above
+                <span className="font-mono text-[11px]" style={{ color: LANE_COLOR.classical }}>
+                  cut: {keepCount} kept above
                 </span>
                 <span className="h-px flex-1" style={{ background: alpha(LANE_COLOR.classical, 0.4) }} />
               </div>
             )}
             <div className="flex items-center gap-2">
               <span
-                className="w-[132px] shrink-0 truncate font-mono text-[9.5px]"
+                className="w-[132px] shrink-0 truncate font-mono text-[11.5px]"
                 style={{ color: kept ? '#9A9CA1' : '#6A6C72' }}
                 title={item.name}
               >
@@ -329,7 +329,7 @@ export function ImportanceBars({
                   }}
                 />
               </div>
-              <span className="w-[42px] shrink-0 text-right font-mono text-[9px] tabular-nums text-ink-faint">
+              <span className="w-[42px] shrink-0 text-right font-mono text-[11px] tabular-nums text-ink-faint">
                 {item.score.toFixed(3)}
               </span>
             </div>
@@ -366,10 +366,10 @@ export function DivergingBars({
           return (
             <div key={item.name}>
               <div className="mb-1 flex items-baseline justify-between gap-2">
-                <span className="min-w-0 truncate font-mono text-[10px] text-ink-dim" title={item.name}>
+                <span className="min-w-0 truncate font-mono text-[12px] text-ink-dim" title={item.name}>
                   {item.name}
                 </span>
-                <span className="shrink-0 font-mono text-[10px] tabular-nums" style={{ color }}>
+                <span className="shrink-0 font-mono text-[12px] tabular-nums" style={{ color }}>
                   {positive ? '+' : ''}
                   {item.value.toFixed(4)}
                 </span>
@@ -386,7 +386,7 @@ export function DivergingBars({
                 />
               </div>
               {item.detail && (
-                <div className="mt-0.5 font-mono text-[8.5px] leading-relaxed text-ink-faint/80">
+                <div className="mt-0.5 font-mono text-[11px] leading-relaxed text-ink-faint/80">
                   {item.detail}
                 </div>
               )}
@@ -395,7 +395,7 @@ export function DivergingBars({
         })}
       </div>
 
-      <div className="mt-3 flex gap-4 font-mono text-[9px] text-ink-faint">
+      <div className="mt-3 flex gap-4 font-mono text-[11px] text-ink-faint">
         <span className="flex items-center gap-1.5">
           <span className="h-[3px] w-[8px] rounded-full" style={{ background: negativeColor }} />
           {negativeLabel}

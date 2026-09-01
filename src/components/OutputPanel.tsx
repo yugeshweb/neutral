@@ -48,10 +48,10 @@ export function OutputPanel({
       aria-label="Output data"
     >
       <div className="mb-2.5 flex items-baseline justify-between">
-        <h2 className="font-mono text-[9.5px] font-medium tracking-[0.02em] text-ink-faint">
+        <h2 className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-ink-faint">
           output data
         </h2>
-        <span className="font-mono text-[9.5px] text-ink-faint">
+        <span className="font-mono text-[11.5px] text-ink-faint">
           {stagesDone}/{stagesTotal} stages
         </span>
       </div>
@@ -65,8 +65,8 @@ export function OutputPanel({
             boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
           }}
         >
-          <p className="font-mono text-[10px] text-ink-faint">no output yet</p>
-          <p className="mt-1 font-mono text-[9px] text-ink-faint/70">
+          <p className="font-mono text-[12px] text-ink-faint">no output yet</p>
+          <p className="mt-1 font-mono text-[11px] text-ink-faint/70">
             run the pipeline to generate a report
           </p>
         </div>
@@ -85,7 +85,7 @@ export function OutputPanel({
               boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
             }}
           >
-            <div className="mb-2 flex justify-between font-mono text-[9px] tracking-[0.02em] text-ink-faint">
+            <div className="mb-2 flex justify-between font-mono text-[11px] tracking-[0.02em] text-ink-faint">
               <span>metric</span>
               <span className="flex gap-3">
                 <span style={{ color: LANE_COLOR.classical }}>cls</span>
@@ -94,8 +94,8 @@ export function OutputPanel({
             </div>
             {METRICS.map((m) => (
               <div key={m.key} className="flex justify-between py-[3px]">
-                <span className="font-mono text-[10px] text-ink-dim">{m.label}</span>
-                <span className="flex gap-3 font-mono text-[10px] tabular-nums">
+                <span className="font-mono text-[12px] text-ink-dim">{m.label}</span>
+                <span className="flex gap-3 font-mono text-[12px] tabular-nums">
                   <span className="w-[38px] text-right text-ink-dim">
                     {BENCHMARK_RESULTS.classical[m.key].toFixed(3)}
                   </span>
@@ -110,14 +110,14 @@ export function OutputPanel({
           <button
             type="button"
             onClick={onOpenComparison}
-            className="mt-2 w-full cursor-pointer rounded-[7px] py-1.5 font-mono text-[9.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
+            className="mt-2 w-full cursor-pointer rounded-[7px] py-1.5 font-mono text-[11.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
             style={{ background: 'rgba(255,255,255,0.03)' }}
           >
             open full comparison
           </button>
 
           {partial && (
-            <div className="mt-2 font-mono text-[9px]" style={{ color: '#C08A3E' }}>
+            <div className="mt-2 font-mono text-[11px]" style={{ color: '#C08A3E' }}>
               run {phase} - report will be partial
             </div>
           )}
@@ -142,7 +142,7 @@ export function OutputPanel({
               type="button"
               onClick={() => setFormat(f)}
               aria-pressed={format === f}
-              className="cursor-pointer px-2.5 py-1.5 font-mono text-[9.5px] transition-colors duration-150"
+              className="cursor-pointer px-2.5 py-1.5 font-mono text-[11.5px] transition-colors duration-150"
               style={{
                 background: format === f ? 'rgba(255,255,255,0.06)' : 'transparent',
                 color: format === f ? '#E8E9EB' : '#6A6C72',
@@ -165,7 +165,7 @@ export function OutputPanel({
         </div>
       </div>
 
-      <p className="mt-2.5 font-mono text-[9px] leading-relaxed text-ink-faint/70">
+      <p className="mt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/70">
         Report is flagged synthetic and carries a disclaimer field.
       </p>
     </section>
