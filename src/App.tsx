@@ -30,7 +30,10 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-canvas text-ink">
+    // `w-full`, not `w-screen`: 100vw includes the vertical scrollbar's width,
+    // so on any platform that reserves space for one the shell ends up wider
+    // than the usable viewport and the page scrolls sideways by that amount.
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-canvas text-ink">
       {/* Top Application Header Bar */}
       {/*
        * The nav is centred against the viewport, not against the space left

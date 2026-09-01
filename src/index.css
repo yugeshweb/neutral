@@ -42,6 +42,15 @@
   body,
   #root {
     height: 100%;
+    /*
+     * The page itself never scrolls sideways. The app is a fixed-height shell
+     * whose panes scroll internally, so a horizontal scrollbar at this level is
+     * always an element overhanging its container, never intended navigation.
+     * Anything that genuinely needs to scroll sideways - a wide table - does so
+     * inside its own `overflow-x-auto` wrapper, which still works.
+     */
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
