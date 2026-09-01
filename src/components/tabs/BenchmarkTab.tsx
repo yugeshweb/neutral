@@ -5,8 +5,7 @@ import {
 } from '../../lib/diseaseRegistry'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { RocChart } from '../charts'
-import { DemoChip } from '../DemoChip'
-import { IconCheck, IconPulse, IconTree } from '../icons'
+import { IconCheck } from '../icons'
 
 export function BenchmarkTab() {
   const [selectedDiseaseId, setSelectedDiseaseId] = useState<string>('breast-cancer')
@@ -16,33 +15,25 @@ export function BenchmarkTab() {
   const quantum = disease.quantumModel
 
   const metricsList = [
-    { key: 'accuracy', label: 'Accuracy', desc: 'Overall correct classifications' },
+    { key: 'accuracy', label: 'Accuracy', desc: 'Overall correct prediction rate' },
     { key: 'precision', label: 'Precision', desc: 'Positive predictive value' },
-    { key: 'sensitivity', label: 'Sensitivity / Recall', desc: 'True positive rate (critical for misses)' },
-    { key: 'specificity', label: 'Specificity', desc: 'True negative rate (false alarm avoidance)' },
-    { key: 'f1', label: 'F1 Score', desc: 'Harmonic mean of precision and sensitivity' },
-    { key: 'rocAuc', label: 'AUC-ROC', desc: 'Threshold-independent discrimination quality' },
-    { key: 'trainingTime', label: 'Training Time', desc: 'Wall-clock time to converge' },
-    { key: 'inferenceTime', label: 'Inference Latency', desc: 'Single-case prediction latency' },
+    { key: 'sensitivity', label: 'Sensitivity / Recall', desc: 'True positive rate (catching positive cases)' },
+    { key: 'specificity', label: 'Specificity', desc: 'True negative rate (clearing healthy cases)' },
+    { key: 'f1', label: 'F1 Score', desc: 'Harmonic balance of precision & sensitivity' },
+    { key: 'rocAuc', label: 'AUC-ROC', desc: 'Area under ROC curve' },
+    { key: 'trainingTime', label: 'Training Time', desc: 'Wall-clock convergence duration' },
+    { key: 'inferenceTime', label: 'Inference Latency', desc: 'Single-case prediction time' },
   ] as const
-
-  const keyComparisonMetrics = [
-    { label: 'Accuracy', classical: classical.metrics.accuracy, quantum: quantum.metrics.accuracy },
-    { label: 'Sensitivity', classical: classical.metrics.sensitivity, quantum: quantum.metrics.sensitivity },
-    { label: 'Specificity', classical: classical.metrics.specificity, quantum: quantum.metrics.specificity },
-    { label: 'Precision', classical: classical.metrics.precision, quantum: quantum.metrics.precision },
-    { label: 'F1 Score', classical: classical.metrics.f1, quantum: quantum.metrics.f1 },
-  ]
 
   const rocCurves = [
     {
-      label: classical.name,
+      label: `Classical (${classical.name.split('(')[0].trim()})`,
       color: LANE_COLOR.classical,
       points: classical.rocPoints,
       auc: classical.metrics.rocAuc,
     },
     {
-      label: quantum.name,
+      label: `Quantum (${quantum.name.split('(')[0].trim()})`,
       color: LANE_COLOR.quantum,
       points: quantum.rocPoints,
       auc: quantum.metrics.rocAuc,
@@ -51,188 +42,143 @@ export function BenchmarkTab() {
 
   return (
     <div className="console-scroll h-full overflow-y-auto bg-canvas">
-      <div className="mx-auto w-full max-w-[1240px] px-6 py-6 space-y-6">
-        {/* Top Platform Overview Header */}
+      <div className="mx-auto w-full max-w-[1400px] px-6 lg:px-10 py-7 space-y-6">
+        {/* Disease Pipeline Selector Cards */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {DISEASE_PIPELINES.map((d) => {
+            const active = d.id === selectedDiseaseId
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setSelectedDiseaseId(d.id)}
+                className="group relative flex flex-col rounded-[10px] p-4 text-left transition-all duration-150 cursor-pointer"
+                style={{
+                  background: active ? '#1E2025' : '#141518',
+                  border: `1px solid ${active ? alpha(LANE_COLOR.quantum, 0.55) : 'rgba(255,255,255,0.06)'}`,
+                  boxShadow: active
+                    ? `0 0 0 1px ${alpha(LANE_COLOR.quantum, 0.25)}, 0 6px 20px rgba(0,0,0,0.6)`
+                    : 'none',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-ink-faint">
+                    {d.categoryLabel}
+                  </span>
+                  {active && (
+                    <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.quantum }} />
+                  )}
+                </div>
+                <div className="mt-1.5 text-[15px] font-medium text-ink group-hover:text-white">
+                  {d.name}
+                </div>
+                <div className="mt-1 text-[11.5px] text-ink-dim line-clamp-1">{d.tagline}</div>
+                <div className="mt-3 flex items-center justify-between font-mono text-[10px] text-ink-faint border-t border-white/5 pt-2">
+                  <span>{d.modality}</span>
+                  <span>{d.totalSamples} records</span>
+                </div>
+              </button>
+            )
+          })}
+        </section>
+
+        {/* Dataset Used & Specifications in Points */}
         <section
-          className="rounded-panel p-6"
+          className="rounded-panel p-5 space-y-4"
           style={{
-            background: 'linear-gradient(180deg, #181A1E 0%, #131417 100%)',
+            background: '#16171A',
             border: '1px solid rgba(255,255,255,0.07)',
-            boxShadow:
-              'inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.8), 0 16px 36px rgba(0,0,0,0.5)',
           }}
         >
-          <div className="flex items-start justify-between gap-6">
-            <div className="max-w-[780px]">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 rounded-[5px] bg-[#5FA88C]/15 border border-[#5FA88C]/30 px-2 py-0.5 font-mono text-[10px] text-[#5FA88C]">
-                  <IconPulse className="h-3 w-3" /> Pre-computed Benchmarks
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-white/5 pb-3">
+            <div>
+              <h2 className="text-[17px] font-medium text-ink flex items-center gap-2.5">
+                <span>{disease.name}</span>
+                <span className="rounded bg-white/6 px-2 py-0.5 font-mono text-[10px] text-ink-dim">
+                  {disease.categoryLabel}
                 </span>
-                <span className="font-mono text-[10px] text-ink-faint">
-                  Reference Evaluation Registry · Dual-Lane Quantum/Classical
-                </span>
-              </div>
-              <h1 className="mt-2.5 text-[22px] font-medium tracking-[-0.02em] text-ink">
-                Hybrid Quantum-Classical ML Benchmarks for Early Disease Detection
-              </h1>
-              <p className="mt-2 text-[13px] leading-relaxed text-ink-dim">
-                This benchmark tab showcases the platform's pre-computed clinical evaluations across multiple high-impact disease domains. Every pipeline deploys both a strong classical baseline (gradient-boosted ensembles, support vector machines) and a hybrid variational quantum model to provide transparent, empirically grounded classical-vs-quantum comparisons.
+              </h2>
+              <p className="mt-1 text-[12px] text-ink-dim">
+                Target Condition: <span className="text-ink font-medium">{disease.targetCondition}</span> ({disease.positiveLabel} vs {disease.negativeLabel})
               </p>
             </div>
-            <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
-              <DemoChip />
-              <div className="rounded-[8px] border border-white/5 bg-black/40 px-3 py-2 text-right">
-                <div className="font-mono text-[11px] text-ink">3 Core Disease Pipelines</div>
-                <div className="font-mono text-[9.5px] text-ink-faint">Tabular · EEG Biosignals · Hemodynamic</div>
-              </div>
+            <div className="font-mono text-[11px] text-ink-dim">
+              Dataset: <span className="text-ink font-medium">{disease.datasetName}</span> ({disease.datasetSource})
             </div>
           </div>
 
-          {/* Disease Coverage Badges */}
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-white/5">
-            {DISEASE_PIPELINES.map((d) => {
-              const active = d.id === selectedDiseaseId
-              return (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => setSelectedDiseaseId(d.id)}
-                  className="group relative flex flex-col rounded-[9px] p-3.5 text-left transition-all duration-150 cursor-pointer"
-                  style={{
-                    background: active ? '#1F2126' : '#141518',
-                    border: `1px solid ${active ? alpha(LANE_COLOR.quantum, 0.5) : 'rgba(255,255,255,0.06)'}`,
-                    boxShadow: active
-                      ? `0 0 0 1px ${alpha(LANE_COLOR.quantum, 0.2)}, 0 4px 16px rgba(0,0,0,0.6)`
-                      : 'inset 0 1px 1px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-ink-faint">
-                      {d.categoryLabel}
-                    </span>
-                    {active && (
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: LANE_COLOR.quantum }} />
-                    )}
-                  </div>
-                  <div className="mt-1 text-[13.5px] font-medium text-ink group-hover:text-white">
-                    {d.name}
-                  </div>
-                  <div className="mt-1 text-[10.5px] text-ink-dim line-clamp-1">{d.tagline}</div>
-                  <div className="mt-2.5 flex items-center justify-between font-mono text-[9px] text-ink-faint">
-                    <span>{d.modality}</span>
-                    <span>{d.totalSamples} samples</span>
-                  </div>
-                </button>
-              )
-            })}
+          {/* Specifications in Clean Points */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-[11px]">
+            <div className="rounded-[8px] bg-[#0E0F11] p-3.5 border border-white/5 space-y-2">
+              <div className="text-ink-faint uppercase text-[9.5px] tracking-wider">Dataset Specifications</div>
+              <ul className="space-y-1.5 text-ink-dim text-[11px] list-disc pl-4">
+                <li><span className="text-ink">Total Cohort:</span> {disease.totalSamples} verified patient records</li>
+                <li><span className="text-ink">Input Dimensionality:</span> {disease.inputDimensionality}</li>
+                <li><span className="text-ink">Modality:</span> {disease.modality}</li>
+                <li><span className="text-ink">Validation Split:</span> 70% Train / 15% Validation / 15% Holdout</li>
+              </ul>
+            </div>
+
+            <div className="rounded-[8px] bg-[#0E0F11] p-3.5 border border-white/5 space-y-2">
+              <div className="text-ink-faint uppercase text-[9.5px] tracking-wider" style={{ color: LANE_COLOR.classical }}>
+                Classical Baseline Specs
+              </div>
+              <ul className="space-y-1.5 text-ink-dim text-[11px] list-disc pl-4">
+                <li><span className="text-ink">Architecture:</span> {classical.name}</li>
+                <li><span className="text-ink">Configuration:</span> {classical.parameters}</li>
+                <li><span className="text-ink">Hardware:</span> {classical.hardware}</li>
+                <li><span className="text-ink">Rationale:</span> {classical.rationale}</li>
+              </ul>
+            </div>
+
+            <div className="rounded-[8px] bg-[#0E0F11] p-3.5 border border-white/5 space-y-2">
+              <div className="text-ink-faint uppercase text-[9.5px] tracking-wider" style={{ color: LANE_COLOR.quantum }}>
+                Hybrid Quantum Model Specs
+              </div>
+              <ul className="space-y-1.5 text-ink-dim text-[11px] list-disc pl-4">
+                <li><span className="text-ink">Circuit:</span> {quantum.name}</li>
+                <li><span className="text-ink">Quantum Specs:</span> {quantum.parameters}</li>
+                <li><span className="text-ink">Reduced Features:</span> {disease.reducedDimensionality}</li>
+                <li><span className="text-ink">Rationale:</span> {quantum.rationale}</li>
+              </ul>
+            </div>
           </div>
         </section>
 
-        {/* Selected Disease Details Header */}
-        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-white/5 pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[17px] font-medium text-ink">{disease.name}</h2>
-              <span className="rounded-[4px] bg-white/5 px-2 py-0.5 font-mono text-[9.5px] text-ink-dim">
-                {disease.categoryLabel}
-              </span>
-            </div>
-            <p className="mt-1 font-mono text-[10.5px] text-ink-faint">
-              Target: <span className="text-ink-dim">{disease.targetCondition}</span> · Input:{' '}
-              <span className="text-ink-dim">{disease.inputDimensionality}</span> → Reduced:{' '}
-              <span className="text-ink-dim">{disease.reducedDimensionality}</span>
-            </p>
-          </div>
-          <div className="font-mono text-[10px] text-ink-faint">
-            Dataset: <span className="text-ink">{disease.datasetName}</span> ({disease.datasetSource})
-          </div>
-        </div>
-
-        {/* Architectures and Rationale Comparison */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div
-            className="rounded-panel p-4"
-            style={{
-              background: '#16171A',
-              border: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            <div className="mb-2.5 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.classical }} />
-              <h3 className="text-[13px] font-medium text-ink">Classical Baseline: {classical.name}</h3>
-            </div>
-            <p className="text-[11.5px] leading-relaxed text-ink-dim">{classical.description}</p>
-            <div className="mt-3 rounded-[7px] bg-[#0E0F11] p-2.5 border border-white/5 space-y-1 font-mono text-[10px]">
-              <div className="flex justify-between text-ink-faint">
-                <span>Architecture Rationale:</span>
-              </div>
-              <p className="text-ink-dim text-[10.5px] leading-normal">{classical.rationale}</p>
-              <div className="mt-2 flex justify-between pt-1.5 border-t border-white/5 text-ink-faint">
-                <span>Parameters / Config:</span>
-                <span className="text-ink">{classical.parameters}</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="rounded-panel p-4"
-            style={{
-              background: '#16171A',
-              border: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            <div className="mb-2.5 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.quantum }} />
-              <h3 className="text-[13px] font-medium text-ink">Hybrid Quantum: {quantum.name}</h3>
-            </div>
-            <p className="text-[11.5px] leading-relaxed text-ink-dim">{quantum.description}</p>
-            <div className="mt-3 rounded-[7px] bg-[#0E0F11] p-2.5 border border-white/5 space-y-1 font-mono text-[10px]">
-              <div className="flex justify-between text-ink-faint">
-                <span>Quantum Rationale:</span>
-              </div>
-              <p className="text-ink-dim text-[10.5px] leading-normal">{quantum.rationale}</p>
-              <div className="mt-2 flex justify-between pt-1.5 border-t border-white/5 text-ink-faint">
-                <span>Circuit & Parameters:</span>
-                <span className="text-ink" style={{ color: LANE_COLOR.quantum }}>{quantum.parameters}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Side-by-Side Unified Metrics Table & Visual Comparisons */}
+        {/* Side-by-Side Vertical Metrics Table & ROC Overlay */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Metrics Table (7 cols) */}
+          {/* Vertical Metrics Comparison Table (7 cols) */}
           <div
-            className="lg:col-span-7 rounded-panel p-4"
+            className="lg:col-span-7 rounded-panel p-5"
             style={{
               background: '#16171A',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.07)',
             }}
           >
-            <div className="mb-3 flex items-baseline justify-between">
-              <h3 className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-faint">
-                Unified Evaluation Metrics Comparison
+            <div className="mb-3.5 flex items-baseline justify-between">
+              <h3 className="font-mono text-[12px] font-medium uppercase tracking-wider text-ink-faint">
+                Vertical Evaluation Metrics Comparison
               </h3>
-              <div className="flex items-center gap-4 font-mono text-[10px]">
+              <div className="flex items-center gap-4 font-mono text-[11px]">
                 <span className="flex items-center gap-1.5" style={{ color: LANE_COLOR.classical }}>
                   <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.classical }} />
-                  Classical
+                  Classical Baseline
                 </span>
                 <span className="flex items-center gap-1.5" style={{ color: LANE_COLOR.quantum }}>
                   <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.quantum }} />
-                  Quantum
+                  Hybrid Quantum
                 </span>
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left font-mono text-[11px]">
+              <table className="w-full text-left font-mono text-[12px]">
                 <thead>
-                  <tr className="border-b border-white/10 text-[9.5px] uppercase tracking-wider text-ink-faint">
-                    <th className="py-2 font-normal">Metric</th>
-                    <th className="py-2 text-right font-normal">Classical</th>
-                    <th className="py-2 text-right font-normal">Quantum</th>
-                    <th className="py-2 text-right font-normal">Delta (Q - C)</th>
+                  <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-ink-faint">
+                    <th className="py-2.5 font-medium">Evaluation Metric</th>
+                    <th className="py-2.5 text-right font-medium">Classical</th>
+                    <th className="py-2.5 text-right font-medium">Quantum</th>
+                    <th className="py-2.5 text-right font-medium">Difference</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -246,15 +192,15 @@ export function BenchmarkTab() {
 
                     return (
                       <tr key={m.key} className="hover:bg-white/[0.02]">
-                        <td className="py-2.5">
+                        <td className="py-3">
                           <div className="font-medium text-ink">{m.label}</div>
-                          <div className="text-[9px] text-ink-faint font-sans">{m.desc}</div>
+                          <div className="text-[10px] text-ink-faint font-sans">{m.desc}</div>
                         </td>
-                        <td className="py-2.5 text-right text-ink-dim tabular-nums">
+                        <td className="py-3 text-right text-ink-dim tabular-nums">
                           {isNumeric ? (cVal as number).toFixed(3) : cVal}
                         </td>
                         <td
-                          className="py-2.5 text-right font-medium tabular-nums"
+                          className="py-3 text-right font-medium tabular-nums"
                           style={{
                             color: quantumWins
                               ? LANE_COLOR.quantum
@@ -265,10 +211,10 @@ export function BenchmarkTab() {
                         >
                           {isNumeric ? (qVal as number).toFixed(3) : qVal}
                         </td>
-                        <td className="py-2.5 text-right tabular-nums">
+                        <td className="py-3 text-right tabular-nums">
                           {delta !== null ? (
                             <span
-                              className="rounded px-1.5 py-0.5 text-[10px]"
+                              className="rounded px-2 py-0.5 text-[10.5px] font-medium"
                               style={{
                                 background:
                                   delta > 0
@@ -294,84 +240,34 @@ export function BenchmarkTab() {
             </div>
           </div>
 
-          {/* Charts (5 cols): ROC Overlay + Paired Bars */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            {/* ROC Curve Overlay */}
-            <div
-              className="rounded-panel p-4"
-              style={{
-                background: '#16171A',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
-            >
+          {/* ROC Curves Overlay (5 cols) */}
+          <div
+            className="lg:col-span-5 rounded-panel p-5 flex flex-col justify-between"
+            style={{
+              background: '#16171A',
+              border: '1px solid rgba(255,255,255,0.07)',
+            }}
+          >
+            <div>
               <div className="mb-2 flex items-baseline justify-between">
-                <h3 className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-faint">
-                  ROC Curve Overlay
+                <h3 className="font-mono text-[12px] font-medium uppercase tracking-wider text-ink-faint">
+                  ROC Curve Discrimination
                 </h3>
-                <span className="font-mono text-[9px] text-ink-faint">AUC Comparison</span>
+                <span className="font-mono text-[10px] text-ink-faint">Holdout Validation</span>
               </div>
-              <RocChart curves={rocCurves} size={220} />
+              <div className="py-2">
+                <RocChart curves={rocCurves} size={260} />
+              </div>
             </div>
 
-            {/* Paired Bar Comparisons */}
-            <div
-              className="rounded-panel p-4"
-              style={{
-                background: '#16171A',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
-            >
-              <div className="mb-3 flex items-baseline justify-between">
-                <h3 className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-faint">
-                  Key Metrics Comparison
-                </h3>
-                <span className="font-mono text-[9px] text-ink-faint">0.0 → 1.0</span>
-              </div>
-              <div className="space-y-3">
-                {keyComparisonMetrics.map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between font-mono text-[10px] text-ink-dim mb-1">
-                      <span>{item.label}</span>
-                      <span>
-                        <span style={{ color: LANE_COLOR.classical }}>
-                          {item.classical.toFixed(3)}
-                        </span>{' '}
-                        vs{' '}
-                        <span style={{ color: LANE_COLOR.quantum }}>
-                          {item.quantum.toFixed(3)}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      {/* Classical bar */}
-                      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-300"
-                          style={{
-                            width: `${item.classical * 100}%`,
-                            background: alpha(LANE_COLOR.classical, 0.8),
-                          }}
-                        />
-                      </div>
-                      {/* Quantum bar */}
-                      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-300"
-                          style={{
-                            width: `${item.quantum * 100}%`,
-                            background: alpha(LANE_COLOR.quantum, 0.85),
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-4 pt-3 border-t border-white/5 font-mono text-[10.5px] text-ink-dim flex justify-between">
+              <span>Classical AUC: <span className="text-ink font-medium">{classical.metrics.rocAuc.toFixed(3)}</span></span>
+              <span>Quantum AUC: <span className="text-ink font-medium" style={{ color: LANE_COLOR.quantum }}>{quantum.metrics.rocAuc.toFixed(3)}</span></span>
             </div>
           </div>
         </div>
 
-        {/* Honest Callout & Assessment Box */}
+        {/* Clean Conclusion Box at End */}
         <section
           className="rounded-panel p-5"
           style={{
@@ -381,50 +277,17 @@ export function BenchmarkTab() {
         >
           <div className="flex items-start gap-3.5">
             <span
-              className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-[6px] text-black font-bold text-[13px]"
-              style={{ background: '#C08A3E' }}
+              className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-[6px] text-black font-bold text-[12px]"
+              style={{ background: '#5FA88C' }}
             >
-              !
+              <IconCheck className="h-3.5 w-3.5" />
             </span>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="text-[14px] font-medium text-ink">
-                  Rigorous & Honest Quantum Advantage Analysis
-                </h3>
-                <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[9px] text-ink-faint">
-                  Empirical Framing
-                </span>
-              </div>
-              <p className="mt-1 text-[12px] leading-relaxed text-ink">
-                {disease.honestCallout.title}: {disease.honestCallout.summary}
-              </p>
-
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                  <div className="font-mono text-[10px] text-[#5FA88C] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <IconCheck className="h-3.5 w-3.5" /> Quantum Model Strengths
-                  </div>
-                  <ul className="space-y-1.5 text-[11px] text-ink-dim list-disc pl-4">
-                    {disease.honestCallout.quantumPros.map((pro, i) => (
-                      <li key={i}>{pro}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="rounded-[8px] bg-[#0E0F11] p-3 border border-white/5">
-                  <div className="font-mono text-[10px] text-[#C08A3E] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <IconTree className="h-3.5 w-3.5" /> Classical Model Strengths & Latency
-                  </div>
-                  <ul className="space-y-1.5 text-[11px] text-ink-dim list-disc pl-4">
-                    {disease.honestCallout.classicalPros.map((pro, i) => (
-                      <li key={i}>{pro}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <p className="mt-3.5 font-mono text-[9.5px] leading-relaxed text-ink-faint pt-2.5 border-t border-white/5">
-                {disease.honestCallout.nuance}
+            <div className="space-y-1.5 flex-1">
+              <h3 className="text-[14px] font-medium text-ink">
+                Conclusion: {disease.honestCallout.title}
+              </h3>
+              <p className="text-[12.5px] leading-relaxed text-ink-dim">
+                {disease.honestCallout.summary} {disease.honestCallout.nuance}
               </p>
             </div>
           </div>
