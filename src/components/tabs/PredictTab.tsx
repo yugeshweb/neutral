@@ -208,7 +208,7 @@ export function PredictTab({
               </div>
 
               {disease.samplePresets.length > 0 && (
-                <div className="mt-3 grid grid-cols-1 gap-1.5">
+                <div className="mt-3 grid grid-cols-2 gap-1.5">
                   {disease.samplePresets.map((preset) => (
                     <button
                       key={preset.id}
@@ -228,11 +228,11 @@ export function PredictTab({
                   scrolls, and a nested scroll area here put a second scrollbar
                   beside the first on every condition with more than eight
                   sliders. The column simply grows and the page absorbs it. */}
-              <div className="mt-4 space-y-3 border-t border-white/5 pt-3">
+              <div className="mt-3 space-y-2 border-t border-white/5 pt-3">
                 {Object.entries(disease.featureRanges).map(([key, spec]) => {
                   const val = featureValues[key] ?? spec.defaultVal
                   return (
-                    <div key={key} className="space-y-1">
+                    <div key={key} className="space-y-0.5">
                       <div className="flex justify-between font-mono text-[12px]">
                         <span className="truncate text-ink-dim" title={key}>
                           {key.replaceAll('_', ' ')}
@@ -278,17 +278,9 @@ export function PredictTab({
 
               {/* Batch scoring: every row in the file goes through the same
                   trained model as the sliders above. */}
-              <div className="mt-4 border-t border-white/5 pt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[14.5px] font-medium text-ink">Score a file</h3>
-                  <InfoDot label="About batch scoring">
-                    Every row is scored with this same trained model. Columns are
-                    matched to the model's features by name, so column order does not
-                    matter and extra columns are ignored. A feature the file omits
-                    falls back to its training-set average.
-                  </InfoDot>
-                </div>
-
+              {/* Upload control and its label share one row: the heading was
+                  costing a line for two words. */}
+              <div className="mt-3 flex items-center gap-2 border-t border-white/5 pt-3">
                 <input
                   ref={fileRef}
                   type="file"
@@ -300,12 +292,21 @@ export function PredictTab({
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="key mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-[13px] text-ink-dim hover:text-ink"
+                  className="key flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[6px] px-3 py-1.5 text-[12.5px] text-ink-dim hover:text-ink"
                 >
-                  <IconUpload className="h-3.5 w-3.5" />
-                  {batch ? batch.file : 'Upload a CSV'}
+                  <IconUpload className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">
+                    {batch ? batch.file : 'Score a CSV file'}
+                  </span>
                 </button>
-
+                <InfoDot label="About batch scoring">
+                  Every row is scored with this same trained model. Columns are
+                  matched to the model's features by name, so column order does not
+                  matter and extra columns are ignored. A feature the file omits
+                  falls back to its training-set average.
+                </InfoDot>
+              </div>
+              <div>
                 {batchError && (
                   <p className="mt-2 text-[12px] leading-relaxed" style={{ color: CLASSICAL }}>
                     {batchError}
