@@ -1,0 +1,166 @@
+import type { SourceFormat } from './ingest/types'
+
+/**
+ * What each condition actually accepts as input.
+ *
+ * The problem statement asks for a platform that ingests real biomedical data,
+ * and real biomedical data is not one format. A seizure model reads an EEG
+ * signal; a breast-cancer model reads morphometric measurements that arrive as
+ * a table or an EHR extract; an Alzheimer's model wants both clinical scores
+ * and a volumetric MRI. So the intake fields are declared per condition rather
+ * than showing the same four boxes everywhere, which would misrepresent what
+ * the model behind each one can use.
+ *
+ * `wired` is the honest bit. Only CSV, FHIR R4 and HL7 v2 have working parsers
+ * in `lib/ingest`. Everything else is declared here because it is genuinely
+ * part of the intended pipeline, and the UI says plainly that it is not built
+ * rather than accepting a file and inventing a result.
+ */
+
+export type IntakeField = {
+  id: string
+  /** what the clinician would call it */
+  label: string
+  /** the source system it comes out of */
+  system: string
+  /** file extensions the picker accepts */
+  accept: string
+  /** true when a parser exists behind it */
+  wired: boolean
+  /** the adapter to run, for wired fields */
+  format?: SourceFormat
+  /** one line on what this input is */
+  hint: string
+  /** for unwired fields: what building it would take */
+  requires?: string
+}
+
+export type ConditionIntake = {
+  diseaseId: string
+  fields: IntakeField[]
+}
+
+const CLINICAL_TABLE: IntakeField = {
+  id: 'table',
+  label: 'Clinical measurements',
+  system: 'Manual export',
+  accept: '.csv',
+  wired: true,
+  format: 'csv',
+  hint: 'One row per patient, one column per measurement.',
+}
+
+const FHIR_BUNDLE: IntakeField = {
+  id: 'fhir',
+  label: 'FHIR R4 bundle',
+  system: 'EHR / EMR',
+  accept: '.json',
+  wired: true,
+  format: 'fhir',
+  hint: 'Observations keyed by LOINC, conditions by ICD-10.',
+}
+
+const HL7_FEED: IntakeField = {
+  id: 'hl7',
+  label: 'HL7 v2 message feed',
+  system: 'EHR / EMR',
+  accept: '.hl7,.txt',
+  wired: true,
+  format: 'hl7v2',
+  hint: 'ORU^R01 result messages, OBX segments keyed by LOINC.',
+}
+
+export const CONDITION_INTAKE: ConditionIntake[] = [
+  {
+    diseaseId: 'breast-cancer',
+    fields: [
+      { ...CLINICAL_TABLE, hint: 'Nuclear morphometry per lesion, one row per case.' },
+      FHIR_BUNDLE,
+      HL7_FEED,
+      {
+        id: 'histology',
+        label: 'Histopathology slide',
+        system: 'PACS',
+        accept: '.dcm,.svs,.tif',
+        wired: false,
+        requires:
+          'A whole-slide image reader plus a CNN feature extractor to turn pixels into the morphometric features this model consumes. That extractor is a separate model outside this pipeline.',
+        hint: 'Digitised FNA or whole-slide image.',
+      },
+    ],
+  },
+  {
+    diseaseId: 'brain-seizure',
+    fields: [
+      {
+        id: 'eeg',
+        label: 'EEG recording',
+        system: 'Neurophysiology',
+        accept: '.edf,.bdf',
+        wired: false,
+        requires:
+          'An EDF/BDF reader, window segmentation, and the band-power and non-linear feature extraction that turns a raw multi-channel trace into the per-window features this model reads.',
+        hint: 'Raw multi-channel trace, European Data Format.',
+      },
+      {
+        ...CLINICAL_TABLE,
+        label: 'Extracted EEG features',
+        hint: 'Pre-computed band powers and entropy, one row per window.',
+      },
+      HL7_FEED,
+      {
+        id: 'annotations',
+        label: 'Seizure annotations',
+        system: 'Neurophysiology',
+        accept: '.csv,.txt',
+        wired: false,
+        requires:
+          'A parser for onset/offset marker files so windows can be labelled against expert annotation rather than a column in the feature table.',
+        hint: 'Expert onset and offset markers.',
+      },
+    ],
+  },
+  {
+    diseaseId: 'heart-disease',
+    fields: [
+      { ...CLINICAL_TABLE, hint: 'Hemodynamic and exercise ECG attributes per patient.' },
+      FHIR_BUNDLE,
+      HL7_FEED,
+      {
+        id: 'ecg',
+        label: 'ECG waveform',
+        system: 'Cardiology',
+        accept: '.xml,.scp,.dcm',
+        wired: false,
+        requires:
+          'An SCP-ECG or DICOM waveform reader plus interval and morphology extraction, to derive the ST and rhythm features this model expects from a raw trace.',
+        hint: 'Twelve-lead resting or stress trace.',
+      },
+    ],
+  },
+  {
+    diseaseId: 'alzheimers',
+    fields: [
+      { ...CLINICAL_TABLE, hint: 'MMSE, education, and volumetric measures per visit.' },
+      FHIR_BUNDLE,
+      {
+        id: 'mri',
+        label: 'Structural MRI',
+        system: 'PACS',
+        accept: '.dcm,.nii,.nii.gz',
+        wired: false,
+        requires:
+          'A DICOM or NIfTI reader and a volumetric segmentation step to produce normalised whole-brain volume and intracranial volume, which this model currently expects pre-computed.',
+        hint: 'T1-weighted volume for brain volumetry.',
+      },
+      HL7_FEED,
+    ],
+  },
+]
+
+export function intakeFor(diseaseId: string): IntakeField[] {
+  return CONDITION_INTAKE.find((c) => c.diseaseId === diseaseId)?.fields ?? []
+}
+
+/** The four conditions this screen offers, in display order. */
+export const INTAKE_DISEASE_IDS = CONDITION_INTAKE.map((c) => c.diseaseId)

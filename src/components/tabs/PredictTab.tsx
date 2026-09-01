@@ -1,483 +1,341 @@
 import { useMemo, useRef, useState } from 'react'
-import {
-  DISEASE_PIPELINES,
-  getDiseasePipeline,
-  loadTrainedPipeline,
-} from '../../lib/diseaseRegistry'
-import { parseCsv, splitRow } from '../../lib/dataset'
-import {
-  isReplayable,
-  scoreBatch,
-  scoreCase,
-  type BatchResult,
-} from '../../lib/ml/inference'
+import { getDiseasePipeline, loadTrainedPipeline } from '../../lib/diseaseRegistry'
+import { splitRow } from '../../lib/dataset'
+import { ingest } from '../../lib/ingest'
+import { NotImplementedError } from '../../lib/ingest/types'
+import { intakeFor, INTAKE_DISEASE_IDS, type IntakeField } from '../../lib/intakeSpec'
+import { isReplayable, scoreBatch, type BatchResult } from '../../lib/ml/inference'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { InfoDot } from '../InfoDot'
-import { IconCircuit, IconFlask, IconReset, IconUpload } from '../icons'
+import { IconCheck, IconUpload } from '../icons'
 
 /**
- * Inference and explainability.
+ * Inference intake.
  *
- * Every number on this screen comes from the circuit trained in the Train tab:
- * the saved parameters are reloaded, the saved preprocessing is replayed, and
- * the same model scores the case. When no model has been trained for the
- * selected condition the screen says so and offers no prediction, rather than
- * substituting an approximation that would look identical to a real one.
+ * Two steps, in order: choose a condition, then supply data for it. The intake
+ * fields are declared per condition in `lib/intakeSpec`, because what a seizure
+ * model can read is not what a breast-cancer model can read, and showing the
+ * same four boxes everywhere would imply otherwise.
+ *
+ * Scoring only ever happens through the model trained in the Train tab. A
+ * format with no parser behind it says so and scores nothing, rather than
+ * accepting the file and producing a number that looks identical to a real one.
  */
 
-// The palette is the four lane hues and nothing else.
-const QUANTUM = LANE_COLOR.quantum // teal - the model and its output
-const CLASSICAL = LANE_COLOR.classical // amber - warnings, elevated risk
-const NEUTRAL = LANE_COLOR.shared // grey - structure and labels
+const QUANTUM = LANE_COLOR.quantum
+const CLASSICAL = LANE_COLOR.classical
+
+type FieldState =
+  | { kind: 'idle' }
+  | { kind: 'scored'; file: string; result: BatchResult }
+  | { kind: 'parsed'; file: string; rows: number; columns: number }
+  | { kind: 'unavailable'; file: string; requires: string }
+  | { kind: 'error'; message: string }
 
 export function PredictTab({
   initialDiseaseId = 'breast-cancer',
 }: {
   initialDiseaseId?: string
 }) {
-  const [selectedDiseaseId, setSelectedDiseaseId] = useState<string>(initialDiseaseId)
-  const disease = getDiseasePipeline(selectedDiseaseId)
+  const [selectedId, setSelectedId] = useState<string>(
+    INTAKE_DISEASE_IDS.includes(initialDiseaseId) ? initialDiseaseId : INTAKE_DISEASE_IDS[0],
+  )
+  const [states, setStates] = useState<Record<string, FieldState>>({})
 
-  const [featureValues, setFeatureValues] = useState<Record<string, number>>(() => {
-    const initial: Record<string, number> = {}
-    Object.entries(disease.featureRanges).forEach(([key, spec]) => {
-      initial[key] = spec.defaultVal
-    })
-    return initial
-  })
+  const disease = getDiseasePipeline(selectedId)
+  const fields = intakeFor(selectedId)
+  const artifact = useMemo(() => loadTrainedPipeline(selectedId), [selectedId])
+  const trained = isReplayable(artifact)
 
-  const handleDiseaseChange = (id: string) => {
-    setSelectedDiseaseId(id)
-    const target = getDiseasePipeline(id)
-    const next: Record<string, number> = {}
-    Object.entries(target.featureRanges).forEach(([key, spec]) => {
-      next[key] = spec.defaultVal
-    })
-    setFeatureValues(next)
-  }
+  const setField = (id: string, s: FieldState) =>
+    setStates((prev) => ({ ...prev, [id]: s }))
 
-  const artifact = useMemo(() => loadTrainedPipeline(selectedDiseaseId), [selectedDiseaseId])
-  const ready = isReplayable(artifact)
-
-  // Batch scoring from an uploaded table.
-  const fileRef = useRef<HTMLInputElement | null>(null)
-  const [batch, setBatch] = useState<{ file: string; result: BatchResult } | null>(null)
-  const [batchError, setBatchError] = useState<string | null>(null)
-
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !ready) return
-    setBatchError(null)
-
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const text = ev.target?.result as string
-        const summary = parseCsv(text, file.name, file.size)
-
-        // `summary.preview` is only the first few rows; score the whole file.
-        const lines = (summary.content ?? text)
-          .split(/\r\n|\n|\r/)
-          .filter((l) => l.trim().length > 0)
-        const rows = lines.slice(1).map(splitRow)
-
-        const result = scoreBatch(artifact, summary.headers, rows)
-        if (result.rows.length === 0) {
-          setBatchError(
-            `No row could be scored. The model needs columns named: ${artifact.featureNames
-              .slice(0, 4)
-              .join(', ')}${artifact.featureNames.length > 4 ? ', ...' : ''}`,
-          )
-          setBatch(null)
-          return
-        }
-        setBatch({ file: file.name, result })
-      } catch (err) {
-        setBatchError(err instanceof Error ? err.message : 'could not read that file')
-        setBatch(null)
-      }
+  const handleFile = async (field: IntakeField, file: File) => {
+    // A format with no parser is reported as such, before the file is touched.
+    if (!field.wired) {
+      setField(field.id, {
+        kind: 'unavailable',
+        file: file.name,
+        requires: field.requires ?? 'This input is not yet wired to a parser.',
+      })
+      return
     }
-    reader.readAsText(file)
-    e.target.value = ''
-  }
-
-  /**
-   * Real inference. The slider panel is keyed by the disease's own feature
-   * ranges, so values are mapped onto the artifact's feature order by name;
-   * anything the trained model expects but this form does not expose is left
-   * as NaN and filled by the artifact's stored imputation value.
-   */
-  const result = useMemo(() => {
-    if (!ready) return null
-
-    const raw = artifact.featureNames.map((name) => {
-      const v = featureValues[name]
-      return typeof v === 'number' ? v : Number.NaN
-    })
 
     try {
-      return scoreCase(artifact, raw)
-    } catch {
-      return null
+      const parsed = await ingest(file)
+      const summary = parsed.dataset
+
+      // Without a trained model there is nothing to score against, so the file
+      // is reported as read and nothing more is claimed.
+      if (!trained) {
+        setField(field.id, {
+          kind: 'parsed',
+          file: file.name,
+          rows: summary.rows,
+          columns: summary.columns,
+        })
+        return
+      }
+
+      const lines = (summary.content ?? '')
+        .split(/\r\n|\n|\r/)
+        .filter((l) => l.trim().length > 0)
+      const rows = lines.slice(1).map(splitRow)
+      const result = scoreBatch(artifact, summary.headers, rows)
+
+      if (result.rows.length === 0) {
+        setField(field.id, {
+          kind: 'parsed',
+          file: file.name,
+          rows: summary.rows,
+          columns: summary.columns,
+        })
+        return
+      }
+      setField(field.id, { kind: 'scored', file: file.name, result })
+    } catch (err) {
+      if (err instanceof NotImplementedError) {
+        setField(field.id, { kind: 'unavailable', file: file.name, requires: err.requires })
+        return
+      }
+      setField(field.id, {
+        kind: 'error',
+        message: err instanceof Error ? err.message : 'could not read that file',
+      })
     }
-  }, [ready, artifact, featureValues])
-
-  const covered = useMemo(() => {
-    if (!ready) return { known: 0, total: 0 }
-    const known = artifact.featureNames.filter(
-      (n) => typeof featureValues[n] === 'number',
-    ).length
-    return { known, total: artifact.featureNames.length }
-  }, [ready, artifact, featureValues])
-
-  const positive = result ? result.probability >= 0.5 : false
-  const tone = positive ? CLASSICAL : QUANTUM
+  }
 
   return (
-    /*
-     * The page itself does not scroll: the slider list is capped to the
-     * viewport and scrolls internally, so only one scrollbar ever appears.
-     * `overflow-y-auto` rather than `hidden` is a deliberate safety valve -
-     * below roughly 620px of height the fixed chrome alone exceeds the window
-     * and clipping would hide the score entirely, so in that case the page is
-     * allowed to scroll rather than swallow content.
-     */
     <div className="console-scroll canvas-grid h-full overflow-y-auto overflow-x-hidden">
       <div className="screen">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-white/5 pb-4">
           <h1 className="text-[19px] font-medium text-ink">Predict</h1>
           <InfoDot label="About this screen">
-            Every number here comes from the circuit trained in the Train tab. Its
-            saved parameters are reloaded and the same preprocessing is replayed. No
-            prediction is shown for a condition that has not been trained.
+            Pick a condition, then supply data for it. Files are scored with the
+            model trained in the Train tab. Inputs with no parser behind them say
+            so and score nothing.
           </InfoDot>
         </div>
 
-        {/* Condition selector: physical keys */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {DISEASE_PIPELINES.map((d) => {
-            const active = d.id === selectedDiseaseId
-            return (
-              <button
-                key={d.id}
-                type="button"
-                data-pressed={active}
-                onClick={() => handleDiseaseChange(d.id)}
-                className="key cursor-pointer rounded-[8px] px-3.5 py-2.5 text-left"
-              >
-                <div
-                  className="text-[14.5px] font-medium"
-                  style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
+        {/* Card one: the condition. */}
+        <div className="panel-raised rounded-panel panel-pad">
+          <h2 className="text-[14.5px] font-medium text-ink">Condition</h2>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {INTAKE_DISEASE_IDS.map((id) => {
+              const d = getDiseasePipeline(id)
+              const active = id === selectedId
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  data-pressed={active}
+                  onClick={() => {
+                    setSelectedId(id)
+                    setStates({})
+                  }}
+                  className="key cursor-pointer rounded-[8px] px-3.5 py-3 text-left"
                 >
-                  {d.name}
-                </div>
-              </button>
-            )
-          })}
+                  <div
+                    className="text-[14.5px] font-medium"
+                    style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
+                  >
+                    {d.name}
+                  </div>
+                  <div className="engraved mt-1 font-mono text-[11px]">{d.modality}</div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {/* No trained model: state it plainly, predict nothing. */}
-        {!ready && (
-          <div className="panel-raised rounded-panel panel-pad text-center">
-            <div
-              className="mx-auto grid h-10 w-10 place-items-center rounded-full"
-              style={{ background: alpha(NEUTRAL, 0.1) }}
-            >
-              <IconFlask className="h-5 w-5 text-ink-faint" />
-            </div>
-            <h2 className="mt-3 text-[15.5px] font-medium text-ink">No trained model yet</h2>
-            <p className="mx-auto mt-1.5 max-w-[380px] text-[14px] text-ink-dim">
-              Train {disease.name.toLowerCase()} first. Its model loads here
-              automatically.
+        {/* Card two: the inputs that condition accepts. */}
+        <div className="panel-raised rounded-panel panel-pad">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[14.5px] font-medium text-ink">
+              Data for {disease.name.toLowerCase()}
+            </h2>
+            <InfoDot label="About these inputs">
+              These are the sources this condition's model can use. CSV, FHIR R4
+              and HL7 v2 have working parsers. The others are part of the intended
+              pipeline but are not built yet, and will tell you what they would
+              take rather than accepting the file quietly.
+            </InfoDot>
+          </div>
+
+          {!trained && (
+            <p className="mt-2 text-[13px] text-ink-dim">
+              No model has been trained for this condition yet, so files will be read
+              and described but not scored. Train it first for predictions.
             </p>
+          )}
+
+          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+            {fields.map((field) => (
+              <IntakeCard
+                key={field.id}
+                field={field}
+                state={states[field.id] ?? { kind: 'idle' }}
+                positiveLabel={disease.positiveLabel}
+                onFile={(f) => void handleFile(field, f)}
+              />
+            ))}
           </div>
-        )}
-
-        {ready && result && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Case inputs */}
-            <div className="lg:col-span-5 panel-raised rounded-panel panel-pad">
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-[14.5px] font-medium text-ink">Case</h2>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const reset: Record<string, number> = {}
-                    Object.entries(disease.featureRanges).forEach(([k, s]) => {
-                      reset[k] = s.defaultVal
-                    })
-                    setFeatureValues(reset)
-                  }}
-                  className="flex cursor-pointer items-center gap-1 font-mono text-[11.5px] text-ink-faint hover:text-ink"
-                >
-                  <IconReset className="h-3 w-3" /> Baseline
-                </button>
-              </div>
-
-              {disease.samplePresets.length > 0 && (
-                <div className="mt-3 grid grid-cols-2 gap-1.5">
-                  {disease.samplePresets.map((preset) => (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() =>
-                        setFeatureValues((prev) => ({ ...prev, ...preset.values }))
-                      }
-                      className="key cursor-pointer rounded-[6px] px-2.5 py-1.5 text-left font-mono text-[12.5px] text-ink-dim hover:text-ink"
-                    >
-                      {preset.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/*
-                * The slider list is the only thing on this screen that scrolls.
-                * It is capped relative to the viewport rather than a fixed
-                * pixel height, so the whole page fits at any window size and
-                * the browser never adds a second, outer scrollbar next to this
-                * one. `min-h-0` is what lets a flex child actually shrink.
-                */}
-              <div className="console-scroll mt-3 max-h-[calc(100vh-30rem)] min-h-0 space-y-2 overflow-y-auto border-t border-white/5 pr-1.5 pt-3">
-                {Object.entries(disease.featureRanges).map(([key, spec]) => {
-                  const val = featureValues[key] ?? spec.defaultVal
-                  return (
-                    <div key={key} className="space-y-0.5">
-                      <div className="flex justify-between font-mono text-[12px]">
-                        <span className="truncate text-ink-dim" title={key}>
-                          {key.replaceAll('_', ' ')}
-                        </span>
-                        <span className="tabular-nums text-ink">
-                          {val.toFixed(spec.step < 0.01 ? 3 : spec.step < 1 ? 2 : 0)}
-                          <span className="ml-1 text-[11px] text-ink-faint">{spec.unit}</span>
-                        </span>
-                      </div>
-                      {/* Recessed channel with the shared skeuomorphic thumb
-                          riding in it, rather than a bare native track. */}
-                      <div className="relative flex h-[14px] items-center">
-                        {/* At 3px the channel is too shallow for a shadow to
-                            resolve, so it is simply a darker track. */}
-                        <span className="absolute inset-x-0 h-[3px] rounded-full bg-black/45" />
-                        <span
-                          className="absolute h-[3px] rounded-full"
-                          style={{
-                            width: `${((val - spec.min) / Math.max(spec.max - spec.min, 1e-5)) * 100}%`,
-                            background: alpha(QUANTUM, 0.55),
-                          }}
-                        />
-                        <input
-                          type="range"
-                          aria-label={key.replaceAll('_', ' ')}
-                          min={spec.min}
-                          max={spec.max}
-                          step={spec.step}
-                          value={val}
-                          onChange={(e) =>
-                            setFeatureValues((prev) => ({
-                              ...prev,
-                              [key]: Number(e.target.value),
-                            }))
-                          }
-                          className="feature-slider relative w-full cursor-pointer bg-transparent"
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Batch scoring: every row in the file goes through the same
-                  trained model as the sliders above. */}
-              {/* Upload control and its label share one row: the heading was
-                  costing a line for two words. */}
-              <div className="mt-3 flex items-center gap-2 border-t border-white/5 pt-3">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept=".csv,.txt"
-                  className="sr-only"
-                  onChange={handleUpload}
-                  id="predict-batch-file"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="key flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[6px] px-3 py-1.5 text-[12.5px] text-ink-dim hover:text-ink"
-                >
-                  <IconUpload className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">
-                    {batch ? batch.file : 'Score a CSV file'}
-                  </span>
-                </button>
-                <InfoDot label="About batch scoring">
-                  Every row is scored with this same trained model. Columns are
-                  matched to the model's features by name, so column order does not
-                  matter and extra columns are ignored. A feature the file omits
-                  falls back to its training-set average.
-                </InfoDot>
-              </div>
-              <div>
-                {batchError && (
-                  <p className="mt-2 text-[12px] leading-relaxed" style={{ color: CLASSICAL }}>
-                    {batchError}
-                  </p>
-                )}
-
-                {batch && (
-                  <div className="readout mt-2 px-3 py-2.5">
-                    <div className="flex items-baseline justify-between font-mono text-[13px]">
-                      <span className="text-ink-faint">scored</span>
-                      <span className="tabular-nums text-ink">
-                        {batch.result.rows.length} rows
-                      </span>
-                    </div>
-                    <div className="mt-1 flex items-baseline justify-between font-mono text-[13px]">
-                      <span className="text-ink-faint">
-                        {disease.positiveLabel.toLowerCase()}
-                      </span>
-                      <span className="tabular-nums" style={{ color: CLASSICAL }}>
-                        {batch.result.positiveCount}
-                        <span className="ml-1 text-ink-faint">
-                          (
-                          {(
-                            (batch.result.positiveCount / batch.result.rows.length) *
-                            100
-                          ).toFixed(1)}
-                          %)
-                        </span>
-                      </span>
-                    </div>
-
-                    {/* State plainly when the file did not supply everything. */}
-                    {batch.result.missing.length > 0 && (
-                      <p className="mt-2 border-t border-white/5 pt-2 font-mono text-[11.5px] leading-relaxed text-ink-faint">
-                        {batch.result.matched.length} of{' '}
-                        {batch.result.matched.length + batch.result.missing.length}{' '}
-                        features matched by name. Missing ones use their training
-                        average, so these scores are weaker than a complete row.
-                      </p>
-                    )}
-                    {batch.result.skipped > 0 && (
-                      <p className="mt-1 font-mono text-[11.5px] text-ink-faint">
-                        {batch.result.skipped} row(s) skipped, nothing numeric to read.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Readout and explanation */}
-            <div className="space-y-4 lg:col-span-7">
-              <div className="panel-raised rounded-panel panel-pad">
-                <div className="readout rounded-[8px] px-5 py-4">
-                  <div className="engraved font-mono text-[11.5px]">
-                    {disease.targetCondition}
-                  </div>
-                  <div className="mt-1.5 flex items-baseline gap-3">
-                    <span
-                      className="font-mono text-[46px] font-medium leading-none tabular-nums"
-                      style={{ color: tone }}
-                    >
-                      {(result.probability * 100).toFixed(1)}%
-                    </span>
-                    <span
-                      className="rounded-[4px] px-2 py-1 font-mono text-[13px]"
-                      style={{
-                        background: alpha(tone, 0.14),
-                        border: `1px solid ${alpha(tone, 0.32)}`,
-                        color: tone,
-                      }}
-                    >
-                      {positive ? disease.positiveLabel : disease.negativeLabel}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-black/45">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${result.probability * 100}%`,
-                        background: tone,
-                      }}
-                    />
-                  </div>
-                  <div className="mt-1 flex justify-between font-mono text-[11px] text-ink-faint">
-                    <span>{disease.negativeLabel}</span>
-                    <span>0.50</span>
-                    <span>{disease.positiveLabel}</span>
-                  </div>
-                </div>
-
-                {/* Provenance: exactly which model produced the number. */}
-                <div className="mt-3 flex items-center justify-between font-mono text-[11.5px] text-ink-faint">
-                  <span className="flex items-center gap-1.5">
-                    <IconCircuit className="h-3 w-3" />
-                    {artifact.quantumModelName}
-                  </span>
-                  <InfoDot label="Model provenance">
-                    <div className="space-y-1">
-                      <div>Qubits: {artifact.quantumConfig?.qubits}</div>
-                      <div>Trained on: {artifact.rows} rows</div>
-                      <div>Dataset: {artifact.datasetName}</div>
-                      <div>
-                        Inputs supplied: {covered.known} of {covered.total}; the rest use
-                        their training-set fill value.
-                      </div>
-                    </div>
-                  </InfoDot>
-                </div>
-              </div>
-
-              {/* Attribution: occlusion against the training mean. */}
-              <div className="panel-raised rounded-panel panel-pad">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[14.5px] font-medium text-ink">Why</h3>
-                  <InfoDot label="How attribution is computed">
-                    Each bar is the change in predicted probability when that input is
-                    replaced by its training-set average, holding the rest fixed. Bars
-                    to the right push toward {disease.positiveLabel.toLowerCase()}.
-                  </InfoDot>
-                </div>
-
-                <div className="mt-4 space-y-2.5">
-                  {result.attributions.slice(0, 6).map((attr) => {
-                    const pushesPositive = attr.value > 0
-                    const barTone = pushesPositive ? CLASSICAL : QUANTUM
-                    const width = Math.min(100, Math.abs(attr.value) * 180)
-                    return (
-                      <div key={attr.name} className="space-y-1 font-mono text-[12px]">
-                        <div className="flex items-baseline justify-between">
-                          <span className="truncate text-ink-dim">
-                            {attr.name.replaceAll('_', ' ')}
-                          </span>
-                          <span className="tabular-nums" style={{ color: barTone }}>
-                            {pushesPositive ? '+' : ''}
-                            {attr.value.toFixed(3)}
-                          </span>
-                        </div>
-                        <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-black/45">
-                          <span className="absolute inset-y-0 left-1/2 w-px bg-white/15" />
-                          <div
-                            className="absolute top-0 h-full rounded-full transition-all duration-300"
-                            style={{
-                              background: barTone,
-                              width: `${width / 2}%`,
-                              left: pushesPositive ? '50%' : `${50 - width / 2}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
+    </div>
+  )
+}
+
+function IntakeCard({
+  field,
+  state,
+  positiveLabel,
+  onFile,
+}: {
+  field: IntakeField
+  state: FieldState
+  positiveLabel: string
+  onFile: (file: File) => void
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const [dragging, setDragging] = useState(false)
+
+  return (
+    <div className="panel-well well-pad flex flex-col rounded-[8px]">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[13px] font-medium text-ink">{field.label}</span>
+        <span
+          className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[11px]"
+          style={
+            field.wired
+              ? { color: QUANTUM, background: alpha(QUANTUM, 0.12) }
+              : { color: '#6A6C72', background: 'rgba(255,255,255,0.05)' }
+          }
+        >
+          {field.wired ? 'supported' : 'not built'}
+        </span>
+      </div>
+      <p className="engraved mt-1 font-mono text-[11px]">
+        {field.system} · {field.accept}
+      </p>
+      <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-dim">{field.hint}</p>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={field.accept}
+        className="sr-only"
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          if (f) onFile(f)
+          e.target.value = ''
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragging(true)
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault()
+          setDragging(false)
+          const f = e.dataTransfer.files?.[0]
+          if (f) onFile(f)
+        }}
+        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-[12.5px] text-ink-dim transition-colors hover:text-ink"
+        style={{
+          background: '#131417',
+          border: `1px dashed ${dragging ? alpha(QUANTUM, 0.6) : 'rgba(255,255,255,0.12)'}`,
+        }}
+      >
+        <IconUpload className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate">
+          {state.kind === 'idle' || state.kind === 'error'
+            ? 'Choose a file, or drop one here'
+            : state.file}
+        </span>
+      </button>
+
+      <Outcome state={state} positiveLabel={positiveLabel} />
+    </div>
+  )
+}
+
+function Outcome({ state, positiveLabel }: { state: FieldState; positiveLabel: string }) {
+  if (state.kind === 'idle') return null
+
+  if (state.kind === 'error') {
+    return (
+      <p className="mt-2 text-[12px] leading-relaxed" style={{ color: CLASSICAL }}>
+        {state.message}
+      </p>
+    )
+  }
+
+  // The honest path: a declared input with nothing behind it yet.
+  if (state.kind === 'unavailable') {
+    return (
+      <div className="readout mt-2 px-3 py-2">
+        <div className="font-mono text-[11px]" style={{ color: CLASSICAL }}>
+          not scored
+        </div>
+        <p className="mt-1 text-[12px] leading-relaxed text-ink-faint">{state.requires}</p>
+      </div>
+    )
+  }
+
+  if (state.kind === 'parsed') {
+    return (
+      <div className="readout mt-2 px-3 py-2 font-mono text-[12px]">
+        <div className="flex justify-between">
+          <span className="text-ink-faint">read</span>
+          <span className="tabular-nums text-ink">
+            {state.rows} rows x {state.columns} cols
+          </span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-ink-faint">
+          Not scored: no trained model, or no column matched one the model uses.
+        </p>
+      </div>
+    )
+  }
+
+  const { result } = state
+  const share = (result.positiveCount / result.rows.length) * 100
+
+  return (
+    <div className="readout mt-2 px-3 py-2 font-mono text-[12px]">
+      <div className="flex items-baseline justify-between">
+        <span className="flex items-center gap-1.5 text-ink-faint">
+          <span style={{ color: QUANTUM }} className="flex">
+            <IconCheck className="h-3 w-3" />
+          </span>
+          scored
+        </span>
+        <span className="tabular-nums text-ink">{result.rows.length} rows</span>
+      </div>
+      <div className="mt-1 flex items-baseline justify-between">
+        <span className="text-ink-faint">{positiveLabel.toLowerCase()}</span>
+        <span className="tabular-nums" style={{ color: CLASSICAL }}>
+          {result.positiveCount}
+          <span className="ml-1 text-ink-faint">({share.toFixed(1)}%)</span>
+        </span>
+      </div>
+      {result.missing.length > 0 && (
+        <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[11px] leading-relaxed text-ink-faint">
+          {result.matched.length} of {result.matched.length + result.missing.length} features
+          matched by name. The rest use their training average, so these scores are
+          weaker than a complete row.
+        </p>
+      )}
+      {result.skipped > 0 && (
+        <p className="mt-1 text-[11px] text-ink-faint">
+          {result.skipped} row(s) skipped, nothing numeric to read.
+        </p>
+      )}
     </div>
   )
 }
