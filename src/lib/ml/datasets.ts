@@ -129,61 +129,58 @@ const HEART_SPECS: FeatureSpec[] = [
   { name: 'fasting_blood_sugar', description: 'Fasting blood sugar above 120 mg/dL', negMean: 0.14, posMean: 0.16, negSd: 0.35, posSd: 0.37 },
 ]
 
-// ---- Parkinsons ------------------------------------------------------------
+// ---- Brain Seizure EEG -----------------------------------------------------
 
-const PARKINSONS_SPECS: FeatureSpec[] = [
-  { name: 'mdvp_fo', description: 'Average vocal fundamental frequency (Hz)', negMean: 181.9, posMean: 145.2, negSd: 34.4, posSd: 40.4 },
-  { name: 'mdvp_fhi', description: 'Maximum vocal fundamental frequency (Hz)', negMean: 223.6, posMean: 188.4, negSd: 71.0, posSd: 92.5, skewed: true },
-  { name: 'mdvp_flo', description: 'Minimum vocal fundamental frequency (Hz)', negMean: 145.2, posMean: 106.9, negSd: 43.5, posSd: 44.7 },
-  { name: 'jitter_percent', description: 'Cycle-to-cycle variation in fundamental frequency', negMean: 0.0039, posMean: 0.0069, negSd: 0.0018, posSd: 0.0053 },
-  { name: 'jitter_abs', description: 'Absolute jitter in microseconds', negMean: 0.0000239, posMean: 0.0000504, negSd: 0.0000112, posSd: 0.0000372 },
-  { name: 'shimmer', description: 'Cycle-to-cycle variation in amplitude', negMean: 0.0176, posMean: 0.0336, negSd: 0.0076, posSd: 0.0194 },
-  { name: 'shimmer_db', description: 'Amplitude variation in decibels', negMean: 0.162, posMean: 0.321, negSd: 0.070, posSd: 0.187, derivedFrom: 5, derivedScale: 9.2 },
-  { name: 'nhr', description: 'Noise-to-harmonics ratio in the voice signal', negMean: 0.0115, posMean: 0.0292, negSd: 0.0100, posSd: 0.0402, skewed: true },
-  { name: 'hnr', description: 'Harmonics-to-noise ratio (dB)', negMean: 24.68, posMean: 20.97, negSd: 4.29, posSd: 4.46 },
-  { name: 'rpde', description: 'Recurrence period density entropy, a nonlinear measure', negMean: 0.443, posMean: 0.517, negSd: 0.096, posSd: 0.100 },
-  { name: 'dfa', description: 'Detrended fluctuation analysis, signal fractal scaling', negMean: 0.696, posMean: 0.725, negSd: 0.058, posSd: 0.053 },
-  { name: 'spread1', description: 'Nonlinear measure of fundamental frequency variation', negMean: -6.76, posMean: -5.33, negSd: 1.17, posSd: 1.09 },
-  { name: 'ppe', description: 'Pitch period entropy', negMean: 0.123, posMean: 0.233, negSd: 0.054, posSd: 0.084 },
+const SEIZURE_SPECS: FeatureSpec[] = [
+  { name: 'delta_power', description: 'Normalized power in 0.5–4 Hz delta oscillation band', negMean: 0.32, posMean: 0.14, negSd: 0.08, posSd: 0.05 },
+  { name: 'theta_power', description: 'Normalized power in 4–8 Hz theta band', negMean: 0.26, posMean: 0.16, negSd: 0.06, posSd: 0.04 },
+  { name: 'alpha_power', description: 'Normalized power in 8–13 Hz alpha band', negMean: 0.28, posMean: 0.10, negSd: 0.07, posSd: 0.03 },
+  { name: 'beta_power', description: 'Normalized power in 13–30 Hz beta band', negMean: 0.11, posMean: 0.31, negSd: 0.03, posSd: 0.08, skewed: true },
+  { name: 'gamma_power', description: 'Normalized power in 30–80 Hz gamma paroxysm band', negMean: 0.03, posMean: 0.29, negSd: 0.015, posSd: 0.09, skewed: true },
+  { name: 'spectral_entropy', description: 'Fourier spectral distribution entropy', negMean: 0.82, posMean: 0.52, negSd: 0.06, posSd: 0.09 },
+  { name: 'hjorth_mobility', description: 'Mean frequency estimation ratio', negMean: 0.74, posMean: 1.88, negSd: 0.18, posSd: 0.35 },
+  { name: 'hjorth_complexity', description: 'Frequency spread / sinusoidal deviation', negMean: 1.12, posMean: 2.38, negSd: 0.22, posSd: 0.45 },
+  { name: 'sample_entropy', description: 'Non-linear regularity metric', negMean: 1.28, posMean: 0.58, negSd: 0.25, posSd: 0.15 },
+  { name: 'line_length', description: 'Total trajectory variation (sharp spikes)', negMean: 58.0, posMean: 235.0, negSd: 14.0, posSd: 62.0, skewed: true },
 ]
 
 export const DATASET_META: DatasetMeta[] = [
   {
     id: 'breast-cancer',
-    name: 'Breast Cancer Wisconsin',
-    source: 'UCI ML Repository / WDBC',
+    name: 'Breast Cancer Wisconsin (WDBC)',
+    source: 'UCI Machine Learning / Clinical FNA',
     rows: 569,
-    positiveLabel: 'malignant',
-    negativeLabel: 'benign',
+    positiveLabel: 'Malignant',
+    negativeLabel: 'Benign',
     featureDescriptions: Object.fromEntries(WDBC_SPECS.map((s) => [s.name, s.description])),
     synthetic: true,
   },
   {
-    id: 'heart-disease',
-    name: 'Heart Disease UCI',
-    source: 'UCI ML Repository / Cleveland',
-    rows: 303,
-    positiveLabel: 'disease present',
-    negativeLabel: 'no disease',
-    featureDescriptions: Object.fromEntries(HEART_SPECS.map((s) => [s.name, s.description])),
+    id: 'brain-seizure',
+    name: 'Brain Seizure EEG Dynamics',
+    source: 'Bonn University Neurophysiology',
+    rows: 500,
+    positiveLabel: 'Seizure Detected',
+    negativeLabel: 'Normal EEG Baseline',
+    featureDescriptions: Object.fromEntries(SEIZURE_SPECS.map((s) => [s.name, s.description])),
     synthetic: true,
   },
   {
-    id: 'parkinsons',
-    name: "Parkinson's Voice",
-    source: 'UCI ML Repository / Oxford',
-    rows: 195,
-    positiveLabel: "Parkinson's",
-    negativeLabel: 'healthy',
-    featureDescriptions: Object.fromEntries(PARKINSONS_SPECS.map((s) => [s.name, s.description])),
+    id: 'heart-disease',
+    name: 'Heart Disease & Myocardial Infarction',
+    source: 'Cleveland Clinic Foundation / UCI',
+    rows: 303,
+    positiveLabel: 'High Risk (Stenosis/CAD)',
+    negativeLabel: 'Normal / Low Risk',
+    featureDescriptions: Object.fromEntries(HEART_SPECS.map((s) => [s.name, s.description])),
     synthetic: true,
   },
 ]
 
 const SPECS: Record<string, { specs: FeatureSpec[]; rows: number; rate: number }> = {
   'breast-cancer': { specs: WDBC_SPECS, rows: 569, rate: 0.373 },
+  'brain-seizure': { specs: SEIZURE_SPECS, rows: 500, rate: 0.400 },
   'heart-disease': { specs: HEART_SPECS, rows: 303, rate: 0.459 },
-  parkinsons: { specs: PARKINSONS_SPECS, rows: 195, rate: 0.754 },
 }
 
 const cache = new Map<string, Dataset>()
@@ -230,13 +227,12 @@ export function loadDataset(id: string): Dataset {
     return customDataset
   }
 
-  const entry = SPECS[id]
-  const meta = DATASET_META.find((m) => m.id === id)
-  if (!entry || !meta) throw new Error(`unknown dataset: ${id}`)
+  const entry = SPECS[id] ?? SPECS['breast-cancer']
+  const meta = DATASET_META.find((m) => m.id === id) ?? DATASET_META[0]
 
   const { X, y } = build(entry.specs, entry.rows, entry.rate, 1234)
   const ds: Dataset = {
-    id,
+    id: meta.id,
     name: meta.name,
     featureNames: entry.specs.map((s) => s.name),
     X,
@@ -257,3 +253,4 @@ export function datasetMeta(id: string): DatasetMeta | undefined {
 export function describeFeature(datasetId: string, feature: string): string | null {
   return datasetMeta(datasetId)?.featureDescriptions[feature] ?? null
 }
+
