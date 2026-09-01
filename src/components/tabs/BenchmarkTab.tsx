@@ -51,7 +51,7 @@ export function BenchmarkTab() {
   ]
 
   return (
-    <div className="console-scroll canvas-grid h-full overflow-y-auto">
+    <div className="console-scroll canvas-grid h-full overflow-y-auto overflow-x-hidden">
       <div className="screen">
         {/* Top Platform Overview Header */}
         <section className="panel-raised rounded-panel panel-pad">

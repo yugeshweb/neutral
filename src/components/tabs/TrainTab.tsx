@@ -315,7 +315,7 @@ export function TrainTab({
 
 
   return (
-    <div className="console-scroll canvas-grid h-full overflow-y-auto">
+    <div className="console-scroll canvas-grid h-full overflow-y-auto overflow-x-hidden">
       <div className="screen">
         {/* Step Navigation Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">

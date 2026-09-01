@@ -134,7 +134,7 @@ export function PredictTab({
   const tone = positive ? CLASSICAL : QUANTUM
 
   return (
-    <div className="console-scroll canvas-grid h-full overflow-y-auto">
+    <div className="console-scroll canvas-grid h-full overflow-y-auto overflow-x-hidden">
       <div className="screen">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/5 pb-4">

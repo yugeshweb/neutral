@@ -8,6 +8,11 @@ import { useEffect, useRef, useState } from 'react'
  * "occlusion vs training mean" for the first time needs it. So it lives here:
  * out of the layout until asked for, one line of it in the corner of whatever
  * it explains.
+ *
+ * The dot stays 20px visually while its touch target is enlarged by a
+ * pseudo-element. That growth is deliberately vertical only: these sit flush
+ * against the right edge of a container, and a horizontal overhang would push
+ * the page wider and produce a stray horizontal scrollbar.
  */
 export function InfoDot({ label, children }: { label: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
@@ -41,7 +46,7 @@ export function InfoDot({ label, children }: { label: string; children: React.Re
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         data-pressed={open}
-        className="key relative grid h-[20px] w-[20px] cursor-pointer place-items-center rounded-full font-mono text-[12px] leading-none text-ink-faint after:absolute after:-inset-[12px] after:content-[''] hover:text-ink"
+        className="key relative grid h-[20px] w-[20px] cursor-pointer place-items-center rounded-full font-mono text-[12px] leading-none text-ink-faint after:absolute after:-inset-y-[12px] after:inset-x-0 after:content-[''] hover:text-ink"
       >
         i
       </button>
