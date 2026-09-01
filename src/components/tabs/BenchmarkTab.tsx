@@ -93,6 +93,7 @@ export function BenchmarkTab() {
                   type="button"
                   onClick={() => setSelectedDiseaseId(d.id)}
                   data-pressed={active}
+                  title={d.tagline}
                   className="key group relative flex cursor-pointer flex-col rounded-[8px] p-3.5 text-left"
                   style={
                     active
@@ -111,10 +112,31 @@ export function BenchmarkTab() {
                   <div className="mt-1 text-[15px] font-medium text-ink group-hover:text-white">
                     {d.name}
                   </div>
-                  <div className="mt-1 text-[12.5px] text-ink-dim line-clamp-1">{d.tagline}</div>
-                  <div className="mt-2.5 flex items-center justify-between font-mono text-[11px] text-ink-faint">
-                    <span>{d.modality}</span>
-                    <span>{d.totalSamples} samples</span>
+                  {/*
+                    * The tagline used to sit here under `line-clamp-1`, which
+                    * truncated all six mid-word with no way to read the rest.
+                    * Since none of them said much a title and a metric do not,
+                    * the space now carries the accuracy of each lane, which is
+                    * the number you actually pick a benchmark on. The full
+                    * tagline is still available as the button's tooltip.
+                    */}
+                  <div className="mt-2 flex items-baseline gap-3 font-mono text-[11px]">
+                    <span className="text-ink-faint">
+                      classical{' '}
+                      <span className="tabular-nums" style={{ color: LANE_COLOR.classical }}>
+                        {d.classicalModel.metrics.accuracy.toFixed(3)}
+                      </span>
+                    </span>
+                    <span className="text-ink-faint">
+                      quantum{' '}
+                      <span className="tabular-nums" style={{ color: LANE_COLOR.quantum }}>
+                        {d.quantumModel.metrics.accuracy.toFixed(3)}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between font-mono text-[11px] text-ink-faint">
+                    <span className="truncate">{d.modality}</span>
+                    <span className="shrink-0">{d.totalSamples} samples</span>
                   </div>
                 </button>
               )
