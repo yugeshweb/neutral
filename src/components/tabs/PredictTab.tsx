@@ -134,6 +134,14 @@ export function PredictTab({
   const tone = positive ? CLASSICAL : QUANTUM
 
   return (
+    /*
+     * The page itself does not scroll: the slider list is capped to the
+     * viewport and scrolls internally, so only one scrollbar ever appears.
+     * `overflow-y-auto` rather than `hidden` is a deliberate safety valve -
+     * below roughly 620px of height the fixed chrome alone exceeds the window
+     * and clipping would hide the score entirely, so in that case the page is
+     * allowed to scroll rather than swallow content.
+     */
     <div className="console-scroll canvas-grid h-full overflow-y-auto overflow-x-hidden">
       <div className="screen">
         {/* Header */}
@@ -224,11 +232,14 @@ export function PredictTab({
                 </div>
               )}
 
-              {/* No height cap and no scroller of its own: the page already
-                  scrolls, and a nested scroll area here put a second scrollbar
-                  beside the first on every condition with more than eight
-                  sliders. The column simply grows and the page absorbs it. */}
-              <div className="mt-3 space-y-2 border-t border-white/5 pt-3">
+              {/*
+                * The slider list is the only thing on this screen that scrolls.
+                * It is capped relative to the viewport rather than a fixed
+                * pixel height, so the whole page fits at any window size and
+                * the browser never adds a second, outer scrollbar next to this
+                * one. `min-h-0` is what lets a flex child actually shrink.
+                */}
+              <div className="console-scroll mt-3 max-h-[calc(100vh-30rem)] min-h-0 space-y-2 overflow-y-auto border-t border-white/5 pr-1.5 pt-3">
                 {Object.entries(disease.featureRanges).map(([key, spec]) => {
                   const val = featureValues[key] ?? spec.defaultVal
                   return (
@@ -358,10 +369,7 @@ export function PredictTab({
             </div>
 
             {/* Readout and explanation */}
-            {/* Sticky on wide screens: the case column can now be taller than
-                the viewport, and the score is what you are watching while you
-                move a slider, so it should not scroll away. */}
-            <div className="space-y-4 lg:col-span-7 lg:sticky lg:top-6 lg:self-start">
+            <div className="space-y-4 lg:col-span-7">
               <div className="panel-raised rounded-panel panel-pad">
                 <div className="readout rounded-[8px] px-5 py-4">
                   <div className="engraved font-mono text-[11.5px]">
