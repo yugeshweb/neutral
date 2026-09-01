@@ -1,13 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   DISEASE_PIPELINES,
   getDiseasePipeline,
   loadTrainedPipeline,
 } from '../../lib/diseaseRegistry'
-import { isReplayable, scoreCase } from '../../lib/ml/inference'
+import { parseCsv, splitRow } from '../../lib/dataset'
+import {
+  isReplayable,
+  scoreBatch,
+  scoreCase,
+  type BatchResult,
+} from '../../lib/ml/inference'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { InfoDot } from '../InfoDot'
-import { IconCircuit, IconFlask, IconReset } from '../icons'
+import { IconCircuit, IconFlask, IconReset, IconUpload } from '../icons'
 
 /**
  * Inference and explainability.
@@ -52,6 +58,48 @@ export function PredictTab({
 
   const artifact = useMemo(() => loadTrainedPipeline(selectedDiseaseId), [selectedDiseaseId])
   const ready = isReplayable(artifact)
+
+  // Batch scoring from an uploaded table.
+  const fileRef = useRef<HTMLInputElement | null>(null)
+  const [batch, setBatch] = useState<{ file: string; result: BatchResult } | null>(null)
+  const [batchError, setBatchError] = useState<string | null>(null)
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !ready) return
+    setBatchError(null)
+
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const text = ev.target?.result as string
+        const summary = parseCsv(text, file.name, file.size)
+
+        // `summary.preview` is only the first few rows; score the whole file.
+        const lines = (summary.content ?? text)
+          .split(/\r\n|\n|\r/)
+          .filter((l) => l.trim().length > 0)
+        const rows = lines.slice(1).map(splitRow)
+
+        const result = scoreBatch(artifact, summary.headers, rows)
+        if (result.rows.length === 0) {
+          setBatchError(
+            `No row could be scored. The model needs columns named: ${artifact.featureNames
+              .slice(0, 4)
+              .join(', ')}${artifact.featureNames.length > 4 ? ', ...' : ''}`,
+          )
+          setBatch(null)
+          return
+        }
+        setBatch({ file: file.name, result })
+      } catch (err) {
+        setBatchError(err instanceof Error ? err.message : 'could not read that file')
+        setBatch(null)
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
   /**
    * Real inference. The slider panel is keyed by the disease's own feature
@@ -222,6 +270,85 @@ export function PredictTab({
                     </div>
                   )
                 })}
+              </div>
+
+              {/* Batch scoring: every row in the file goes through the same
+                  trained model as the sliders above. */}
+              <div className="mt-4 border-t border-white/5 pt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[14.5px] font-medium text-ink">Score a file</h3>
+                  <InfoDot label="About batch scoring">
+                    Every row is scored with this same trained model. Columns are
+                    matched to the model's features by name, so column order does not
+                    matter and extra columns are ignored. A feature the file omits
+                    falls back to its training-set average.
+                  </InfoDot>
+                </div>
+
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv,.txt"
+                  className="sr-only"
+                  onChange={handleUpload}
+                  id="predict-batch-file"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="key mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-[13px] text-ink-dim hover:text-ink"
+                >
+                  <IconUpload className="h-3.5 w-3.5" />
+                  {batch ? batch.file : 'Upload a CSV'}
+                </button>
+
+                {batchError && (
+                  <p className="mt-2 text-[12px] leading-relaxed" style={{ color: CLASSICAL }}>
+                    {batchError}
+                  </p>
+                )}
+
+                {batch && (
+                  <div className="readout mt-2 px-3 py-2.5">
+                    <div className="flex items-baseline justify-between font-mono text-[13px]">
+                      <span className="text-ink-faint">scored</span>
+                      <span className="tabular-nums text-ink">
+                        {batch.result.rows.length} rows
+                      </span>
+                    </div>
+                    <div className="mt-1 flex items-baseline justify-between font-mono text-[13px]">
+                      <span className="text-ink-faint">
+                        {disease.positiveLabel.toLowerCase()}
+                      </span>
+                      <span className="tabular-nums" style={{ color: CLASSICAL }}>
+                        {batch.result.positiveCount}
+                        <span className="ml-1 text-ink-faint">
+                          (
+                          {(
+                            (batch.result.positiveCount / batch.result.rows.length) *
+                            100
+                          ).toFixed(1)}
+                          %)
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* State plainly when the file did not supply everything. */}
+                    {batch.result.missing.length > 0 && (
+                      <p className="mt-2 border-t border-white/5 pt-2 font-mono text-[11.5px] leading-relaxed text-ink-faint">
+                        {batch.result.matched.length} of{' '}
+                        {batch.result.matched.length + batch.result.missing.length}{' '}
+                        features matched by name. Missing ones use their training
+                        average, so these scores are weaker than a complete row.
+                      </p>
+                    )}
+                    {batch.result.skipped > 0 && (
+                      <p className="mt-1 font-mono text-[11.5px] text-ink-faint">
+                        {batch.result.skipped} row(s) skipped, nothing numeric to read.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

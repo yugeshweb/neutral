@@ -97,3 +97,88 @@ export function scoreCase(artifact: TrainedPipelineArtifact, raw: number[]): Cas
     attributions,
   }
 }
+
+export type BatchRow = {
+  /** 1-based row number in the source file, for reporting */
+  line: number
+  probability: number
+  positive: boolean
+}
+
+export type BatchResult = {
+  rows: BatchRow[]
+  /** rows skipped because no column matched a feature the model needs */
+  skipped: number
+  /** feature names in the file that the model actually uses */
+  matched: string[]
+  /** features the model expects that the file does not supply */
+  missing: string[]
+  positiveCount: number
+}
+
+/**
+ * Scores every row of an uploaded table with the trained model.
+ *
+ * Columns are matched to the artifact's features by name, so column order in
+ * the file does not matter and extra columns are ignored. A feature the model
+ * needs but the file omits falls back to that feature's stored training-set
+ * fill value, exactly as single-case scoring does - and the caller is told
+ * which ones those were, because a prediction resting mostly on fill values
+ * is not worth much and the user should be able to see that.
+ */
+export function scoreBatch(
+  artifact: TrainedPipelineArtifact,
+  headers: string[],
+  rows: string[][],
+  threshold = 0.5,
+): BatchResult {
+  const model = restoreVqc(artifact)
+
+  // Map each of the model's features to a column index in the file.
+  const columnOf = new Map<string, number>()
+  headers.forEach((h, i) => columnOf.set(h.trim(), i))
+
+  const matched: string[] = []
+  const missing: string[] = []
+  for (const name of artifact.featureNames) {
+    if (columnOf.has(name)) matched.push(name)
+    else missing.push(name)
+  }
+
+  const out: BatchRow[] = []
+  let skipped = 0
+  let positiveCount = 0
+
+  rows.forEach((cells, index) => {
+    // A row with nothing the model recognises is reported, not silently scored
+    // off fill values alone.
+    let usable = 0
+    const raw = artifact.featureNames.map((name) => {
+      const col = columnOf.get(name)
+      if (col === undefined) return Number.NaN
+      const v = Number(cells[col])
+      if (Number.isFinite(v)) {
+        usable++
+        return v
+      }
+      return Number.NaN
+    })
+
+    if (usable === 0) {
+      skipped++
+      return
+    }
+
+    const probability = model.predictOne(projectCase(artifact, raw))
+    if (!Number.isFinite(probability)) {
+      skipped++
+      return
+    }
+
+    const positive = probability >= threshold
+    if (positive) positiveCount++
+    out.push({ line: index + 2, probability, positive })
+  })
+
+  return { rows: out, skipped, matched, missing, positiveCount }
+}
