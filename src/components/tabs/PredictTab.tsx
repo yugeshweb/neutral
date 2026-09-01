@@ -224,7 +224,11 @@ export function PredictTab({
                 </div>
               )}
 
-              <div className="console-scroll mt-4 max-h-[420px] space-y-3 overflow-y-auto border-t border-white/5 pr-1.5 pt-3">
+              {/* No height cap and no scroller of its own: the page already
+                  scrolls, and a nested scroll area here put a second scrollbar
+                  beside the first on every condition with more than eight
+                  sliders. The column simply grows and the page absorbs it. */}
+              <div className="mt-4 space-y-3 border-t border-white/5 pt-3">
                 {Object.entries(disease.featureRanges).map(([key, spec]) => {
                   const val = featureValues[key] ?? spec.defaultVal
                   return (
@@ -353,7 +357,10 @@ export function PredictTab({
             </div>
 
             {/* Readout and explanation */}
-            <div className="lg:col-span-7 space-y-4">
+            {/* Sticky on wide screens: the case column can now be taller than
+                the viewport, and the score is what you are watching while you
+                move a slider, so it should not scroll away. */}
+            <div className="space-y-4 lg:col-span-7 lg:sticky lg:top-6 lg:self-start">
               <div className="panel-raised rounded-panel panel-pad">
                 <div className="readout rounded-[8px] px-5 py-4">
                   <div className="engraved font-mono text-[11.5px]">
