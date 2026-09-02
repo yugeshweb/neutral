@@ -7,7 +7,9 @@ import { intakeFor, INTAKE_DISEASE_IDS, type IntakeField } from '../../lib/intak
 import { isReplayable, scoreBatch, type BatchResult } from '../../lib/ml/inference'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { InfoDot } from '../InfoDot'
-import { IconCheck, IconUpload } from '../icons'
+import { ProcessingBay } from '../ProcessingBay'
+import { PredictionResult } from '../PredictionResult'
+import { IconArrowLeft, IconArrowRight, IconCheck, IconUpload } from '../icons'
 
 /**
  * Inference intake.
@@ -41,18 +43,62 @@ export function PredictTab({
     INTAKE_DISEASE_IDS.includes(initialDiseaseId) ? initialDiseaseId : INTAKE_DISEASE_IDS[0],
   )
   const [states, setStates] = useState<Record<string, FieldState>>({})
+  /*
+   * One card at a time: choose the condition, then supply data for it.
+   *
+   * Always starts on the condition step. `initialDiseaseId` cannot be used to
+   * infer "already chosen" because App defaults it to a real id, so testing it
+   * would skip step one on every visit.
+   */
+  const [step, setStep] = useState<'condition' | 'intake' | 'processing' | 'result'>(
+    'condition',
+  )
+
+  /*
+   * What gets carried into the result screen. The image is kept separately
+   * from the scoring result because they arrive from different fields: a scan
+   * supplies pixels and no rows, a table supplies rows and no pixels, and the
+   * result screen has to cope with either.
+   */
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [lastFile, setLastFile] = useState<string>('')
 
   const disease = getDiseasePipeline(selectedId)
   const fields = intakeFor(selectedId)
   const artifact = useMemo(() => loadTrainedPipeline(selectedId), [selectedId])
   const trained = isReplayable(artifact)
 
+  // Which conditions already have a model, for the badge on each card. Read
+  // once per render rather than inside the map, which would hit localStorage
+  // four times on every keystroke elsewhere in the tree.
+  const trainedIds = useMemo(
+    () =>
+      new Set(
+        INTAKE_DISEASE_IDS.filter((id) => isReplayable(loadTrainedPipeline(id))),
+      ),
+    [],
+  )
+
   const setField = (id: string, s: FieldState) =>
     setStates((prev) => ({ ...prev, [id]: s }))
+
+  // Something has to have been supplied before analysis means anything. An
+  // unreadable or unsupported file still counts as supplied: the result screen
+  // reports honestly on those rather than pretending nothing happened.
+  const anyUpload = Object.values(states).some((s) => s.kind !== 'idle')
+
+  // The first field that actually scored. Only one result is shown, because
+  // scoring the same patient from two sources would need a merge policy that
+  // does not exist here.
+  const scoredResult =
+    Object.values(states).find((s): s is Extract<FieldState, { kind: 'scored' }> =>
+      s.kind === 'scored',
+    )?.result ?? null
 
   const handleFile = async (field: IntakeField, file: File) => {
     // A format with no parser is reported as such, before the file is touched.
     if (!field.wired) {
+      setLastFile(file.name)
       setField(field.id, {
         kind: 'unavailable',
         file: file.name,
@@ -64,6 +110,9 @@ export function PredictTab({
     try {
       const parsed = await ingest(file)
       const summary = parsed.dataset
+      setLastFile(file.name)
+      // `ingest` returns an object URL for image uploads and null otherwise.
+      if (summary.objectUrl) setImageUrl(summary.objectUrl)
 
       // Without a trained model there is nothing to score against, so the file
       // is reported as read and nothing more is claimed.
@@ -117,70 +166,191 @@ export function PredictTab({
           </InfoDot>
         </div>
 
-        {/* Card one: the condition. */}
-        <div className="panel-raised rounded-panel panel-pad">
-          <h2 className="text-[14.5px] font-medium text-ink">Condition</h2>
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {INTAKE_DISEASE_IDS.map((id) => {
-              const d = getDiseasePipeline(id)
-              const active = id === selectedId
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  data-pressed={active}
-                  onClick={() => {
-                    setSelectedId(id)
-                    setStates({})
-                  }}
-                  className="key cursor-pointer rounded-[8px] px-3.5 py-3 text-left"
-                >
-                  <div
-                    className="text-[14.5px] font-medium"
-                    style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
+        {/* Step one: the condition. */}
+        {step === 'condition' && (
+          <div className="panel-raised rounded-panel panel-pad flow-step">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-[14.5px] font-medium text-ink">
+                <span className="engraved mr-2 font-mono text-[12px]">1</span>
+                Choose a condition
+              </h2>
+            </div>
+
+            {/* The cards fill the card's height evenly, so the grid reads as a
+                deliberate 2x2 rather than four controls floating at the top. */}
+            <div className="flow-body mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {INTAKE_DISEASE_IDS.map((id) => {
+                const d = getDiseasePipeline(id)
+                const active = id === selectedId
+                const trainedHere = trainedIds.has(id)
+                const accent = active ? QUANTUM : 'rgba(255,255,255,0.14)'
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    data-pressed={active}
+                    onClick={() => {
+                      setSelectedId(id)
+                      setStates({})
+                    }}
+                    className="key flex cursor-pointer flex-col justify-between rounded-[8px] p-4 text-left"
+                    style={active ? { borderColor: alpha(QUANTUM, 0.45) } : undefined}
                   >
-                    {d.name}
-                  </div>
-                  <div className="engraved mt-1 font-mono text-[11px]">{d.modality}</div>
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <span
+                          className="text-[15.5px] font-medium leading-snug"
+                          style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
+                        >
+                          {d.name}
+                        </span>
+                        {/* Selected marker: a filled ring, so the choice is
+                            legible without relying on the border alone. */}
+                        <span
+                          className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full"
+                          style={{ border: `1.5px solid ${accent}` }}
+                        >
+                          {active && (
+                            <span
+                              className="h-1.5 w-1.5 rounded-full"
+                              style={{ background: QUANTUM }}
+                            />
+                          )}
+                        </span>
+                      </div>
+                      <div className="engraved mt-1.5 font-mono text-[11px]">
+                        {d.categoryLabel}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-end justify-between gap-2 border-t border-white/5 pt-2.5 font-mono text-[11px]">
+                      <span className="text-ink-faint">
+                        {d.totalSamples.toLocaleString()} samples
+                      </span>
+                      <span
+                        style={{ color: trainedHere ? QUANTUM : '#6A6C72' }}
+                        title={
+                          trainedHere
+                            ? 'A model has been trained for this condition'
+                            : 'Not trained yet: files will be read but not scored'
+                        }
+                      >
+                        {trainedHere ? 'model ready' : 'not trained'}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="mt-4 flex shrink-0 justify-end border-t border-white/5 pt-4">
+              <button
+                type="button"
+                onClick={() => setStep('intake')}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink hover:text-white"
+              >
+                Next
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step two: the inputs that condition accepts. */}
+        {step === 'intake' && (
+          <div className="panel-raised rounded-panel panel-pad flow-step">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-[14.5px] font-medium text-ink">
+                <span className="engraved mr-2 font-mono text-[12px]">2</span>
+                Data for {disease.name.toLowerCase()}
+              </h2>
+              <InfoDot label="About these inputs">
+                These are the sources this condition's model can use. CSV, FHIR R4
+                and HL7 v2 have working parsers. The others are part of the intended
+                pipeline but are not built yet, and will tell you what they would
+                take rather than accepting the file quietly.
+              </InfoDot>
+            </div>
+
+            {!trained && (
+              <p className="mt-2 text-[13px] text-ink-dim">
+                No model has been trained for this condition yet, so files will be read
+                and described but not scored. Train it first for predictions.
+              </p>
+            )}
+
+            <div className="flow-body mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {fields.map((field) => (
+                <IntakeCard
+                  key={field.id}
+                  field={field}
+                  state={states[field.id] ?? { kind: 'idle' }}
+                  positiveLabel={disease.positiveLabel}
+                  onFile={(f) => void handleFile(field, f)}
+                />
+              ))}
+            </div>
+
+            <div className="mt-4 flex shrink-0 items-center justify-between border-t border-white/5 pt-4">
+              <button
+                type="button"
+                onClick={() => setStep('condition')}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink-dim hover:text-ink"
+              >
+                <IconArrowLeft className="h-3.5 w-3.5" />
+                Back
+              </button>
+
+              <div className="flex items-center gap-3">
+                {!anyUpload && (
+                  <span className="font-mono text-[11px] text-ink-faint">
+                    supply at least one input
+                  </span>
+                )}
+                <button
+                  type="button"
+                  disabled={!anyUpload}
+                  onClick={() => setStep('processing')}
+                  className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Analyse
+                  <IconArrowRight className="h-3.5 w-3.5" />
                 </button>
-              )
-            })}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Card two: the inputs that condition accepts. */}
-        <div className="panel-raised rounded-panel panel-pad">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[14.5px] font-medium text-ink">
-              Data for {disease.name.toLowerCase()}
-            </h2>
-            <InfoDot label="About these inputs">
-              These are the sources this condition's model can use. CSV, FHIR R4
-              and HL7 v2 have working parsers. The others are part of the intended
-              pipeline but are not built yet, and will tell you what they would
-              take rather than accepting the file quietly.
-            </InfoDot>
-          </div>
+        {/* Step three: the machine, on a fixed five-second sequence. */}
+        {step === 'processing' && (
+          <ProcessingBay
+            fileName={lastFile || 'input'}
+            onDone={() => setStep('result')}
+          />
+        )}
 
-          {!trained && (
-            <p className="mt-2 text-[13px] text-ink-dim">
-              No model has been trained for this condition yet, so files will be read
-              and described but not scored. Train it first for predictions.
-            </p>
-          )}
-
-          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-            {fields.map((field) => (
-              <IntakeCard
-                key={field.id}
-                field={field}
-                state={states[field.id] ?? { kind: 'idle' }}
-                positiveLabel={disease.positiveLabel}
-                onFile={(f) => void handleFile(field, f)}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Step four: metrics and the region view. */}
+        {step === 'result' && (
+          <>
+            <PredictionResult
+              fileName={lastFile || 'input'}
+              result={scoredResult}
+              imageUrl={imageUrl}
+              positiveLabel={disease.positiveLabel}
+              negativeLabel={disease.negativeLabel}
+            />
+            <div className="flex justify-start">
+              <button
+                type="button"
+                onClick={() => setStep('intake')}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink-dim hover:text-ink"
+              >
+                <IconArrowLeft className="h-3.5 w-3.5" />
+                Back to inputs
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -201,7 +371,7 @@ function IntakeCard({
   const [dragging, setDragging] = useState(false)
 
   return (
-    <div className="panel-well well-pad flex flex-col rounded-[8px]">
+    <div className="panel-well well-pad flex h-full flex-col rounded-[8px]">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[13px] font-medium text-ink">{field.label}</span>
         <span
@@ -218,7 +388,7 @@ function IntakeCard({
       <p className="engraved mt-1 font-mono text-[11px]">
         {field.system} · {field.accept}
       </p>
-      <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-dim">{field.hint}</p>
+      <p className="mt-2 text-[12.5px] leading-relaxed text-ink-dim">{field.hint}</p>
 
       <input
         ref={inputRef}
@@ -245,7 +415,7 @@ function IntakeCard({
           const f = e.dataTransfer.files?.[0]
           if (f) onFile(f)
         }}
-        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-[12.5px] text-ink-dim transition-colors hover:text-ink"
+        className="mt-auto flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[6px] px-3 py-4 text-[12.5px] text-ink-dim transition-colors hover:text-ink"
         style={{
           background: '#131417',
           border: `1px dashed ${dragging ? alpha(QUANTUM, 0.6) : 'rgba(255,255,255,0.12)'}`,
@@ -278,11 +448,11 @@ function Outcome({ state, positiveLabel }: { state: FieldState; positiveLabel: s
   // The honest path: a declared input with nothing behind it yet.
   if (state.kind === 'unavailable') {
     return (
-      <div className="readout mt-2 px-3 py-2">
-        <div className="font-mono text-[11px]" style={{ color: CLASSICAL }}>
-          not scored
-        </div>
-        <p className="mt-1 text-[12px] leading-relaxed text-ink-faint">{state.requires}</p>
+      <div className="readout mt-2 flex items-center justify-between gap-2 px-3 py-2">
+        <span className="font-mono text-[11px]" style={{ color: CLASSICAL }}>
+          not scored, parser not built
+        </span>
+        <InfoDot label="What this input would need">{state.requires}</InfoDot>
       </div>
     )
   }
@@ -325,11 +495,16 @@ function Outcome({ state, positiveLabel }: { state: FieldState; positiveLabel: s
         </span>
       </div>
       {result.missing.length > 0 && (
-        <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[11px] leading-relaxed text-ink-faint">
-          {result.matched.length} of {result.matched.length + result.missing.length} features
-          matched by name. The rest use their training average, so these scores are
-          weaker than a complete row.
-        </p>
+        <div className="mt-1.5 flex items-center justify-between gap-2 border-t border-white/5 pt-1.5">
+          <span className="font-mono text-[11px] text-ink-faint">
+            {result.matched.length}/{result.matched.length + result.missing.length} features
+          </span>
+          <InfoDot label="About the missing features">
+            {result.missing.length} feature(s) the model uses were not present in this
+            file, so they fell back to their training average. These scores are
+            weaker than a complete row would give.
+          </InfoDot>
+        </div>
       )}
       {result.skipped > 0 && (
         <p className="mt-1 text-[11px] text-ink-faint">

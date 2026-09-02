@@ -138,6 +138,42 @@
   }
 
   /*
+   * A step in a multi-step flow.
+   *
+   * Every step reserves the same height so the card does not resize as the
+   * user advances - without this the panel jumps by around 270px between
+   * choosing a condition and supplying data, which reads as the layout
+   * breaking rather than as progress. Content is laid out top to bottom and
+   * the footer is pushed to the bottom edge, so the navigation buttons sit in
+   * the same place on every step.
+   */
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    /*
+     * Sized against the viewport rather than a fixed pixel height: the card
+     * fills the space the window actually has, so every step is the same
+     * height and none of them overflow. 15.5rem is the chrome above and below
+     * it - app header, screen padding, page title, the step's own nav row -
+     * measured rather than guessed. The floor keeps it usable if the window is
+     * very short, at which point the page is allowed to scroll instead.
+     */
+    min-height: min(560px, max(340px, calc(100vh - 15.5rem)));
+  }
+
+  /* The part that grows to fill whatever the step does not use. */
+  .flow-body {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  @media (max-width: 640px) {
+    .flow-step {
+      min-height: 0;
+    }
+  }
+
+  /*
    * Select control.
    *
    * The native arrow and padding differ per platform, so the appearance is
