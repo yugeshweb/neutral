@@ -29,8 +29,13 @@ export type IntakeField = {
   wired: boolean
   /** the adapter to run, for wired fields */
   format?: SourceFormat
-  /** one line on what this input is */
-  hint: string
+  /**
+   * What this input is. A plain sentence for most fields; an array for the
+   * few whose hint joins two distinct facts with a comma (FHIR's coding
+   * systems, HL7's message and segment types) - those read as two lines
+   * rather than one comma-spliced sentence.
+   */
+  hint: string | string[]
   /** for unwired fields: what building it would take */
   requires?: string
   /**
@@ -65,7 +70,7 @@ const FHIR_BUNDLE: IntakeField = {
   accept: '.json',
   wired: true,
   format: 'fhir',
-  hint: 'Observations keyed by LOINC, conditions by ICD-10.',
+  hint: ['Observations keyed by LOINC,', 'conditions by ICD-10.'],
 }
 
 const HL7_FEED: IntakeField = {
@@ -75,7 +80,7 @@ const HL7_FEED: IntakeField = {
   accept: '.hl7,.txt',
   wired: true,
   format: 'hl7v2',
-  hint: 'ORU^R01 result messages, OBX segments keyed by LOINC.',
+  hint: ['ORU^R01 result messages,', 'OBX segments keyed by LOINC.'],
 }
 
 export const CONDITION_INTAKE: ConditionIntake[] = [

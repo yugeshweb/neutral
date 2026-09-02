@@ -64,10 +64,7 @@ export function ProcessingBay({
   return (
     <div className="panel-raised rounded-panel panel-pad flow-step">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="text-[14.5px] font-medium text-ink">
-          <span className="engraved mr-2 font-mono text-[12px]">3</span>
-          Processing
-        </h2>
+        <h2 className="text-[14.5px] font-medium text-ink">Processing</h2>
         <span className="engraved truncate font-mono text-[11px]">{fileName}</span>
       </div>
 

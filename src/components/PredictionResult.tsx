@@ -77,10 +77,7 @@ export function PredictionResult({
   return (
     <div className="panel-raised rounded-panel panel-pad flow-step flow-step-compact">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[14.5px] font-medium text-ink">
-          <span className="engraved mr-2 font-mono text-[12px]">4</span>
-          Result
-        </h2>
+        <h2 className="text-[14.5px] font-medium text-ink">Result</h2>
         <InfoDot label="Where these numbers come from">
           The metrics are produced by scoring the uploaded rows with the model
           trained in the Train tab. The region markers are not: they are placed

@@ -404,7 +404,7 @@ export function TrainTab({
         {/* STEP 1: the inputs, built up row by row. */}
         {activeStep === 'inputs' && (
           <div className="panel-raised rounded-panel panel-pad flow-step">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-center gap-2">
               <h2 className="text-[14.5px] font-medium text-ink">
                 <span className="engraved mr-2 font-mono text-[12px]">1</span>
                 Inputs
@@ -445,7 +445,7 @@ export function TrainTab({
         {/* STEP 2: the condition. */}
         {activeStep === 'disease' && (
           <div className="panel-raised rounded-panel panel-pad flow-step">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-center gap-2">
               <h2 className="text-[14.5px] font-medium text-ink">
                 <span className="engraved mr-2 font-mono text-[12px]">2</span>
                 Condition
@@ -464,8 +464,14 @@ export function TrainTab({
                 and overflows a 768px-tall window. Four across is one row of
                 220px, which fits everywhere the flow-step does. Below 640 it
                 falls to two columns, where `.flow-step` drops its min-height
-                and the page is allowed to scroll. */}
-            <div className="flow-body mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                and the page is allowed to scroll.
+
+                `flex + items-center` on the wrapper centres the row inside
+                whatever height `.flow-step` reserves: the cards are capped at
+                220px, so on a tall step they would otherwise sit pinned to
+                the top with empty space left below them. */}
+            <div className="flow-body mt-4 flex items-center">
+              <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
               {INTAKE_DISEASE_IDS.map((id) => {
                 const d = getDiseasePipeline(id)
                 const active = d.id === selectedDiseaseId
@@ -519,6 +525,7 @@ export function TrainTab({
                   </button>
                 )
               })}
+              </div>
             </div>
 
             <div className="mt-4 flex shrink-0 items-center justify-between border-t border-white/5 pt-4">

@@ -178,19 +178,21 @@ export function PredictTab({
         {/* Step one: the condition. */}
         {step === 'condition' && (
           <div className="panel-raised rounded-panel panel-pad flow-step">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-[14.5px] font-medium text-ink">
-                <span className="engraved mr-2 font-mono text-[12px]">1</span>
-                Choose a condition
-              </h2>
+            <div className="flex items-baseline justify-center">
+              <h2 className="text-[14.5px] font-medium text-ink">Choose a condition</h2>
             </div>
 
             {/* Four across from 640px up, not 1024: at two columns these are
                 two rows of squares, which at 220px each needs 452px of body
                 and overflows a 768px-tall window. One row of 220px fits every
                 height `.flow-step` allows. Below 640 it falls to two columns,
-                where the step drops its min-height and scrolling is fine. */}
-            <div className="flow-body mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                where the step drops its min-height and scrolling is fine.
+
+                `flex + items-center` centres the row inside whatever height
+                `.flow-step` reserves, rather than pinning it to the top with
+                empty space left below on a tall step. */}
+            <div className="flow-body mt-3 flex items-center">
+              <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
               {INTAKE_DISEASE_IDS.map((id) => {
                 const d = getDiseasePipeline(id)
                 const active = id === selectedId
@@ -250,6 +252,7 @@ export function PredictTab({
                   </button>
                 )
               })}
+              </div>
             </div>
 
             <div className="mt-4 flex shrink-0 justify-end border-t border-white/5 pt-4">
@@ -268,9 +271,8 @@ export function PredictTab({
         {/* Step two: the inputs that condition accepts. */}
         {step === 'intake' && (
           <div className="panel-raised rounded-panel panel-pad flow-step">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-center gap-2">
               <h2 className="text-[14.5px] font-medium text-ink">
-                <span className="engraved mr-2 font-mono text-[12px]">2</span>
                 Data for {disease.name.toLowerCase()}
               </h2>
               <InfoDot label="About these inputs">
@@ -282,7 +284,7 @@ export function PredictTab({
             </div>
 
             {!trained && (
-              <p className="mt-2 text-[13px] text-ink-dim">
+              <p className="mt-2 text-center text-[13px] text-ink-dim">
                 No model has been trained for this condition yet, so files will be read
                 and described but not scored. Train it first for predictions.
               </p>
@@ -413,7 +415,20 @@ function IntakeCard({
         </span>
       </div>
 
-      <p className="mt-2 text-[12.5px] leading-relaxed text-ink-dim">{field.hint}</p>
+      {/* Most hints are one sentence; a few join two distinct facts with a
+          comma, and render one per line instead of as a single spliced
+          sentence. */}
+      {Array.isArray(field.hint) ? (
+        <p className="mt-2 text-[12.5px] leading-relaxed text-ink-dim">
+          {field.hint.map((line, i) => (
+            <span key={i} className="block">
+              {line}
+            </span>
+          ))}
+        </p>
+      ) : (
+        <p className="mt-2 text-[12.5px] leading-relaxed text-ink-dim">{field.hint}</p>
+      )}
 
       <input
         ref={inputRef}
