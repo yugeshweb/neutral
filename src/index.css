@@ -229,6 +229,116 @@
   }
 
   /*
+   * Launch tile. The three squares on the opening screen.
+   *
+   * The one place the interface is allowed a little material quality: an n8n
+   * node still, but a moulded one. The top highlight and the graded fill read
+   * as a bevelled face catching light from above; the border stays the primary
+   * separator so it does not drift away from the rest of the system.
+   *
+   * The glow behind the artwork is a static box-shadow, not an animation.
+   * Infinite decorative motion on a landing screen is a distraction and a
+   * motion-sensitivity problem, so the resting state simply is lit, and hover
+   * only raises the intensity.
+   */
+  .tile {
+    position: relative;
+    background:
+      linear-gradient(180deg, #1e2025 0%, #17181b 45%, #131418 100%);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+      var(--lift);
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background 180ms ease;
+  }
+
+  .tile:hover {
+    border-color: var(--border-strong);
+    background:
+      linear-gradient(180deg, #232630 0%, #1a1c20 45%, #141519 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+      var(--lift-hover);
+  }
+
+  /*
+   * The lit plate the artwork sits on. `--tile-accent` is set per tile from
+   * the lane colour, so one rule serves all three without hard-coding hues.
+   */
+  .tile-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    /* Plain dark plate as the fallback: an invalid `color-mix` stop would take
+       the whole gradient with it and leave no backdrop at all. */
+    background: #0b0c0e;
+    background:
+      radial-gradient(
+        circle at 50% 45%,
+        color-mix(in srgb, var(--tile-accent) 18%, transparent) 0%,
+        transparent 70%
+      ),
+      #0b0c0e;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: var(--well);
+    overflow: hidden;
+  }
+
+  /* Scan line across the plate: a single hairline, no motion. */
+  .tile-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      180deg,
+      transparent 0 3px,
+      rgba(255, 255, 255, 0.014) 3px 4px
+    );
+    pointer-events: none;
+  }
+
+  /* The vector itself: drawn in the accent and given the glow. */
+  .tile-vector {
+    position: relative;
+    z-index: 1;
+    color: var(--tile-accent);
+    /*
+     * The glow colour is resolved into a variable rather than written as two
+     * `filter` declarations. A plain fallback pair does not survive the build:
+     * the minifier sees one property declared twice and keeps only the last,
+     * taking the fallback with it. A custom property with its own fallback is
+     * substituted before that ever happens, so both paths reach the browser.
+     */
+    --glow-soft: color-mix(in srgb, var(--tile-accent) 55%, transparent);
+    --glow-bright: color-mix(in srgb, var(--tile-accent) 85%, transparent);
+    filter: drop-shadow(0 0 5px var(--glow-soft, var(--tile-accent)));
+    transition: filter 180ms ease;
+  }
+
+  .tile:hover .tile-vector {
+    filter: drop-shadow(0 0 10px var(--glow-bright, var(--tile-accent)));
+  }
+
+  /*
+   * Motion preference. The glow shift is the only transition here that could
+   * read as motion, and it is a colour change rather than movement, but the
+   * transitions are dropped wholesale so nothing eases under reduce.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .tile,
+    .tile-vector {
+      transition: none;
+    }
+  }
+
+  /*
    * The work surface. A dotted grid, exactly as an n8n canvas, sized so the
    * dots read as texture at arm's length rather than as a pattern.
    */

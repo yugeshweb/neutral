@@ -1,13 +1,16 @@
 import { useEffect, useState, type ReactElement } from 'react'
 import { EhrValidationView } from './components/EhrValidationView'
+import { HomeScreen } from './components/HomeScreen'
 import { BenchmarkTab } from './components/tabs/BenchmarkTab'
 import { TrainTab } from './components/tabs/TrainTab'
 import { PredictTab } from './components/tabs/PredictTab'
 import { Wordmark } from './components/Wordmark'
-import { LANE_COLOR } from './lib/theme'
 import { IconBars, IconFlask, IconPulse } from './components/icons'
 
 export type TabId = 'train' | 'predict' | 'benchmark'
+
+/** The opening screen. Not a tab: it has no key in the nav. */
+type Route = TabId | 'home'
 
 const TABS: { id: TabId; label: string; Icon: (p: { className?: string }) => ReactElement }[] = [
   { id: 'train', label: '1. Train', Icon: IconFlask },
@@ -21,39 +24,44 @@ const TAB_IDS = TABS.map((t) => t.id)
  * Routing, without a router.
  *
  * Each tab owns a path, so a screen can be linked to and the back button
- * works. The app is three views deep with no nested or parameterised routes,
+ * works. The app is four views deep with no nested or parameterised routes,
  * which is not enough to justify pulling in a routing library - `pushState`
  * plus a `popstate` listener covers it.
  *
- * Anything unrecognised resolves to the first tab rather than 404ing, since
- * every path under this origin is served the same SPA entry point.
+ * "/" is the opening screen, and anything unrecognised resolves to it rather
+ * than 404ing, since every path under this origin is served the same SPA entry
+ * point.
  */
-function tabFromPath(pathname: string): TabId {
+function routeFromPath(pathname: string): Route {
   const seg = pathname.replace(/^\/+|\/+$/g, '')
-  return (TAB_IDS as string[]).includes(seg) ? (seg as TabId) : 'train'
+  return (TAB_IDS as string[]).includes(seg) ? (seg as TabId) : 'home'
+}
+
+function pathFor(route: Route): string {
+  return route === 'home' ? '/' : `/${route}`
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabId>(() =>
-    typeof window === 'undefined' ? 'train' : tabFromPath(window.location.pathname),
+  const [route, setRoute] = useState<Route>(() =>
+    typeof window === 'undefined' ? 'home' : routeFromPath(window.location.pathname),
   )
   const [targetDiseaseId, setTargetDiseaseId] = useState<string>('breast-cancer')
 
-  // Back and forward move between tabs rather than leaving the app.
+  // Back and forward move between screens rather than leaving the app.
   useEffect(() => {
-    const onPop = () => setActiveTab(tabFromPath(window.location.pathname))
+    const onPop = () => setRoute(routeFromPath(window.location.pathname))
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
   /*
-   * Normalise the address bar on first load, so "/" shows /train rather than
-   * leaving the URL disagreeing with the view. `replaceState` rather than
-   * `pushState`: this is a correction, not a navigation, and should not add a
-   * history entry the back button has to step through.
+   * Normalise the address bar on first load, so an unrecognised path shows "/"
+   * rather than leaving the URL disagreeing with the view. `replaceState`
+   * rather than `pushState`: this is a correction, not a navigation, and should
+   * not add a history entry the back button has to step through.
    */
   useEffect(() => {
-    const path = `/${activeTab}`
+    const path = pathFor(route)
     if (window.location.pathname !== path) {
       window.history.replaceState(null, '', path)
     }
@@ -61,10 +69,11 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const go = (id: TabId) => {
-    setActiveTab(id)
-    if (window.location.pathname !== `/${id}`) {
-      window.history.pushState(null, '', `/${id}`)
+  const go = (id: Route) => {
+    setRoute(id)
+    const path = pathFor(id)
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path)
     }
   }
 
@@ -99,11 +108,20 @@ export default function App() {
         }}
       >
         <div className="flex items-center gap-2">
-          <Wordmark size={18} />
-          <span className="hidden sm:inline-block h-3.5 w-px bg-white/10" />
-          <span className="hidden xl:inline-block font-mono text-[12px] text-ink-faint">
-            Hybrid Quantum-Classical Disease Detection Platform
-          </span>
+          {/* The wordmark is the way back to the opening screen, which is the
+              convention everywhere else and saves spending a nav key on it. */}
+          <a
+            href="/"
+            aria-label="Home"
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+              e.preventDefault()
+              go('home')
+            }}
+            className="flex cursor-pointer items-center no-underline"
+          >
+            <Wordmark size={18} />
+          </a>
         </div>
 
         {/* Segmented control: the group is a plain track, so the keys inside
@@ -114,8 +132,8 @@ export default function App() {
               key={id}
               type="button"
               onClick={() => go(id)}
-              data-pressed={activeTab === id}
-              aria-current={activeTab === id ? 'page' : undefined}
+              data-pressed={route === id}
+              aria-current={route === id ? 'page' : undefined}
               className="key flex cursor-pointer items-center justify-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-ink sm:w-[128px] sm:px-0"
             >
               <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -126,21 +144,14 @@ export default function App() {
             </button>
           ))}
         </nav>
-
-        {/* Hardware Status Tag */}
-        <div className="hidden md:flex items-center gap-3 font-mono text-[12px] text-ink-faint">
-          <span className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: LANE_COLOR.quantum }} />
-            Qiskit VQC Active
-          </span>
-        </div>
       </header>
 
       {/* Main Tab Surface */}
       <main className="flex-1 min-h-0 overflow-hidden">
-        {activeTab === 'benchmark' && <BenchmarkTab />}
-        {activeTab === 'train' && <TrainTab onNavigateToPredict={handleNavigateToPredict} />}
-        {activeTab === 'predict' && <PredictTab initialDiseaseId={targetDiseaseId} />}
+        {route === 'home' && <HomeScreen onOpen={go} />}
+        {route === 'benchmark' && <BenchmarkTab />}
+        {route === 'train' && <TrainTab onNavigateToPredict={handleNavigateToPredict} />}
+        {route === 'predict' && <PredictTab initialDiseaseId={targetDiseaseId} />}
       </main>
     </div>
   )
