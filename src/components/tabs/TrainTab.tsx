@@ -32,18 +32,24 @@ import {
 import type { EpochRecord } from '../../lib/quantum/vqc'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { InfoDot } from '../InfoDot'
-import { ConvergenceChart, RocChart } from '../charts'
+import { InputBuilder } from '../InputBuilder'
+import { kindOf, type InputKind, type InputRow } from '../../lib/inputKinds'
+import { ConvergenceChart } from '../charts'
 import { ScatterPlot } from '../charts/ScatterPlot'
 import {
+  IconArrowLeft,
   IconArrowRight,
   IconCheck,
-  IconDatabase,
   IconFlask,
   IconPulse,
-  IconUpload,
 } from '../icons'
 
-type Step = 'ingest' | 'preview' | 'training' | 'results'
+/*
+ * The flow, in the order the user works through it: describe the inputs, pick
+ * the condition they belong to, choose the feature treatment, then train.
+ * One card at a time, each advanced by its own Next button.
+ */
+type Step = 'inputs' | 'disease' | 'features' | 'training' | 'results'
 
 export function TrainTab({
   onNavigateToPredict,
@@ -51,8 +57,17 @@ export function TrainTab({
   onNavigateToPredict?: (diseaseId: string) => void
 }) {
   const [selectedDiseaseId, setSelectedDiseaseId] = useState<string>('breast-cancer')
-  const [activeStep, setActiveStep] = useState<Step>('ingest')
-  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [activeStep, setActiveStep] = useState<Step>('inputs')
+
+  /*
+   * The declared inputs. Starts as one CSV row; the user adds more and picks a
+   * type per row. Only the CSV rows become a trainable matrix - the rest are
+   * recorded as reference sources and say so.
+   */
+  const [inputRows, setInputRows] = useState<InputRow[]>([
+    { id: 'in-1', kind: 'csv', fileName: null, rows: null, note: null },
+  ])
+  const nextInputId = useRef(2)
   const [uploadFileName, setUploadFileName] = useState<string | null>(null)
   const [is3DScatter, setIs3DScatter] = useState(false)
 
@@ -70,8 +85,6 @@ export function TrainTab({
   const [reductionMethod, setReductionMethod] = useState<SelectionMethod>('mutual-info')
   const [nFeatures, setNFeatures] = useState<number>(disease.defaultQubits)
   const [epochs, setEpochs] = useState<number>(24)
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const cancelTrainingRef = useRef(false)
 
   // Update qubit count when disease changes
@@ -126,35 +139,84 @@ export function TrainTab({
     }
   }, [dataset, imputeStrategy, scalerType, reductionMethod])
 
-  // Handle Custom Dataset Upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  // ---- the declared inputs ------------------------------------------------
 
-    setUploadError(null)
+  const addInput = () => {
+    const id = `in-${nextInputId.current++}`
+    setInputRows((prev) => [
+      ...prev,
+      { id, kind: 'csv', fileName: null, rows: null, note: null },
+    ])
+  }
+
+  const removeInput = (id: string) =>
+    setInputRows((prev) => prev.filter((r) => r.id !== id))
+
+  // Changing the type invalidates whatever was loaded under the old one.
+  const setInputKind = (id: string, kind: InputKind) =>
+    setInputRows((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, kind, fileName: null, rows: null, note: null } : r,
+      ),
+    )
+
+  /**
+   * A CSV row is parsed and registered as the trainable dataset. Any other type
+   * is recorded with its file name and marked as not contributing, because only
+   * the CSV path produces the numeric matrix the pipeline needs.
+   */
+  const handleRowFile = (id: string, file: File) => {
+    const row = inputRows.find((r) => r.id === id)
+    if (!row) return
+
+    if (!kindOf(row.kind).trains) {
+      setInputRows((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? { ...r, fileName: file.name, rows: null, note: 'not trained on' }
+            : r,
+        ),
+      )
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = (ev) => {
       try {
         const text = ev.target?.result as string
         const summary = parseCsv(text, file.name, file.size)
         const previews = previewColumns(summary)
-        const labelCol = suggestLabelColumn(previews) || summary.headers[summary.headers.length - 1]
+        const labelCol =
+          suggestLabelColumn(previews) || summary.headers[summary.headers.length - 1]
         const converted = convertUpload(summary, labelCol)
         registerCustomDataset(converted.dataset, file.name)
         setUploadFileName(file.name)
-      } catch (err: any) {
-        setUploadError(err?.message || 'Failed to parse CSV dataset.')
+        setInputRows((prev) =>
+          prev.map((r) =>
+            r.id === id
+              ? { ...r, fileName: file.name, rows: summary.rows, note: null }
+              : r,
+          ),
+        )
+      } catch (err) {
+        setInputRows((prev) =>
+          prev.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  fileName: file.name,
+                  rows: null,
+                  note: err instanceof Error ? 'parse failed' : 'failed',
+                }
+              : r,
+          ),
+        )
       }
     }
     reader.readAsText(file)
   }
 
-  // Clear Uploaded Dataset
-  const handleResetUpload = () => {
-    setUploadFileName(null)
-    setUploadError(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
+
 
   // Execute Live Training
   const handleStartTraining = () => {
@@ -295,23 +357,6 @@ export function TrainTab({
   const trainedClassical = trainingResult?.models.find((m) => m.kind === 'classical')
   const trainedQuantum = trainingResult?.models.find((m) => m.kind === 'quantum')
 
-  const trainedRocCurves = useMemo(() => {
-    if (!trainingResult || !trainedClassical || !trainedQuantum) return []
-    return [
-      {
-        label: `Trained Classical (${trainedClassical.label})`,
-        color: LANE_COLOR.classical,
-        points: rocCurve(trainingResult.yTest, trainedClassical.scores),
-        auc: trainedClassical.metrics.rocAuc,
-      },
-      {
-        label: `Trained Quantum (${trainedQuantum.label})`,
-        color: LANE_COLOR.quantum,
-        points: rocCurve(trainingResult.yTest, trainedQuantum.scores),
-        auc: trainedQuantum.metrics.rocAuc,
-      },
-    ]
-  }, [trainingResult, trainedClassical, trainedQuantum])
 
 
   return (
@@ -328,193 +373,161 @@ export function TrainTab({
             </InfoDot>
           </div>
 
-          {/* Stepper Buttons */}
-          <div className="flex items-center gap-1 rounded-[8px] bg-black/25 p-1 font-mono text-[12px]">
-            <button
-              type="button"
-              onClick={() => setActiveStep('ingest')}
-              data-pressed={activeStep === 'ingest'}
-              className="key cursor-pointer rounded-[6px] px-3 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-white" 
-            >
-              1. Ingest & Route
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveStep('preview')}
-              data-pressed={activeStep === 'preview'}
-              className="key cursor-pointer rounded-[6px] px-3 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-white" 
-            >
-              2. Feature Preview
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (trainingResult) setActiveStep('results')
-                else handleStartTraining()
-              }}
-              data-pressed={activeStep === 'training' || activeStep === 'results'}
-              className="key cursor-pointer rounded-[6px] px-3 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-white" 
-            >
-              3. Train & Compare
-            </button>
+          {/* Progress marker: read-only, so the flow is advanced by the Next
+              buttons rather than by jumping between arbitrary steps. */}
+          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+            {(['inputs', 'disease', 'features', 'training'] as const).map((k, i) => {
+              const order: Step[] = ['inputs', 'disease', 'features', 'training', 'results']
+              const at = order.indexOf(activeStep)
+              const done = i < at
+              const on = i === at || (k === 'training' && activeStep === 'results')
+              return (
+                <span key={k} className="flex items-center gap-1.5">
+                  <span
+                    className="grid h-5 w-5 place-items-center rounded-full"
+                    style={{
+                      background: on || done ? alpha(LANE_COLOR.quantum, 0.16) : 'transparent',
+                      border: `1px solid ${on || done ? alpha(LANE_COLOR.quantum, 0.5) : 'rgba(255,255,255,0.12)'}`,
+                      color: on || done ? LANE_COLOR.quantum : '#6A6C72',
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  {i < 3 && <span className="h-px w-4 bg-white/10" />}
+                </span>
+              )
+            })}
           </div>
         </div>
 
-        {/* STEP 1: INGESTION & DISEASE ROUTER */}
-        {activeStep === 'ingest' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              {/* Left Column: Disease Selection (6 cols) */}
-              <div
-                className="lg:col-span-6 panel-raised rounded-panel panel-pad"
+        {/* STEP 1: the inputs, built up row by row. */}
+        {activeStep === 'inputs' && (
+          <div className="panel-raised rounded-panel panel-pad flow-step">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-[14.5px] font-medium text-ink">
+                <span className="engraved mr-2 font-mono text-[12px]">1</span>
+                Inputs
+              </h2>
+              <InfoDot label="About these inputs">
+                Add a row per source and pick its type. Only a CSV table is parsed
+                into the numeric matrix the pipeline trains on; the other types are
+                recorded as reference sources and marked as not trained on.
+              </InfoDot>
+            </div>
+
+            <div className="flow-body console-scroll mt-4 overflow-y-auto">
+              <InputBuilder
+                rows={inputRows}
+                onAdd={addInput}
+                onRemove={removeInput}
+                onKind={setInputKind}
+                onFile={handleRowFile}
+              />
+            </div>
+
+            <div className="mt-4 flex shrink-0 items-center justify-between border-t border-white/5 pt-4">
+              <span className="font-mono text-[11px] text-ink-faint">
+                {uploadFileName
+                  ? `training on ${dataset.name}`
+                  : `no file yet, will use the ${disease.name.toLowerCase()} preset`}
+              </span>
+              <button
+                type="button"
+                onClick={() => setActiveStep('disease')}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink hover:text-white"
               >
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <IconDatabase className="h-4 w-4 text-ink-faint" />
-                    <h2 className="text-[14.5px] font-medium text-ink">Condition</h2>
-                  </div>
-                  <InfoDot label="About routing">
-                    The selected condition determines the preprocessing transformers,
-                    the feature-extraction recipe, and the quantum circuit ansatz.
-                  </InfoDot>
-                </div>
+                Next
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
 
-                <div className="space-y-2.5">
-                  {DISEASE_PIPELINES.map((d) => {
-                    const active = d.id === selectedDiseaseId
-                    return (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDiseaseId(d.id)
-                          handleResetUpload()
-                        }}
-                        className="w-full text-left rounded-[8px] p-3.5 transition-all cursor-pointer"
-                        style={{
-                          background: active ? '#1F2126' : '#101114',
-                          border: `1px solid ${active ? alpha(LANE_COLOR.quantum, 0.5) : 'rgba(255,255,255,0.05)'}`,
-                          boxShadow: active ? `0 0 0 1px ${alpha(LANE_COLOR.quantum, 0.2)}` : 'none',
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-[11px] text-ink-faint">
-                            {d.categoryLabel}
-                          </span>
-                          {active && (
-                            <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.quantum }} />
-                          )}
-                        </div>
-                        <div className="text-[15px] font-medium text-ink mt-0.5">{d.name}</div>
-                        <div className="mt-1 flex items-center gap-3 font-mono text-[11.5px] text-ink-faint">
-                          <span>Modality: {d.modality}</span>
-                          <span>Input: {d.inputDimensionality.slice(0, 24)}...</span>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+        {/* STEP 2: the condition. */}
+        {activeStep === 'disease' && (
+          <div className="panel-raised rounded-panel panel-pad flow-step">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-[14.5px] font-medium text-ink">
+                <span className="engraved mr-2 font-mono text-[12px]">2</span>
+                Condition
+              </h2>
+              <InfoDot label="About routing">
+                The selected condition determines the preprocessing transformers, the
+                feature-extraction recipe, and the quantum circuit ansatz.
+              </InfoDot>
+            </div>
 
-              {/* Right Column: Ingestion Options & Upload (6 cols) */}
-              <div
-                className="lg:col-span-6 panel-raised rounded-panel panel-pad"
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <IconUpload className="h-4 w-4 text-ink-faint" />
-                    <h2 className="text-[14.5px] font-medium text-ink">Data</h2>
-                  </div>
-                  <InfoDot label="About ingestion">
-                    Records are validated and normalised before quantum state
-                    encoding. A custom CSV must be tabular with one target column;
-                    the last column is used unless a likelier label is detected.
-                  </InfoDot>
-                </div>
-
-                {/* Upload Box */}
-                <div
-                  className="rounded-[8px] border-2 border-dashed border-white/10 p-5 text-center hover:border-white/20 transition-colors"
-                  style={{ background: '#0F1012' }}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="csv-upload-input"
-                  />
-                  <label
-                    htmlFor="csv-upload-input"
-                    className="cursor-pointer flex flex-col items-center gap-2"
-                  >
-                    <IconUpload className="h-6 w-6 text-ink-faint" />
-                    <span className="text-[14px] font-medium text-ink">
-                      {uploadFileName ? `Uploaded: ${uploadFileName}` : 'Upload Custom CSV Dataset'}
-                    </span>
-                    <span className="font-mono text-[11.5px] text-ink-faint">
-                      Supports comma-separated tabular records with target column
-                    </span>
-                  </label>
-
-                  {uploadFileName && (
-                    <div className="mt-3 flex items-center justify-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded bg-[#3E8C9E]/15 border border-[#3E8C9E]/30 px-2 py-0.5 font-mono text-[11.5px] text-[#3E8C9E]">
-                        <IconCheck className="h-3 w-3" />
-                        Ingested {dataset.X.length} rows × {dataset.featureNames.length} features
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleResetUpload}
-                        className="cursor-pointer font-mono text-[11px] text-ink-faint hover:text-ink underline"
-                      >
-                        Reset to preset
-                      </button>
-                    </div>
-                  )}
-
-                  {uploadError && (
-                    <div className="mt-2 text-[12.5px] text-[#A3543D]">{uploadError}</div>
-                  )}
-                </div>
-
-                {/* Ingested Dataset Summary */}
-                <div className="panel-well mt-4 rounded-[8px] well-pad font-mono text-[12.5px] space-y-1.5">
-                  <div className="flex justify-between text-ink-faint">
-                    <span>Active Cohort:</span>
-                    <span className="text-ink font-medium">{dataset.name}</span>
-                  </div>
-                  <div className="flex justify-between text-ink-faint">
-                    <span>Total Rows & Features:</span>
-                    <span className="text-ink">{dataset.X.length} records × {dataset.featureNames.length} dims</span>
-                  </div>
-                  <div className="flex justify-between text-ink-faint">
-                    <span>Labels:</span>
-                    <span className="text-ink">
-                      <span className="text-[#A3543D]">{dataset.positiveLabel}</span> /{' '}
-                      <span className="text-[#3E8C9E]">{dataset.negativeLabel}</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex justify-end">
+            <div className="flow-body mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {DISEASE_PIPELINES.map((d) => {
+                const active = d.id === selectedDiseaseId
+                return (
                   <button
+                    key={d.id}
                     type="button"
-                    onClick={() => setActiveStep('preview')}
-                    className="flex items-center gap-2 rounded-[6px] px-4 py-2 font-mono text-[13px] font-medium text-black cursor-pointer transition-transform duration-150 hover:scale-[1.02]"
-                    style={{ background: LANE_COLOR.quantum }}
+                    data-pressed={active}
+                    onClick={() => setSelectedDiseaseId(d.id)}
+                    className="key flex cursor-pointer flex-col justify-between rounded-[8px] p-4 text-left"
+                    style={
+                      active ? { borderColor: alpha(LANE_COLOR.quantum, 0.45) } : undefined
+                    }
                   >
-                    Proceed to Feature Preview <IconArrowRight className="h-3.5 w-3.5" />
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <span
+                          className="text-[14.5px] font-medium leading-snug"
+                          style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
+                        >
+                          {d.name}
+                        </span>
+                        <span
+                          className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full"
+                          style={{
+                            border: `1.5px solid ${active ? LANE_COLOR.quantum : 'rgba(255,255,255,0.14)'}`,
+                          }}
+                        >
+                          {active && (
+                            <span
+                              className="h-1.5 w-1.5 rounded-full"
+                              style={{ background: LANE_COLOR.quantum }}
+                            />
+                          )}
+                        </span>
+                      </div>
+                      <div className="engraved mt-1.5 font-mono text-[11px]">
+                        {d.categoryLabel}
+                      </div>
+                    </div>
+                    <div className="mt-3 border-t border-white/5 pt-2.5 font-mono text-[11px] text-ink-faint">
+                      {d.totalSamples.toLocaleString()} samples · {d.defaultQubits} qubits
+                    </div>
                   </button>
-                </div>
-              </div>
+                )
+              })}
+            </div>
+
+            <div className="mt-4 flex shrink-0 items-center justify-between border-t border-white/5 pt-4">
+              <button
+                type="button"
+                onClick={() => setActiveStep('inputs')}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink-dim hover:text-ink"
+              >
+                <IconArrowLeft className="h-3.5 w-3.5" />
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveStep('features')}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink hover:text-white"
+              >
+                Next
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         )}
 
         {/* STEP 2: PREPROCESSING & FEATURE PREVIEW */}
-        {activeStep === 'preview' && previewData && (
+        {activeStep === 'features' && previewData && (
           <div className="space-y-4">
             {/* Preprocessing Stages Visualization */}
             <div
@@ -706,17 +719,26 @@ export function TrainTab({
                   </div>
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-white/5">
-                  <button
-                    type="button"
-                    onClick={handleStartTraining}
-                    className="w-full flex items-center justify-center gap-2 rounded-[6px] py-2.5 font-mono text-[13px] font-medium text-black cursor-pointer transition-transform duration-150 hover:scale-[1.02]"
-                    style={{ background: LANE_COLOR.quantum }}
-                  >
-                    <IconPulse className="h-4 w-4" /> Start Dual-Lane Training
-                  </button>
-                </div>
               </div>
+            </div>
+
+            <div className="mt-4 flex shrink-0 items-center justify-between border-t border-white/5 pt-4">
+              <button
+                type="button"
+                onClick={() => setActiveStep('disease')}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink-dim hover:text-ink"
+              >
+                <IconArrowLeft className="h-3.5 w-3.5" />
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={handleStartTraining}
+                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink hover:text-white"
+              >
+                <IconPulse className="h-3.5 w-3.5" />
+                Train
+              </button>
             </div>
           </div>
         )}
@@ -979,19 +1001,6 @@ export function TrainTab({
             </div>
 
             {/* ROC Curves for Newly Trained Models */}
-            <div
-              className="panel-raised rounded-panel panel-pad"
-            >
-              <div className="mb-2 flex items-baseline justify-between">
-                <h3 className="font-mono text-[13px] font-medium text-ink-faint">
-                  ROC Curves for Newly Trained Models
-                </h3>
-                <span className="font-mono text-[11.5px] text-ink-faint">Holdout Validation Split</span>
-              </div>
-              <div className="max-w-[420px] mx-auto">
-                <RocChart curves={trainedRocCurves} size={240} />
-              </div>
-            </div>
           </div>
         )}
       </div>

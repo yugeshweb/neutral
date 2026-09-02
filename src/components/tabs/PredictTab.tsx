@@ -345,7 +345,6 @@ export function PredictTab({
               result={scoredResult}
               imageUrl={imageUrl}
               conditionId={selectedId}
-              conditionName={disease.targetCondition}
               positiveLabel={disease.positiveLabel}
               negativeLabel={disease.negativeLabel}
             />

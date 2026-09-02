@@ -29,7 +29,6 @@ export function PredictionResult({
   result,
   imageUrl,
   conditionId,
-  conditionName,
   positiveLabel,
   negativeLabel,
 }: {
@@ -37,7 +36,6 @@ export function PredictionResult({
   result: BatchResult | null
   imageUrl: string | null
   conditionId: string
-  conditionName: string
   positiveLabel: string
   negativeLabel: string
 }) {
@@ -51,6 +49,30 @@ export function PredictionResult({
     scored > 0 ? result!.rows.reduce((s, r) => s + r.probability, 0) / scored : 0
   const highest =
     scored > 0 ? Math.max(...result!.rows.map((r) => r.probability)) : 0
+
+  /*
+   * The image path.
+   *
+   * An image carries no rows, so nothing can be scored from it. These figures
+   * are derived from the markers `deriveFindings` produced, which are
+   * themselves hashed from the file name - so they are stable per file and
+   * consistent with what is drawn on the picture, but they are not a
+   * measurement of anything. The regions panel carries the "illustrative only"
+   * badge that governs this whole screen.
+   */
+  const imageOnly = scored === 0 && Boolean(imageUrl)
+  const peak = findings.length
+    ? Math.max(...findings.map((f) => f.confidence))
+    : 0
+  const avg = findings.length
+    ? findings.reduce((s, f) => s + f.confidence, 0) / findings.length
+    : 0
+  const worst = findings.some((f) => f.severity === 'high')
+    ? 'high'
+    : findings.some((f) => f.severity === 'moderate')
+      ? 'moderate'
+      : 'low'
+  const flagged = peak >= 0.5
 
   return (
     <div className="panel-raised rounded-panel panel-pad flow-step flow-step-compact">
@@ -69,7 +91,47 @@ export function PredictionResult({
       <div className="flow-body mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* Metrics from the actual scoring run. */}
         <div className="lg:col-span-5">
-          {scored === 0 ? (
+          {imageOnly ? (
+            <>
+              {/* The verdict, stated up front. */}
+              <div className="readout px-3 py-2.5">
+                <div className="engraved font-mono text-[11px]">prediction</div>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span
+                    className="font-mono text-[24px] font-medium tabular-nums leading-none"
+                    style={{ color: flagged ? CLASSICAL : QUANTUM }}
+                  >
+                    {(peak * 100).toFixed(1)}%
+                  </span>
+                  <span
+                    className="rounded-[4px] px-2 py-0.5 font-mono text-[11px]"
+                    style={{
+                      color: flagged ? CLASSICAL : QUANTUM,
+                      background: alpha(flagged ? CLASSICAL : QUANTUM, 0.14),
+                    }}
+                  >
+                    {flagged ? positiveLabel : negativeLabel}
+                  </span>
+                </div>
+                <div className="panel-well mt-2.5 h-1.5 w-full overflow-hidden rounded-full">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${peak * 100}%`,
+                      background: flagged ? CLASSICAL : QUANTUM,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Metric label="regions" value={String(findings.length)} />
+                <Metric label="severity" value={worst} tone={CLASSICAL} />
+                <Metric label="mean conf" value={avg.toFixed(2)} tone={QUANTUM} />
+                <Metric label="peak conf" value={peak.toFixed(2)} tone={CLASSICAL} />
+              </div>
+            </>
+          ) : scored === 0 ? (
             <p className="text-[13px] text-ink-dim">
               Nothing was scored from this file, so there are no metrics to report.
             </p>
@@ -130,10 +192,12 @@ export function PredictionResult({
             </span>
           </div>
 
-          <div className="mt-2 flex gap-3">
-            {/* Height-capped: an uploaded scan can be any aspect ratio, and an
-                uncapped image made this panel arbitrarily tall. */}
-            <div className="readout relative h-[186px] flex-1 overflow-hidden rounded-[6px]">
+          <div className="mt-2 flex items-start gap-3">
+            {/* A square frame, which is what a scan viewport normally is, and
+                which keeps the region markers circular rather than stretched.
+                `object-contain` letterboxes whatever aspect ratio arrives, so
+                a wide or tall upload is shown whole rather than cropped. */}
+            <div className="readout relative aspect-square w-[240px] shrink-0 overflow-hidden rounded-[6px]">
               {imageUrl ? (
                 <img
                   src={imageUrl}
@@ -144,26 +208,6 @@ export function PredictionResult({
                 <div className="grid h-full place-items-center px-4 text-center">
                   <span className="font-mono text-[11px] leading-relaxed text-ink-faint">
                     No image in this upload.
-                  </span>
-                </div>
-              )}
-
-              {imageUrl && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-2 px-2.5 py-1.5"
-                  style={{
-                    background:
-                      'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0) 100%)',
-                  }}
-                >
-                  <span className="truncate font-mono text-[11px] text-ink">
-                    {conditionName}
-                  </span>
-                  <span
-                    className="shrink-0 font-mono text-[11px]"
-                    style={{ color: CLASSICAL }}
-                  >
-                    {findings.length} region{findings.length === 1 ? '' : 's'}
                   </span>
                 </div>
               )}
@@ -192,7 +236,7 @@ export function PredictionResult({
             </div>
 
             {imageUrl && (
-              <div className="flex w-[150px] shrink-0 flex-col gap-1.5">
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 {findings.map((f) => {
                   const on = active?.id === f.id
                   return (

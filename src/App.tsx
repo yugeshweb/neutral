@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 import { EhrValidationView } from './components/EhrValidationView'
 import { BenchmarkTab } from './components/tabs/BenchmarkTab'
 import { TrainTab } from './components/tabs/TrainTab'
@@ -7,17 +7,66 @@ import { Wordmark } from './components/Wordmark'
 import { LANE_COLOR } from './lib/theme'
 import { IconBars, IconFlask, IconPulse } from './components/icons'
 
-export type TabId = 'benchmark' | 'train' | 'predict'
+export type TabId = 'train' | 'predict' | 'benchmark'
 
 const TABS: { id: TabId; label: string; Icon: (p: { className?: string }) => ReactElement }[] = [
-  { id: 'benchmark', label: '1. Benchmark', Icon: IconBars },
-  { id: 'train', label: '2. Train', Icon: IconFlask },
-  { id: 'predict', label: '3. Predict', Icon: IconPulse },
+  { id: 'train', label: '1. Train', Icon: IconFlask },
+  { id: 'predict', label: '2. Predict', Icon: IconPulse },
+  { id: 'benchmark', label: '3. Benchmark', Icon: IconBars },
 ]
 
+const TAB_IDS = TABS.map((t) => t.id)
+
+/**
+ * Routing, without a router.
+ *
+ * Each tab owns a path, so a screen can be linked to and the back button
+ * works. The app is three views deep with no nested or parameterised routes,
+ * which is not enough to justify pulling in a routing library - `pushState`
+ * plus a `popstate` listener covers it.
+ *
+ * Anything unrecognised resolves to the first tab rather than 404ing, since
+ * every path under this origin is served the same SPA entry point.
+ */
+function tabFromPath(pathname: string): TabId {
+  const seg = pathname.replace(/^\/+|\/+$/g, '')
+  return (TAB_IDS as string[]).includes(seg) ? (seg as TabId) : 'train'
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('benchmark')
+  const [activeTab, setActiveTab] = useState<TabId>(() =>
+    typeof window === 'undefined' ? 'train' : tabFromPath(window.location.pathname),
+  )
   const [targetDiseaseId, setTargetDiseaseId] = useState<string>('breast-cancer')
+
+  // Back and forward move between tabs rather than leaving the app.
+  useEffect(() => {
+    const onPop = () => setActiveTab(tabFromPath(window.location.pathname))
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  /*
+   * Normalise the address bar on first load, so "/" shows /train rather than
+   * leaving the URL disagreeing with the view. `replaceState` rather than
+   * `pushState`: this is a correction, not a navigation, and should not add a
+   * history entry the back button has to step through.
+   */
+  useEffect(() => {
+    const path = `/${activeTab}`
+    if (window.location.pathname !== path) {
+      window.history.replaceState(null, '', path)
+    }
+    // Deliberately first-render only; later changes go through `go`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const go = (id: TabId) => {
+    setActiveTab(id)
+    if (window.location.pathname !== `/${id}`) {
+      window.history.pushState(null, '', `/${id}`)
+    }
+  }
 
   // Standalone route for validation if requested directly
   if (typeof window !== 'undefined' && window.location.pathname === '/ehr-validation') {
@@ -26,7 +75,7 @@ export default function App() {
 
   const handleNavigateToPredict = (diseaseId: string) => {
     setTargetDiseaseId(diseaseId)
-    setActiveTab('predict')
+    go('predict')
   }
 
   return (
@@ -64,7 +113,7 @@ export default function App() {
             <button
               key={id}
               type="button"
-              onClick={() => setActiveTab(id)}
+              onClick={() => go(id)}
               data-pressed={activeTab === id}
               aria-current={activeTab === id ? 'page' : undefined}
               className="key flex cursor-pointer items-center justify-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-ink sm:w-[128px] sm:px-0"

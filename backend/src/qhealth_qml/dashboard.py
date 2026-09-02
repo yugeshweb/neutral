@@ -31,6 +31,17 @@ from .platform.registry import load_registry
 from .platform.routing import route
 
 
+# Paths the frontend routes client-side. Each must be served index.html so a
+# hard refresh or a pasted link lands on the app rather than a 404.
+_SPA_ROUTES = frozenset({
+    "/",
+    "/train",
+    "/predict",
+    "/benchmark",
+    "/ehr-validation",
+})
+
+
 def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
@@ -519,7 +530,13 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             else:
                 self._send_json(run.to_dict())
             return
-        if route == "/ehr-validation" and self.config.get("ui_dir"):
+        # Client-side routes are served the SPA entry point. The frontend owns
+        # /train, /predict, /benchmark and /ehr-validation; without this they
+        # 404 on a hard refresh or a pasted link, because no such file exists
+        # on disk. Anything under /api/ has already been handled above, and a
+        # request with a file extension is left alone so real assets still
+        # resolve normally.
+        if self.config.get("ui_dir") and route in _SPA_ROUTES:
             self.path = "/index.html"
         super().do_GET()
 
