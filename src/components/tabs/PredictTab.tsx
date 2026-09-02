@@ -10,6 +10,7 @@ import { InfoDot } from '../InfoDot'
 import { ProcessingBay } from '../ProcessingBay'
 import { PredictionResult } from '../PredictionResult'
 import { IconArrowLeft, IconArrowRight, IconCheck, IconUpload } from '../icons'
+import { CONDITION_VECTOR, VecLesion, intakeVector } from '../vectors'
 
 /**
  * Inference intake.
@@ -184,14 +185,17 @@ export function PredictTab({
               </h2>
             </div>
 
-            {/* The cards fill the card's height evenly, so the grid reads as a
-                deliberate 2x2 rather than four controls floating at the top. */}
-            <div className="flow-body mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* Four across from 640px up, not 1024: at two columns these are
+                two rows of squares, which at 220px each needs 452px of body
+                and overflows a 768px-tall window. One row of 220px fits every
+                height `.flow-step` allows. Below 640 it falls to two columns,
+                where the step drops its min-height and scrolling is fine. */}
+            <div className="flow-body mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {INTAKE_DISEASE_IDS.map((id) => {
                 const d = getDiseasePipeline(id)
                 const active = id === selectedId
                 const trainedHere = trainedIds.has(id)
-                const accent = active ? QUANTUM : 'rgba(255,255,255,0.14)'
+                const Vec = CONDITION_VECTOR[id] ?? VecLesion
                 return (
                   <button
                     key={id}
@@ -201,41 +205,20 @@ export function PredictTab({
                       setSelectedId(id)
                       setStates({})
                     }}
-                    className="key flex cursor-pointer flex-col justify-between rounded-[8px] p-4 text-left"
-                    style={active ? { borderColor: alpha(QUANTUM, 0.45) } : undefined}
+                    className="tile mx-auto flex aspect-square w-full max-w-[220px] cursor-pointer flex-col p-3 text-left"
+                    style={{ ['--tile-accent' as string]: QUANTUM }}
                   >
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <span
-                          className="text-[15.5px] font-medium leading-snug"
-                          style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
-                        >
-                          {d.name}
-                        </span>
-                        {/* Selected marker: a filled ring, so the choice is
-                            legible without relying on the border alone. */}
-                        <span
-                          className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full"
-                          style={{ border: `1.5px solid ${accent}` }}
-                        >
-                          {active && (
-                            <span
-                              className="h-1.5 w-1.5 rounded-full"
-                              style={{ background: QUANTUM }}
-                            />
-                          )}
-                        </span>
-                      </div>
-                      <div className="engraved mt-1.5 font-mono text-[11px]">
-                        {d.categoryLabel}
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex items-end justify-between gap-2 border-t border-white/5 pt-2.5 font-mono text-[11px]">
-                      <span className="text-ink-faint">
-                        {d.totalSamples.toLocaleString()} samples
+                    {/* The plate: same treatment as the opening screen's
+                        tiles. Not `aspect-square` - the card is already
+                        square, so `flex-1` gives the plate what the text
+                        block below does not need. */}
+                    <div className="tile-art min-h-0 w-full flex-1">
+                      <Vec size={56} accent={QUANTUM} />
+                      <span className="engraved absolute left-2 top-1.5 font-mono text-[10.5px]">
+                        {d.categoryLabel.split(' / ')[0]}
                       </span>
                       <span
+                        className="absolute right-2 top-1.5 font-mono text-[10px]"
                         style={{ color: trainedHere ? QUANTUM : '#6A6C72' }}
                         title={
                           trainedHere
@@ -243,8 +226,23 @@ export function PredictTab({
                             : 'Not trained yet: files will be read but not scored'
                         }
                       >
-                        {trainedHere ? 'model ready' : 'not trained'}
+                        {trainedHere ? 'ready' : 'untrained'}
                       </span>
+                    </div>
+
+                    <div className="mt-2.5 min-w-0 shrink-0">
+                      {/* Clamped for the same reason as in Train: the longest
+                          name overruns the smallest square otherwise. */}
+                      <div
+                        className="line-clamp-2 text-[13.5px] font-medium leading-snug"
+                        title={d.name}
+                        style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
+                      >
+                        {d.name}
+                      </div>
+                      <div className="tile-muted mt-1 font-mono text-[10.5px]">
+                        {d.totalSamples.toLocaleString()} samples
+                      </div>
                     </div>
                   </button>
                 )
@@ -378,13 +376,30 @@ function IntakeCard({
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [dragging, setDragging] = useState(false)
+  const Vec = intakeVector(field.id, field.imaging)
 
   return (
-    <div className="panel-well well-pad flex h-full flex-col rounded-[8px]">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[13px] font-medium text-ink">{field.label}</span>
+    <div
+      className="tile well-pad flex h-full flex-col"
+      style={{ ['--tile-accent' as string]: field.wired ? QUANTUM : '#6A6C72' }}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <span className="text-[13px] font-medium text-ink">{field.label}</span>
+          <p className="engraved mt-1 font-mono text-[11px]">
+            {field.system} · {field.accept}
+          </p>
+        </div>
+        {/* The format's own drawing. Dimmed for an input with no parser, so
+            the card reads as unavailable before the badge is even read. */}
+        <span className="-mr-0.5 -mt-0.5 shrink-0" style={{ opacity: field.wired ? 1 : 0.4 }}>
+          <Vec size={40} accent={field.wired ? QUANTUM : '#6A6C72'} />
+        </span>
+      </div>
+
+      <div className="mt-1.5">
         <span
-          className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[11px]"
+          className="inline-block rounded-[4px] px-1.5 py-0.5 font-mono text-[11px]"
           style={
             field.wired
               ? { color: QUANTUM, background: alpha(QUANTUM, 0.12) }
@@ -394,9 +409,7 @@ function IntakeCard({
           {field.wired ? 'supported' : 'not built'}
         </span>
       </div>
-      <p className="engraved mt-1 font-mono text-[11px]">
-        {field.system} · {field.accept}
-      </p>
+
       <p className="mt-2 text-[12.5px] leading-relaxed text-ink-dim">{field.hint}</p>
 
       <input

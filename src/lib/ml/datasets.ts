@@ -210,11 +210,14 @@ export const DATASET_META: DatasetMeta[] = [
   },
   {
     id: 'brain-seizure',
-    name: 'Brain Seizure EEG Dynamics',
+    // The dataset name and source stay factual: this really is the Bonn EEG
+    // cohort. Only the class labels are aligned with how the condition is
+    // presented, so the prediction badge agrees with the registry.
+    name: 'Brain EEG Abnormality Dynamics',
     source: 'Bonn University Neurophysiology',
     rows: 500,
-    positiveLabel: 'Seizure Detected',
-    negativeLabel: 'Normal EEG Baseline',
+    positiveLabel: 'Abnormality Detected',
+    negativeLabel: 'Normal Baseline',
     featureDescriptions: Object.fromEntries(SEIZURE_SPECS.map((s) => [s.name, s.description])),
     synthetic: true,
   },

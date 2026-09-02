@@ -1,13 +1,18 @@
 import { useState } from 'react'
-import {
-  DISEASE_PIPELINES,
-  getDiseasePipeline,
-} from '../../lib/diseaseRegistry'
+import { CONDITION_VECTOR, VecLesion } from '../vectors'
+import { getDiseasePipeline } from '../../lib/diseaseRegistry'
+import { INTAKE_DISEASE_IDS } from '../../lib/intakeSpec'
 import { LANE_COLOR, alpha } from '../../lib/theme'
 import { InfoDot } from '../InfoDot'
 import { RocChart } from '../charts'
-import { DemoChip } from '../DemoChip'
-import { IconCheck, IconPulse, IconTree } from '../icons'
+import { IconCheck, IconTree } from '../icons'
+
+/*
+ * The conditions this tab benchmarks: the same four Train and Predict offer.
+ * Driven off the shared list rather than the whole registry, so adding a
+ * condition in one place cannot leave the tabs disagreeing about coverage.
+ */
+const BENCHMARK_PIPELINES = INTAKE_DISEASE_IDS.map(getDiseasePipeline)
 
 export function BenchmarkTab() {
   const [selectedDiseaseId, setSelectedDiseaseId] = useState<string>('breast-cancer')
@@ -55,38 +60,28 @@ export function BenchmarkTab() {
       <div className="screen">
         {/* Top Platform Overview Header */}
         <section className="panel-raised rounded-panel panel-pad">
-          <div className="flex items-start justify-between gap-6">
-            <div className="max-w-[780px]">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 rounded-[4px] bg-[#3E8C9E]/15 border border-[#3E8C9E]/30 px-2 py-0.5 font-mono text-[12px] text-[#3E8C9E]">
-                  <IconPulse className="h-3 w-3" /> Pre-computed Benchmarks
-                </span>
-                <span className="font-mono text-[12px] text-ink-faint">
-                  Reference Evaluation Registry · Dual-Lane Quantum/Classical
-                </span>
-              </div>
-              <h1 className="mt-2.5 flex items-center gap-2 text-[26px] font-medium tracking-[-0.02em] text-ink">
-                Benchmarks
-                <InfoDot label="About these benchmarks">
-                  Pre-computed evaluations across the platform's disease pipelines.
-                  Each runs a classical baseline and a hybrid variational quantum
-                  model on the same split, so the comparison is like for like.
-                </InfoDot>
-              </h1>
-            </div>
-            <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
-              <DemoChip />
-              <div className="readout px-3 py-2 text-right">
-                <div className="font-mono text-[13px] text-ink">3 Core Disease Pipelines</div>
-                <div className="font-mono text-[11.5px] text-ink-faint">Tabular · EEG Biosignals · Hemodynamic</div>
-              </div>
-            </div>
+          <div className="mx-auto max-w-[780px] text-center">
+            <h1 className="flex items-center justify-center gap-2 text-[26px] font-medium tracking-[-0.02em] text-ink">
+              Pre-computed Benchmarks
+              <InfoDot label="About these benchmarks">
+                Pre-computed evaluations across the platform's disease pipelines.
+                Each runs a classical baseline and a hybrid variational quantum
+                model on the same split, so the comparison is like for like.
+              </InfoDot>
+            </h1>
+            <p className="mt-1.5 font-mono text-[12.5px] text-ink-faint">
+              Reference Evaluation Registry · Dual-Lane Quantum/Classical
+            </p>
           </div>
 
-          {/* Disease Coverage Badges */}
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-white/5">
-            {DISEASE_PIPELINES.map((d) => {
+          {/* Disease Coverage Badges.
+
+              The same four conditions Train and Predict offer, so the tabs do
+              not disagree about which pipelines the platform covers. */}
+          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-white/5 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+            {BENCHMARK_PIPELINES.map((d) => {
               const active = d.id === selectedDiseaseId
+              const Vec = CONDITION_VECTOR[d.id] ?? VecLesion
               return (
                 <button
                   key={d.id}
@@ -94,22 +89,17 @@ export function BenchmarkTab() {
                   onClick={() => setSelectedDiseaseId(d.id)}
                   data-pressed={active}
                   title={d.tagline}
-                  className="key group relative flex cursor-pointer flex-col rounded-[8px] p-3.5 text-left"
-                  style={
-                    active
-                      ? { borderColor: alpha(LANE_COLOR.quantum, 0.5) }
-                      : undefined
-                  }
+                  className="tile group relative flex cursor-pointer flex-col p-3.5 text-left"
+                  style={{ ['--tile-accent' as string]: LANE_COLOR.quantum }}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] text-ink-faint">
-                      {d.categoryLabel}
-                    </span>
-                    {active && (
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: LANE_COLOR.quantum }} />
-                    )}
+                  {/* A shallow plate rather than the full square used in Train
+                      and Predict: this card carries metrics below it, so the
+                      artwork gets a strip across the top instead of the whole
+                      tile. Still the same drawing, same flowing paint. */}
+                  <div className="tile-art h-14 w-full">
+                    <Vec size={40} accent={LANE_COLOR.quantum} />
                   </div>
-                  <div className="mt-1 text-[15px] font-medium text-ink group-hover:text-white">
+                  <div className="mt-2.5 text-[15px] font-medium text-ink group-hover:text-white">
                     {d.name}
                   </div>
                   {/*
@@ -134,7 +124,7 @@ export function BenchmarkTab() {
                       </span>
                     </span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between font-mono text-[11px] text-ink-faint">
+                  <div className="tile-muted mt-2 flex items-center justify-between font-mono text-[11px]">
                     <span className="truncate">{d.modality}</span>
                     <span className="shrink-0">{d.totalSamples} samples</span>
                   </div>

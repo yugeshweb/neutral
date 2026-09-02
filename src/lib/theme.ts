@@ -9,6 +9,15 @@ export const LANE_COLOR: Record<Lane, string> = {
 
 export const ERROR_COLOR = '#A3543D'
 
+/**
+ * Selection green.
+ *
+ * Used only to mark the active choice, and only on a border. Deliberately not
+ * ERROR_COLOR and not the `done` lamp green, so a selected card reads as
+ * chosen rather than as finished or failed.
+ */
+export const SELECT_COLOR = '#4FA86A'
+
 export const LANE_LABEL: Record<Lane, string> = {
   shared: 'shared',
   classical: 'classical',

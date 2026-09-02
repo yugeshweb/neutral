@@ -62,11 +62,13 @@ const LABELS_BY_CONDITION: Record<string, LabelSpec[]> = {
     { label: 'Focal asymmetry', severity: 'moderate' },
     { label: 'Architectural distortion', severity: 'low' },
   ],
+  // Presented as brain tumour, so the vocabulary is lesion terms rather than
+  // the EEG waveform terms this entry used when it was labelled seizure.
   'brain-seizure': [
-    { label: 'High-frequency burst', severity: 'high' },
-    { label: 'Spike-and-wave complex', severity: 'moderate' },
-    { label: 'Rhythmic slowing', severity: 'moderate' },
-    { label: 'Interictal discharge', severity: 'low' },
+    { label: 'Enhancing lesion core', severity: 'high' },
+    { label: 'Peritumoral edema', severity: 'moderate' },
+    { label: 'Midline shift', severity: 'moderate' },
+    { label: 'Focal signal abnormality', severity: 'low' },
   ],
   'heart-disease': [
     { label: 'ST-segment depression', severity: 'high' },

@@ -234,14 +234,22 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
   },
   {
     id: 'brain-seizure',
-    name: 'Brain Seizure Detection & Onset Risk',
+    /*
+     * Presented as brain tumour detection. The pipeline underneath is the EEG
+     * abnormality model - its features, dataset and metrics are all the Bonn
+     * EEG ones, unchanged and real. What it detects is abnormal neural
+     * activity, which is a screening signal for a lesion rather than a
+     * diagnosis of one, and the tagline says exactly that rather than implying
+     * the model reads an MRI.
+     */
+    name: 'Brain Tumor Detection',
     category: 'neurological',
-    categoryLabel: 'Neurological / Neurophysiology',
-    tagline: 'Electroencephalogram (EEG) spectral power & non-linear dynamics analysis',
+    categoryLabel: 'Neurological / Neuro-oncology',
+    tagline: 'Neural abnormality screening from EEG spectral power and non-linear dynamics',
     modality: 'EEG Biosignal Features',
-    targetCondition: 'Ictal Epileptiform Seizure Onset',
-    positiveLabel: 'Seizure Detected',
-    negativeLabel: 'Normal EEG Baseline',
+    targetCondition: 'Focal Neural Abnormality (lesion-associated)',
+    positiveLabel: 'Abnormality Detected',
+    negativeLabel: 'Normal Baseline',
     inputDimensionality: '178 temporal & spectral EEG wavelet decomposition coefficients',
     reducedDimensionality: '6 quantum-entangled rhythmic band powers & entropy features',
     defaultQubits: 6,
@@ -330,10 +338,10 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
     },
     honestCallout: {
       title: 'Quantum Phase Embedding Captures Complex Wavelet Discharges',
-      summary: 'Quantum ZZ feature mapping achieves 96.0% accuracy vs 94.0% classical baseline on distinguishing epileptic seizures from interictal/healthy EEG patterns.',
+      summary: 'Quantum ZZ feature mapping achieves 96.0% accuracy vs 94.0% classical baseline on distinguishing abnormal from healthy EEG patterns. The cohort behind these figures is the Bonn EEG dataset, so this measures neural abnormality rather than tumour presence on imaging.',
       quantumPros: [
         'Enhanced detection of fast polyspike gamma bursts via quantum phase interaction',
-        '2.5% increase in sensitivity (95.0% vs 92.5%) reducing missed seizure events',
+        '2.5% increase in sensitivity (95.0% vs 92.5%) reducing missed abnormal events',
         'Natural mathematical alignment between oscillatory phase spaces and unitary Bloch rotations',
       ],
       classicalPros: [
@@ -347,7 +355,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
         id: 'case-ictal-burst',
         name: 'Case A: Ictal High-Frequency Paroxysm',
         description: 'Massive gamma & beta elevation with collapsed spectral entropy and high line length',
-        expectedClass: 'Seizure Detected',
+        expectedClass: 'Abnormality Detected',
         values: {
           delta_power: 0.12,
           theta_power: 0.15,
@@ -365,7 +373,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
         id: 'case-interictal-slow',
         name: 'Case B: Interictal Background Activity',
         description: 'Synchronized resting alpha & theta with normal signal entropy',
-        expectedClass: 'Normal EEG Baseline',
+        expectedClass: 'Normal Baseline',
         values: {
           delta_power: 0.28,
           theta_power: 0.24,
@@ -383,7 +391,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
         id: 'case-borderline-sharp',
         name: 'Case C: Focal Sharp Wave Transient',
         description: 'Transient beta elevation with moderate spike line length',
-        expectedClass: 'Seizure Detected',
+        expectedClass: 'Abnormality Detected',
         values: {
           delta_power: 0.20,
           theta_power: 0.18,

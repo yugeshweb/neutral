@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  DISEASE_PIPELINES,
   getDiseasePipeline,
   saveTrainedPipeline,
   type TrainedPipelineArtifact,
 } from '../../lib/diseaseRegistry'
+import { INTAKE_DISEASE_IDS } from '../../lib/intakeSpec'
+import { CONDITION_VECTOR, VecLesion } from '../vectors'
 import {
   CUSTOM_DATASET_ID,
   hasCustomDataset,
@@ -457,48 +458,58 @@ export function TrainTab({
               </InfoDot>
             </div>
 
-            <div className="flow-body mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {DISEASE_PIPELINES.map((d) => {
+            {/* The same four conditions the Predict tab offers, so a model
+                trained here always has an intake to be used through.
+
+                Four across from 640px up, not 1024: at two columns these are
+                two rows of squares, which at 220px each needs 452px of body
+                and overflows a 768px-tall window. Four across is one row of
+                220px, which fits everywhere the flow-step does. Below 640 it
+                falls to two columns, where `.flow-step` drops its min-height
+                and the page is allowed to scroll. */}
+            <div className="flow-body mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {INTAKE_DISEASE_IDS.map((id) => {
+                const d = getDiseasePipeline(id)
                 const active = d.id === selectedDiseaseId
+                const Vec = CONDITION_VECTOR[id] ?? VecLesion
                 return (
                   <button
                     key={d.id}
                     type="button"
                     data-pressed={active}
                     onClick={() => setSelectedDiseaseId(d.id)}
-                    className="key flex cursor-pointer flex-col justify-between rounded-[8px] p-4 text-left"
-                    style={
-                      active ? { borderColor: alpha(LANE_COLOR.quantum, 0.45) } : undefined
-                    }
+                    className="tile mx-auto flex aspect-square w-full max-w-[220px] cursor-pointer flex-col p-3 text-left"
+                    style={{ ['--tile-accent' as string]: LANE_COLOR.quantum }}
                   >
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <span
-                          className="text-[14.5px] font-medium leading-snug"
-                          style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
-                        >
-                          {d.name}
-                        </span>
-                        <span
-                          className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full"
-                          style={{
-                            border: `1.5px solid ${active ? LANE_COLOR.quantum : 'rgba(255,255,255,0.14)'}`,
-                          }}
-                        >
-                          {active && (
-                            <span
-                              className="h-1.5 w-1.5 rounded-full"
-                              style={{ background: LANE_COLOR.quantum }}
-                            />
-                          )}
-                        </span>
-                      </div>
-                      <div className="engraved mt-1.5 font-mono text-[11px]">
-                        {d.categoryLabel}
-                      </div>
+                    {/* The plate: same treatment as the opening screen's
+                        tiles, with the condition's drawing as the focal
+                        element rather than a corner glyph. Not `aspect-square`
+                        here - the card itself is already square, so a second
+                        square plate inside it would leave no room for the
+                        text below. `flex-1` gives it whatever the card has
+                        left after the text block. */}
+                    <div className="tile-art relative min-h-0 w-full flex-1">
+                      <Vec size={56} accent={LANE_COLOR.quantum} />
+                      <span className="engraved absolute left-2 top-1.5 font-mono text-[10.5px]">
+                        {d.categoryLabel.split(' / ')[0]}
+                      </span>
                     </div>
-                    <div className="mt-3 border-t border-white/5 pt-2.5 font-mono text-[11px] text-ink-faint">
-                      {d.totalSamples.toLocaleString()} samples · {d.defaultQubits} qubits
+
+                    <div className="mt-2.5 min-w-0 shrink-0">
+                      {/* Clamped: the longest name here is 42 characters, and
+                          in the smallest 4-across tile that is more lines than
+                          the square has room for. Clamping trims it rather
+                          than letting it push the footer out of the tile. */}
+                      <div
+                        className="line-clamp-2 text-[13.5px] font-medium leading-snug"
+                        title={d.name}
+                        style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
+                      >
+                        {d.name}
+                      </div>
+                      <div className="tile-muted mt-1 font-mono text-[10.5px]">
+                        {d.totalSamples.toLocaleString()} samples · {d.defaultQubits} qubits
+                      </div>
                     </div>
                   </button>
                 )
@@ -628,34 +639,37 @@ export function TrainTab({
               <div
                 className="lg:col-span-8 panel-raised rounded-panel panel-pad"
               >
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-[14.5px] font-medium text-ink">
-                      Reduced Feature Space Separability Preview
+                {/* One header row rather than two lines plus a subtitle: the
+                    explanatory sentence moved into the info dot, which is what
+                    keeps this panel short. */}
+                <div className="mb-2.5 flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <h3 className="truncate text-[14.5px] font-medium text-ink">
+                      Feature space separability
                     </h3>
-                    <p className="mt-0.5 text-[13px] text-ink-dim">
-                      Class clustering in projected Hilbert component space prior to training commitment
-                    </p>
+                    <InfoDot label="About this projection">
+                      Class clustering in the projected component space, shown before
+                      committing to a training run. Separation here suggests the
+                      reduced features carry the signal; overlap suggests they do not.
+                    </InfoDot>
                   </div>
 
-                  <div className="flex items-center gap-2 font-mono text-[11.5px]">
+                  <div className="flex shrink-0 items-center gap-1 font-mono text-[11.5px]">
                     <button
                       type="button"
                       onClick={() => setIs3DScatter(false)}
-                      className={`cursor-pointer rounded px-2 py-1 ${
-                        !is3DScatter ? 'bg-white/15 text-white font-medium' : 'text-ink-faint hover:text-ink'
-                      }`}
+                      data-pressed={!is3DScatter}
+                      className="key cursor-pointer rounded-[6px] px-2 py-1 text-ink-faint hover:text-ink data-[pressed=true]:text-ink"
                     >
-                      2D Projection
+                      2D
                     </button>
                     <button
                       type="button"
                       onClick={() => setIs3DScatter(true)}
-                      className={`cursor-pointer rounded px-2 py-1 ${
-                        is3DScatter ? 'bg-white/15 text-white font-medium' : 'text-ink-faint hover:text-ink'
-                      }`}
+                      data-pressed={is3DScatter}
+                      className="key cursor-pointer rounded-[6px] px-2 py-1 text-ink-faint hover:text-ink data-[pressed=true]:text-ink"
                     >
-                      3D Interactive
+                      3D
                     </button>
                   </div>
                 </div>
@@ -664,7 +678,7 @@ export function TrainTab({
                   points={previewData.points}
                   positiveLabel={dataset.positiveLabel}
                   negativeLabel={dataset.negativeLabel}
-                  height={320}
+                  height={210}
                   is3d={is3DScatter}
                 />
               </div>

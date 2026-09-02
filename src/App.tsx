@@ -125,25 +125,31 @@ export default function App() {
         </div>
 
         {/* Segmented control: the group is a plain track, so the keys inside
-            supply the only borders and nothing double-lines. */}
-        <nav className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-[8px] bg-black/25 p-1 font-mono text-[13px]">
-          {TABS.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => go(id)}
-              data-pressed={route === id}
-              aria-current={route === id ? 'page' : undefined}
-              className="key flex cursor-pointer items-center justify-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-ink sm:w-[128px] sm:px-0"
-            >
-              <Icon className="h-3.5 w-3.5 shrink-0" />
-              {/* Below sm the labels would collide with the wordmark, so the
-                  keys fall back to icons with the name kept for assistive tech. */}
-              <span className="hidden sm:inline">{label}</span>
-              <span className="sr-only sm:hidden">{label}</span>
-            </button>
-          ))}
-        </nav>
+            supply the only borders and nothing double-lines.
+
+            Hidden on the opening screen. Home already offers Train, Predict
+            and Benchmark as its three tiles, so the same three choices in the
+            header would just be a second, redundant nav sitting above them. */}
+        {route !== 'home' && (
+          <nav className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-[8px] bg-black/25 p-1 font-mono text-[13px]">
+            {TABS.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => go(id)}
+                data-pressed={route === id}
+                aria-current={route === id ? 'page' : undefined}
+                className="key flex cursor-pointer items-center justify-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-ink-faint hover:text-ink data-[pressed=true]:text-ink sm:w-[128px] sm:px-0"
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" />
+                {/* Below sm the labels would collide with the wordmark, so the
+                    keys fall back to icons with the name kept for assistive tech. */}
+                <span className="hidden sm:inline">{label}</span>
+                <span className="sr-only sm:hidden">{label}</span>
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
 
       {/* Main Tab Surface */}

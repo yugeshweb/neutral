@@ -102,6 +102,17 @@ export const CONDITION_INTAKE: ConditionIntake[] = [
     diseaseId: 'brain-seizure',
     fields: [
       {
+        id: 'mri-brain',
+        label: 'Brain MRI',
+        system: 'PACS',
+        accept: '.png,.jpg,.jpeg,.webp,.dcm,.nii,.nii.gz',
+        wired: true,
+        imaging: true,
+        requires:
+          'A DICOM or NIfTI reader and a tumour segmentation network. The model behind this condition reads EEG-derived features, not voxels, so an image is displayed but never scored.',
+        hint: 'T1 or FLAIR volume, displayed for review.',
+      },
+      {
         id: 'eeg',
         label: 'EEG recording',
         system: 'Neurophysiology',
@@ -118,16 +129,6 @@ export const CONDITION_INTAKE: ConditionIntake[] = [
         hint: 'Pre-computed band powers and entropy, one row per window.',
       },
       HL7_FEED,
-      {
-        id: 'annotations',
-        label: 'Seizure annotations',
-        system: 'Neurophysiology',
-        accept: '.csv,.txt',
-        wired: false,
-        requires:
-          'A parser for onset/offset marker files so windows can be labelled against expert annotation rather than a column in the feature table.',
-        hint: 'Expert onset and offset markers.',
-      },
     ],
   },
   {
