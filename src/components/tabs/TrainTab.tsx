@@ -37,13 +37,7 @@ import { InputBuilder } from '../InputBuilder'
 import { kindOf, type InputKind, type InputRow } from '../../lib/inputKinds'
 import { ConvergenceChart } from '../charts'
 import { ScatterPlot } from '../charts/ScatterPlot'
-import {
-  IconArrowLeft,
-  IconArrowRight,
-  IconCheck,
-  IconFlask,
-  IconPulse,
-} from '../icons'
+import { IconArrowLeft, IconArrowRight, IconCheck, IconPulse } from '../icons'
 
 /*
  * The flow, in the order the user works through it: describe the inputs, pick
@@ -126,6 +120,20 @@ export function TrainTab({
 
       const ranked = rankFeatures(scaledX, imputed.y, dataset.featureNames, reductionMethod)
 
+      /*
+       * The split the run will use. Computed the way `stratifiedSplit`
+       * computes it - per class, `max(1, round(n * fraction))`, summed -
+       * rather than rounding the total, because those two disagree whenever
+       * the per-class rounds go the same way. It runs on the imputed labels,
+       * so dropping rows under the `drop` strategy is reflected too.
+       */
+      const perClass = new Map<number, number>()
+      for (const label of imputed.y) perClass.set(label, (perClass.get(label) ?? 0) + 1)
+      let testCount = 0
+      for (const n of perClass.values()) {
+        testCount += Math.max(1, Math.round(n * DEFAULT_RUN.testFraction))
+      }
+
       return {
         imputedRows: imputed.X.length,
         filledCells: imputed.filled.reduce((a, b) => a + b, 0),
@@ -134,6 +142,8 @@ export function TrainTab({
         points,
         ranked,
         scaler,
+        testCount,
+        trainCount: imputed.y.length - testCount,
       }
     } catch (e) {
       return null
@@ -405,10 +415,7 @@ export function TrainTab({
         {activeStep === 'inputs' && (
           <div className="panel-raised rounded-panel panel-pad flow-step">
             <div className="flex items-center justify-center gap-2">
-              <h2 className="text-[14.5px] font-medium text-ink">
-                <span className="engraved mr-2 font-mono text-[12px]">1</span>
-                Inputs
-              </h2>
+              <h2 className="text-[14.5px] font-medium text-ink">Inputs</h2>
               <InfoDot label="About these inputs">
                 Add a row per source and pick its type. Only a CSV table is parsed
                 into the numeric matrix the pipeline trains on; the other types are
@@ -446,10 +453,7 @@ export function TrainTab({
         {activeStep === 'disease' && (
           <div className="panel-raised rounded-panel panel-pad flow-step">
             <div className="flex items-center justify-center gap-2">
-              <h2 className="text-[14.5px] font-medium text-ink">
-                <span className="engraved mr-2 font-mono text-[12px]">2</span>
-                Condition
-              </h2>
+              <h2 className="text-[14.5px] font-medium text-ink">Condition</h2>
               <InfoDot label="About routing">
                 The selected condition determines the preprocessing transformers, the
                 feature-extraction recipe, and the quantum circuit ansatz.
@@ -552,29 +556,32 @@ export function TrainTab({
         {/* STEP 2: PREPROCESSING & FEATURE PREVIEW */}
         {activeStep === 'features' && previewData && (
           <div className="space-y-4">
-            {/* Preprocessing Stages Visualization */}
-            <div
-              className="panel-raised rounded-panel panel-pad"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <IconFlask className="h-4 w-4 text-ink-faint" />
-                  <h2 className="text-[14.5px] font-medium text-ink">
-                    Preprocessing & Dimensionality Reduction Stages
-                  </h2>
-                </div>
-                <span className="font-mono text-[12px] text-ink-faint">
-                  High-Dimensional Pipeline Stream
-                </span>
+            {/*
+             * Preprocessing.
+             *
+             * Was four "stage" cards, each carrying three labels for a single
+             * control - "Stage 1 · Imputation", "Missing Cell Handler" and
+             * "Strategy:" all naming the same dropdown - plus a fourth card
+             * with no control at all, only numbers derived from the qubit
+             * slider further down. What is left is the three choices that
+             * actually change the run, each labelled once, with the one
+             * derived figure that matters shown beside it.
+             */}
+            <div className="panel-raised rounded-panel panel-pad">
+              <div className="mb-3 flex items-center justify-center gap-2">
+                <h2 className="text-[14.5px] font-medium text-ink">Preprocessing</h2>
+                <InfoDot label="About these stages">
+                  Applied in order: missing cells are filled, features are scaled,
+                  then reduced to the qubit count. Every transform is fitted on the
+                  training fold only, so nothing from the test split leaks into the
+                  model.
+                </InfoDot>
               </div>
 
-              {/* Stage Cards Flow */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono text-[12px]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="panel-well rounded-[8px] well-pad">
-                  <div className="text-ink-faint text-[11px] mb-1">Stage 1 · Imputation</div>
-                  <div className="text-ink font-medium">Missing Cell Handler</div>
-                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[11.5px]">
-                    <span>Strategy:</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[12.5px] text-ink">Impute</span>
                     <select
                       value={imputeStrategy}
                       onChange={(e) => setImputeStrategy(e.target.value as ImputeStrategy)}
@@ -585,16 +592,16 @@ export function TrainTab({
                       <option value="drop">Drop</option>
                     </select>
                   </div>
-                  <div className="mt-2 text-ink-faint text-[11px]">
-                    {previewData.droppedRows > 0 ? `Dropped ${previewData.droppedRows} rows` : '0 missing dropped'}
+                  <div className="engraved mt-2 font-mono text-[11px]">
+                    {previewData.droppedRows > 0
+                      ? `${previewData.droppedRows} rows dropped`
+                      : `${previewData.filledCells} cells filled`}
                   </div>
                 </div>
 
                 <div className="panel-well rounded-[8px] well-pad">
-                  <div className="text-ink-faint text-[11px] mb-1">Stage 2 · Normalization</div>
-                  <div className="text-ink font-medium">Feature Scaling</div>
-                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[11.5px]">
-                    <span>Method:</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[12.5px] text-ink">Scale</span>
                     <select
                       value={scalerType}
                       onChange={(e) => setScalerType(e.target.value as Scaler['kind'])}
@@ -605,16 +612,14 @@ export function TrainTab({
                       <option value="minmax">Min-Max (0..1)</option>
                     </select>
                   </div>
-                  <div className="mt-2 text-ink-faint text-[11px]">
-                    Fitted on train fold strictly
+                  <div className="engraved mt-2 font-mono text-[11px]">
+                    fitted on train fold only
                   </div>
                 </div>
 
                 <div className="panel-well rounded-[8px] well-pad">
-                  <div className="text-ink-faint text-[11px] mb-1">Stage 3 · Reduction</div>
-                  <div className="text-ink font-medium">Dimensionality Reducer</div>
-                  <div className="mt-1 flex items-center justify-between text-ink-dim text-[11.5px]">
-                    <span>Selector:</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[12.5px] text-ink">Reduce</span>
                     <select
                       value={reductionMethod}
                       onChange={(e) => setReductionMethod(e.target.value as SelectionMethod)}
@@ -625,21 +630,8 @@ export function TrainTab({
                       <option value="pca">PCA Projection</option>
                     </select>
                   </div>
-                  <div className="mt-2 text-ink-faint text-[11px]">
-                    {dataset.featureNames.length} dims → {nFeatures} components
-                  </div>
-                </div>
-
-                <div className="panel-well rounded-[8px] well-pad">
-                  <div className="text-ink-faint text-[11px] mb-1">Stage 4 · Quantum State</div>
-                  <div className="text-ink font-medium" style={{ color: LANE_COLOR.quantum }}>
-                    Hilbert Space Mapping
-                  </div>
-                  <div className="mt-1 text-ink-dim text-[11.5px]">
-                    Encoding: <span className="text-ink">{nFeatures} Qubits (RY/RZ)</span>
-                  </div>
-                  <div className="mt-2 text-ink-faint text-[11px]">
-                    State dim: 2^{nFeatures} = {Math.pow(2, nFeatures)} amplitudes
+                  <div className="engraved mt-2 font-mono text-[11px]">
+                    {dataset.featureNames.length} dims → {nFeatures}
                   </div>
                 </div>
               </div>
@@ -700,14 +692,12 @@ export function TrainTab({
                 className="lg:col-span-4 panel-raised rounded-panel panel-pad flex flex-col justify-between"
               >
                 <div>
-                  <h3 className="text-[14.5px] font-medium text-ink mb-3">
-                    Training Configuration
-                  </h3>
+                  <h3 className="mb-3 text-[14.5px] font-medium text-ink">Run settings</h3>
 
                   <div className="space-y-3 font-mono text-[12.5px]">
                     <div>
-                      <label className="text-ink-faint block mb-1">
-                        Quantum Qubits / Features: <span className="text-ink">{nFeatures}</span>
+                      <label className="mb-1 block text-ink-faint">
+                        Qubits / features: <span className="text-ink">{nFeatures}</span>
                       </label>
                       <input
                         type="range"
@@ -715,15 +705,15 @@ export function TrainTab({
                         max={8}
                         step={1}
                         value={nFeatures}
-                        aria-label="Quantum qubits / features"
+                        aria-label="Qubits / features"
                         onChange={(e) => setNFeatures(Number(e.target.value))}
                         className="w-full cursor-pointer accent-[#3E8C9E]"
                       />
                     </div>
 
                     <div>
-                      <label className="text-ink-faint block mb-1">
-                        VQC Epochs: <span className="text-ink">{epochs}</span>
+                      <label className="mb-1 block text-ink-faint">
+                        Epochs: <span className="text-ink">{epochs}</span>
                       </label>
                       <input
                         type="range"
@@ -737,10 +727,36 @@ export function TrainTab({
                       />
                     </div>
 
-                    <div className="pt-2 border-t border-white/5 space-y-1 text-[11.5px] text-ink-faint">
-                      <div>• Classical Baseline: Gradient Boosted Trees / SVM</div>
-                      <div>• Quantum Ansatz: Strongly Entangling Layers</div>
-                      <div>• Optimizer: Adam (lr = 0.2, batch = 20)</div>
+                    {/*
+                     * The features the selector actually picked. This is the
+                     * one thing a feature step exists to answer and it was
+                     * not shown anywhere: the panel instead carried three
+                     * static lines of architecture trivia that never changed,
+                     * one of which ("Gradient Boosted Trees") did not even
+                     * match the baselines the pipeline runs.
+                     */}
+                    <div className="border-t border-white/5 pt-2.5">
+                      <div className="engraved mb-1.5 text-[11px]">
+                        selected features
+                      </div>
+                      <ol className="space-y-1 text-[11.5px] text-ink-dim">
+                        {previewData.ranked.slice(0, nFeatures).map((f, i) => (
+                          <li key={f.index} className="flex items-baseline gap-2">
+                            <span className="w-3 shrink-0 text-right text-ink-faint">
+                              {i + 1}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate" title={f.name}>
+                              {f.name}
+                            </span>
+                            <span
+                              className="shrink-0 tabular-nums"
+                              style={{ color: LANE_COLOR.quantum }}
+                            >
+                              {f.score.toFixed(2)}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
                     </div>
                   </div>
                 </div>
@@ -748,7 +764,7 @@ export function TrainTab({
               </div>
             </div>
 
-            <div className="mt-4 flex shrink-0 items-center justify-between border-t border-white/5 pt-4">
+            <div className="mt-4 flex shrink-0 items-center justify-between gap-3 border-t border-white/5 pt-4">
               <button
                 type="button"
                 onClick={() => setActiveStep('disease')}
@@ -757,14 +773,24 @@ export function TrainTab({
                 <IconArrowLeft className="h-3.5 w-3.5" />
                 Back
               </button>
-              <button
-                type="button"
-                onClick={handleStartTraining}
-                className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink hover:text-white"
-              >
-                <IconPulse className="h-3.5 w-3.5" />
-                Train
-              </button>
+
+              {/* What the run will actually do, stated before it starts. The
+                  split was not shown anywhere, so there was no way to know
+                  how many cases the reported metrics would be measured on. */}
+              <div className="flex items-center gap-3">
+                <span className="hidden font-mono text-[11px] text-ink-faint sm:inline">
+                  {previewData.trainCount} train / {previewData.testCount} test · both
+                  lanes, same split
+                </span>
+                <button
+                  type="button"
+                  onClick={handleStartTraining}
+                  className="key flex cursor-pointer items-center gap-2 rounded-[6px] px-4 py-2 text-[13px] text-ink hover:text-white"
+                >
+                  <IconPulse className="h-3.5 w-3.5" />
+                  Train
+                </button>
+              </div>
             </div>
           </div>
         )}
