@@ -231,14 +231,17 @@ export function PredictTab({
                     </div>
 
                     <div className="mt-2.5 min-w-0 shrink-0">
-                      {/* Clamped for the same reason as in Train: the longest
-                          name overruns the smallest square otherwise. */}
+                      {/* `shortName`, not `name`, for the same reason as in
+                          Train: the full title wraps to a different line
+                          count per condition, which handed shorter names a
+                          taller plate on a fixed-aspect card. Two words fits
+                          one line for all four, so every plate matches. */}
                       <div
-                        className="line-clamp-2 text-[13.5px] font-medium leading-snug"
+                        className="truncate text-[13.5px] font-medium leading-snug"
                         title={d.name}
                         style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
                       >
-                        {d.name}
+                        {d.shortName}
                       </div>
                       <div className="tile-muted mt-1 font-mono text-[10.5px]">
                         {d.totalSamples.toLocaleString()} samples

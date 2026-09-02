@@ -22,23 +22,15 @@ export function BenchmarkTab() {
   const quantum = disease.quantumModel
 
   const metricsList = [
-    { key: 'accuracy', label: 'Accuracy', desc: 'Overall correct classifications' },
-    { key: 'precision', label: 'Precision', desc: 'Positive predictive value' },
-    { key: 'sensitivity', label: 'Sensitivity / Recall', desc: 'True positive rate (critical for misses)' },
-    { key: 'specificity', label: 'Specificity', desc: 'True negative rate (false alarm avoidance)' },
-    { key: 'f1', label: 'F1 Score', desc: 'Harmonic mean of precision and sensitivity' },
-    { key: 'rocAuc', label: 'AUC-ROC', desc: 'Threshold-independent discrimination quality' },
-    { key: 'trainingTime', label: 'Training Time', desc: 'Wall-clock time to converge' },
-    { key: 'inferenceTime', label: 'Inference Latency', desc: 'Single-case prediction latency' },
+    { key: 'accuracy', label: 'Accuracy' },
+    { key: 'precision', label: 'Precision' },
+    { key: 'sensitivity', label: 'Sensitivity / Recall' },
+    { key: 'specificity', label: 'Specificity' },
+    { key: 'f1', label: 'F1 Score' },
+    { key: 'rocAuc', label: 'AUC-ROC' },
+    { key: 'trainingTime', label: 'Training Time' },
+    { key: 'inferenceTime', label: 'Inference Latency' },
   ] as const
-
-  const keyComparisonMetrics = [
-    { label: 'Accuracy', classical: classical.metrics.accuracy, quantum: quantum.metrics.accuracy },
-    { label: 'Sensitivity', classical: classical.metrics.sensitivity, quantum: quantum.metrics.sensitivity },
-    { label: 'Specificity', classical: classical.metrics.specificity, quantum: quantum.metrics.specificity },
-    { label: 'Precision', classical: classical.metrics.precision, quantum: quantum.metrics.precision },
-    { label: 'F1 Score', classical: classical.metrics.f1, quantum: quantum.metrics.f1 },
-  ]
 
   const rocCurves = [
     {
@@ -99,8 +91,10 @@ export function BenchmarkTab() {
                   <div className="tile-art h-14 w-full">
                     <Vec size={40} accent={LANE_COLOR.quantum} />
                   </div>
-                  <div className="mt-2.5 text-[15px] font-medium text-ink group-hover:text-white">
-                    {d.name}
+                  {/* `shortName`, matching the pickers on Train and Predict.
+                      The full name is still available as the button's tooltip. */}
+                  <div className="mt-2.5 truncate text-[15px] font-medium text-ink group-hover:text-white">
+                    {d.shortName}
                   </div>
                   {/*
                     * The tagline used to sit here under `line-clamp-1`, which
@@ -134,28 +128,29 @@ export function BenchmarkTab() {
           </div>
         </section>
 
-        {/*
-         * Laid out on the same two-column grid as the model cards below, so
-         * the description wraps at the left card's edge instead of running the
-         * full width of the screen and leaving a long unbroken line.
-         */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 border-b border-white/5 pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[19px] font-medium text-ink">{disease.name}</h2>
-              <span className="rounded-[4px] bg-white/5 px-2 py-0.5 font-mono text-[11.5px] text-ink-dim">
-                {disease.categoryLabel}
-              </span>
+        {/* The pipeline detail that used to run out as a full sentence
+            (target, input dimensionality, reduction, dataset and source) now
+            sits behind the info dot: the two numbers worth seeing at a glance
+            are the qubit count and the sample size, both already on the
+            condition card above. */}
+        <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[19px] font-medium text-ink">{disease.name}</h2>
+            <span className="rounded-[4px] bg-white/5 px-2 py-0.5 font-mono text-[11.5px] text-ink-dim">
+              {disease.categoryLabel}
+            </span>
+          </div>
+          <InfoDot label="Pipeline detail">
+            <div className="space-y-1">
+              <p>Target: {disease.targetCondition}</p>
+              <p>
+                Input: {disease.inputDimensionality} → Reduced: {disease.reducedDimensionality}
+              </p>
+              <p>
+                Dataset: {disease.datasetName} ({disease.datasetSource})
+              </p>
             </div>
-            <p className="mt-1 font-mono text-[12.5px] leading-relaxed text-ink-faint">
-              Target: <span className="text-ink-dim">{disease.targetCondition}</span> · Input:{' '}
-              <span className="text-ink-dim">{disease.inputDimensionality}</span> → Reduced:{' '}
-              <span className="text-ink-dim">{disease.reducedDimensionality}</span>
-            </p>
-          </div>
-          <div className="font-mono text-[12px] leading-relaxed text-ink-faint lg:text-right">
-            Dataset: <span className="text-ink">{disease.datasetName}</span> ({disease.datasetSource})
-          </div>
+          </InfoDot>
         </div>
 
         {/* Architectures and Rationale Comparison */}
@@ -203,14 +198,35 @@ export function BenchmarkTab() {
           </div>
         </div>
 
-        {/* Side-by-Side Unified Metrics Table & Visual Comparisons */}
+        {/* Side-by-Side Unified Metrics Table & ROC Overlay.
+
+            The table used to carry a description under every metric name
+            ("Overall correct classifications" under "Accuracy" and so on) and
+            sat beside a bar chart repeating five of its eight rows in a second
+            form. Both were the same information said twice. The descriptions
+            moved to one info dot on the header; the bar chart is gone, since
+            the table already gives classical, quantum and the delta at a
+            glance, and the ROC curve is the one comparison the table cannot
+            show. */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Metrics Table (7 cols) */}
-          <div className="lg:col-span-7 panel-raised rounded-panel panel-pad">
+          {/* Metrics Table (8 cols) */}
+          <div className="lg:col-span-8 panel-raised rounded-panel panel-pad">
             <div className="mb-3 flex items-baseline justify-between">
-              <h3 className="font-mono text-[13px] font-medium text-ink-faint">
-                Unified Evaluation Metrics Comparison
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-mono text-[13px] font-medium text-ink-faint">
+                  Evaluation Metrics
+                </h3>
+                <InfoDot label="What each metric means">
+                  <div className="space-y-1.5">
+                    <p>Accuracy: overall correct classifications.</p>
+                    <p>Precision: positive predictive value.</p>
+                    <p>Sensitivity / Recall: true positive rate, critical for misses.</p>
+                    <p>Specificity: true negative rate, false alarm avoidance.</p>
+                    <p>F1: harmonic mean of precision and sensitivity.</p>
+                    <p>AUC-ROC: threshold-independent discrimination quality.</p>
+                  </div>
+                </InfoDot>
+              </div>
               <div className="flex items-center gap-4 font-mono text-[12px]">
                 <span className="flex items-center gap-1.5" style={{ color: LANE_COLOR.classical }}>
                   <span className="h-2 w-2 rounded-full" style={{ background: LANE_COLOR.classical }} />
@@ -244,10 +260,7 @@ export function BenchmarkTab() {
 
                     return (
                       <tr key={m.key} className="hover:bg-white/[0.02]">
-                        <td className="py-2.5">
-                          <div className="font-medium text-ink">{m.label}</div>
-                          <div className="text-[11px] text-ink-faint font-sans">{m.desc}</div>
-                        </td>
+                        <td className="py-2.5 font-medium text-ink">{m.label}</td>
                         <td className="py-2.5 text-right text-ink-dim tabular-nums">
                           {isNumeric ? (cVal as number).toFixed(3) : cVal}
                         </td>
@@ -292,72 +305,26 @@ export function BenchmarkTab() {
             </div>
           </div>
 
-          {/* Charts (5 cols): ROC Overlay + Paired Bars */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            {/* ROC Curve Overlay */}
-            <div className="panel-raised rounded-panel panel-pad">
-              <div className="mb-2 flex items-baseline justify-between">
-                <h3 className="font-mono text-[13px] font-medium text-ink-faint">
-                  ROC Curve Overlay
-                </h3>
-                <span className="font-mono text-[11px] text-ink-faint">AUC Comparison</span>
-              </div>
-              <RocChart curves={rocCurves} size={220} />
+          {/* ROC Curve Overlay (4 cols) */}
+          <div className="lg:col-span-4 panel-raised rounded-panel panel-pad">
+            <div className="mb-2 flex items-baseline justify-between">
+              <h3 className="font-mono text-[13px] font-medium text-ink-faint">
+                ROC Curve Overlay
+              </h3>
+              <span className="font-mono text-[11px] text-ink-faint">AUC</span>
             </div>
-
-            {/* Paired Bar Comparisons */}
-            <div className="panel-raised rounded-panel panel-pad">
-              <div className="mb-3 flex items-baseline justify-between">
-                <h3 className="font-mono text-[13px] font-medium text-ink-faint">
-                  Key Metrics Comparison
-                </h3>
-                <span className="font-mono text-[11px] text-ink-faint">0.0 → 1.0</span>
-              </div>
-              <div className="space-y-3">
-                {keyComparisonMetrics.map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between font-mono text-[12px] text-ink-dim mb-1">
-                      <span>{item.label}</span>
-                      <span>
-                        <span style={{ color: LANE_COLOR.classical }}>
-                          {item.classical.toFixed(3)}
-                        </span>{' '}
-                        vs{' '}
-                        <span style={{ color: LANE_COLOR.quantum }}>
-                          {item.quantum.toFixed(3)}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      {/* Classical bar */}
-                      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-300"
-                          style={{
-                            width: `${item.classical * 100}%`,
-                            background: alpha(LANE_COLOR.classical, 0.8),
-                          }}
-                        />
-                      </div>
-                      {/* Quantum bar */}
-                      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-300"
-                          style={{
-                            width: `${item.quantum * 100}%`,
-                            background: alpha(LANE_COLOR.quantum, 0.85),
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <RocChart curves={rocCurves} size={220} />
           </div>
         </div>
 
-        {/* Honest Callout & Assessment Box */}
+        {/* Honest Callout.
+
+            Was a full-sentence summary, two bulleted lists, and a footnote
+            paragraph under a redundant "Empirical Framing" chip that just
+            restated the section's own point. The chip is gone, the summary is
+            cut to its claim, and the nuance paragraph - caveats on reading the
+            comparison, not a strength of either lane - moved into the info
+            dot rather than sitting on the page as a third paragraph. */}
         <section
           className="rounded-panel panel-pad"
           style={{
@@ -374,21 +341,17 @@ export function BenchmarkTab() {
             </span>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-[15.5px] font-medium text-ink">
-                  Rigorous & Honest Quantum Advantage Analysis
-                </h3>
-                <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] text-ink-faint">
-                  Empirical Framing
-                </span>
+                <h3 className="text-[15.5px] font-medium text-ink">{disease.honestCallout.title}</h3>
+                <InfoDot label="Reading this comparison">{disease.honestCallout.nuance}</InfoDot>
               </div>
-              <p className="mt-1 text-[14px] leading-relaxed text-ink">
-                {disease.honestCallout.title}: {disease.honestCallout.summary}
+              <p className="mt-1 text-[13.5px] leading-relaxed text-ink-dim">
+                {disease.honestCallout.summary}
               </p>
 
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="panel-well well-pad rounded-[8px]">
                   <div className="font-mono text-[12px] text-[#3E8C9E] mb-2 flex items-center gap-1.5">
-                    <IconCheck className="h-3.5 w-3.5" /> Quantum Model Strengths
+                    <IconCheck className="h-3.5 w-3.5" /> Quantum strengths
                   </div>
                   <ul className="space-y-1.5 text-[13px] text-ink-dim list-disc pl-4">
                     {disease.honestCallout.quantumPros.map((pro, i) => (
@@ -399,7 +362,7 @@ export function BenchmarkTab() {
 
                 <div className="panel-well well-pad rounded-[8px]">
                   <div className="font-mono text-[12px] text-[#C08A3E] mb-2 flex items-center gap-1.5">
-                    <IconTree className="h-3.5 w-3.5" /> Classical Model Strengths & Latency
+                    <IconTree className="h-3.5 w-3.5" /> Classical strengths
                   </div>
                   <ul className="space-y-1.5 text-[13px] text-ink-dim list-disc pl-4">
                     {disease.honestCallout.classicalPros.map((pro, i) => (
@@ -408,10 +371,6 @@ export function BenchmarkTab() {
                   </ul>
                 </div>
               </div>
-
-              <p className="mt-3.5 font-mono text-[11.5px] leading-relaxed text-ink-faint pt-2.5 border-t border-white/5">
-                {disease.honestCallout.nuance}
-              </p>
             </div>
           </div>
         </section>

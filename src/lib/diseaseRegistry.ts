@@ -30,6 +30,13 @@ export type ModelBenchmark = {
 export type DiseasePipeline = {
   id: string
   name: string
+  /**
+   * Two words, used only on the small selection cards in Train, Predict and
+   * Benchmark. `name` stays the full descriptive title everywhere else -
+   * page headings, the Benchmark detail panel, result screens - where there
+   * is room for it and the detail is useful.
+   */
+  shortName: string
   category: DiseaseCategory
   categoryLabel: string
   tagline: string
@@ -68,6 +75,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
   {
     id: 'breast-cancer',
     name: 'Breast Cancer Early Detection',
+    shortName: 'Breast Cancer',
     category: 'carcinogenic',
     categoryLabel: 'Carcinogenic / Oncology',
     tagline: 'Morphological & nuclear texture analysis for malignant lesion classification',
@@ -243,6 +251,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
      * the model reads an MRI.
      */
     name: 'Brain Tumor Detection',
+    shortName: 'Brain Tumor',
     category: 'neurological',
     categoryLabel: 'Neurological / Neuro-oncology',
     tagline: 'Neural abnormality screening from EEG spectral power and non-linear dynamics',
@@ -410,6 +419,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
   {
     id: 'heart-disease',
     name: 'Heart Disease & Myocardial Infarction Risk',
+    shortName: 'Heart Disease',
     category: 'cardiovascular',
     categoryLabel: 'Cardiovascular / Cardiology',
     tagline: 'Hemodynamic, electrocardiographic & fluoroscopic cardiovascular risk stratification',
@@ -587,6 +597,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
   {
     id: 'stroke-risk',
     name: 'Stroke Clinical Risk',
+    shortName: 'Stroke Risk',
     category: 'neurological',
     categoryLabel: 'Neurological / Cerebrovascular',
     tagline: 'Structured cardiovascular risk factors for stroke association',
@@ -717,6 +728,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
   {
     id: 'alzheimers',
     name: "Alzheimer's Dementia Association",
+    shortName: "Alzheimer's Risk",
     category: 'neurological',
     categoryLabel: 'Neurological / Neurodegenerative',
     tagline: 'Same-visit dementia association from clinical and volumetric measures',
@@ -835,6 +847,7 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
   {
     id: 'parkinsons',
     name: "Parkinson's Voice Analysis",
+    shortName: "Parkinson's Voice",
     category: 'neurological',
     categoryLabel: 'Neurological / Movement Disorder',
     tagline: 'Sustained-phonation acoustic markers, diagnosed against healthy controls',

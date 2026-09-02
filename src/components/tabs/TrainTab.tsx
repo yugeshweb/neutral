@@ -428,9 +428,7 @@ export function TrainTab({
 
             <div className="mt-4 flex shrink-0 items-center justify-between border-t border-white/5 pt-4">
               <span className="font-mono text-[11px] text-ink-faint">
-                {uploadFileName
-                  ? `training on ${dataset.name}`
-                  : `no file yet, will use the ${disease.name.toLowerCase()} preset`}
+                {uploadFileName && `training on ${dataset.name}`}
               </span>
               <button
                 type="button"
@@ -496,16 +494,23 @@ export function TrainTab({
                     </div>
 
                     <div className="mt-2.5 min-w-0 shrink-0">
-                      {/* Clamped: the longest name here is 42 characters, and
-                          in the smallest 4-across tile that is more lines than
-                          the square has room for. Clamping trims it rather
-                          than letting it push the footer out of the tile. */}
+                      {/*
+                       * `shortName`, not `name`: the full descriptive title
+                       * ("Heart Disease & Myocardial Infarction Risk") wraps
+                       * to a different number of lines per condition, which
+                       * on a card whose plate is `flex-1` inside a fixed
+                       * `aspect-square` handed shorter names extra plate
+                       * height - the images came out visibly uneven. Every
+                       * short name is two words and fits one line, so every
+                       * text block, and so every plate, is now the same size.
+                       * The full name is still one hover away on the title.
+                       */}
                       <div
-                        className="line-clamp-2 text-[13.5px] font-medium leading-snug"
+                        className="truncate text-[13.5px] font-medium leading-snug"
                         title={d.name}
                         style={{ color: active ? '#E8E9EB' : '#9A9CA1' }}
                       >
-                        {d.name}
+                        {d.shortName}
                       </div>
                       <div className="tile-muted mt-1 font-mono text-[10.5px]">
                         {d.totalSamples.toLocaleString()} samples · {d.defaultQubits} qubits

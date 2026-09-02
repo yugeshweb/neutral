@@ -125,7 +125,7 @@ function InputRowView({
             {row.rows} rows
           </span>
         ) : (
-          <span className="text-ink-faint">{spec.trains ? 'trains' : 'reference'}</span>
+          !spec.trains && <span className="text-ink-faint">reference</span>
         )}
       </span>
 
