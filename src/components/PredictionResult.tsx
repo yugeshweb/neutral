@@ -28,16 +28,20 @@ export function PredictionResult({
   fileName,
   result,
   imageUrl,
+  conditionId,
+  conditionName,
   positiveLabel,
   negativeLabel,
 }: {
   fileName: string
   result: BatchResult | null
   imageUrl: string | null
+  conditionId: string
+  conditionName: string
   positiveLabel: string
   negativeLabel: string
 }) {
-  const [findings] = useState<Finding[]>(() => deriveFindings(fileName))
+  const [findings] = useState<Finding[]>(() => deriveFindings(fileName, conditionId))
   const [active, setActive] = useState<Finding | null>(null)
 
   const scored = result?.rows.length ?? 0
@@ -49,7 +53,7 @@ export function PredictionResult({
     scored > 0 ? Math.max(...result!.rows.map((r) => r.probability)) : 0
 
   return (
-    <div className="panel-raised rounded-panel panel-pad flow-step">
+    <div className="panel-raised rounded-panel panel-pad flow-step flow-step-compact">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-[14.5px] font-medium text-ink">
           <span className="engraved mr-2 font-mono text-[12px]">4</span>
@@ -126,10 +130,10 @@ export function PredictionResult({
             </span>
           </div>
 
-          <div className="mt-2 flex h-[calc(100%-28px)] gap-3">
+          <div className="mt-2 flex gap-3">
             {/* Height-capped: an uploaded scan can be any aspect ratio, and an
                 uncapped image made this panel arbitrarily tall. */}
-            <div className="readout relative min-h-[200px] flex-1 overflow-hidden rounded-[6px]">
+            <div className="readout relative h-[186px] flex-1 overflow-hidden rounded-[6px]">
               {imageUrl ? (
                 <img
                   src={imageUrl}
@@ -140,6 +144,26 @@ export function PredictionResult({
                 <div className="grid h-full place-items-center px-4 text-center">
                   <span className="font-mono text-[11px] leading-relaxed text-ink-faint">
                     No image in this upload.
+                  </span>
+                </div>
+              )}
+
+              {imageUrl && (
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-2 px-2.5 py-1.5"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0) 100%)',
+                  }}
+                >
+                  <span className="truncate font-mono text-[11px] text-ink">
+                    {conditionName}
+                  </span>
+                  <span
+                    className="shrink-0 font-mono text-[11px]"
+                    style={{ color: CLASSICAL }}
+                  >
+                    {findings.length} region{findings.length === 1 ? '' : 's'}
                   </span>
                 </div>
               )}

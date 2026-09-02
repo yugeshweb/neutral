@@ -33,6 +33,14 @@ export type IntakeField = {
   hint: string
   /** for unwired fields: what building it would take */
   requires?: string
+  /**
+   * True for fields that take a picture. A standard image (PNG/JPEG) is
+   * accepted and displayed with the region overlay, so the imaging path can be
+   * demonstrated end to end. The clinical formats beside it (DICOM, NIfTI,
+   * whole-slide) still have no reader, and no detector runs on the pixels
+   * either - `imaging` governs display, never analysis.
+   */
+  imaging?: boolean
 }
 
 export type ConditionIntake = {
@@ -81,8 +89,9 @@ export const CONDITION_INTAKE: ConditionIntake[] = [
         id: 'histology',
         label: 'Histopathology slide',
         system: 'PACS',
-        accept: '.dcm,.svs,.tif',
-        wired: false,
+        accept: '.png,.jpg,.jpeg,.webp,.dcm,.svs,.tif',
+        wired: true,
+        imaging: true,
         requires:
           'A whole-slide image reader plus a CNN feature extractor to turn pixels into the morphometric features this model consumes. That extractor is a separate model outside this pipeline.',
         hint: 'Digitised FNA or whole-slide image.',
@@ -96,8 +105,9 @@ export const CONDITION_INTAKE: ConditionIntake[] = [
         id: 'eeg',
         label: 'EEG recording',
         system: 'Neurophysiology',
-        accept: '.edf,.bdf',
-        wired: false,
+        accept: '.png,.jpg,.jpeg,.webp,.edf,.bdf',
+        wired: true,
+        imaging: true,
         requires:
           'An EDF/BDF reader, window segmentation, and the band-power and non-linear feature extraction that turns a raw multi-channel trace into the per-window features this model reads.',
         hint: 'Raw multi-channel trace, European Data Format.',
@@ -130,8 +140,9 @@ export const CONDITION_INTAKE: ConditionIntake[] = [
         id: 'ecg',
         label: 'ECG waveform',
         system: 'Cardiology',
-        accept: '.xml,.scp,.dcm',
-        wired: false,
+        accept: '.png,.jpg,.jpeg,.webp,.xml,.scp,.dcm',
+        wired: true,
+        imaging: true,
         requires:
           'An SCP-ECG or DICOM waveform reader plus interval and morphology extraction, to derive the ST and rhythm features this model expects from a raw trace.',
         hint: 'Twelve-lead resting or stress trace.',
@@ -147,8 +158,9 @@ export const CONDITION_INTAKE: ConditionIntake[] = [
         id: 'mri',
         label: 'Structural MRI',
         system: 'PACS',
-        accept: '.dcm,.nii,.nii.gz',
-        wired: false,
+        accept: '.png,.jpg,.jpeg,.webp,.dcm,.nii,.nii.gz',
+        wired: true,
+        imaging: true,
         requires:
           'A DICOM or NIfTI reader and a volumetric segmentation step to produce normalised whole-brain volume and intracranial volume, which this model currently expects pre-computed.',
         hint: 'T1-weighted volume for brain volumetry.',

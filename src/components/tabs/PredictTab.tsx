@@ -29,6 +29,7 @@ const CLASSICAL = LANE_COLOR.classical
 
 type FieldState =
   | { kind: 'idle' }
+  | { kind: 'image'; file: string }
   | { kind: 'scored'; file: string; result: BatchResult }
   | { kind: 'parsed'; file: string; rows: number; columns: number }
   | { kind: 'unavailable'; file: string; requires: string }
@@ -111,8 +112,15 @@ export function PredictTab({
       const parsed = await ingest(file)
       const summary = parsed.dataset
       setLastFile(file.name)
-      // `ingest` returns an object URL for image uploads and null otherwise.
-      if (summary.objectUrl) setImageUrl(summary.objectUrl)
+
+      // A picture is displayed with the region overlay. It carries no rows, so
+      // there is nothing to score - the result screen shows the image and says
+      // no detector ran rather than pairing it with invented numbers.
+      if (summary.kind === 'image' && summary.objectUrl) {
+        setImageUrl(summary.objectUrl)
+        setField(field.id, { kind: 'image', file: file.name })
+        return
+      }
 
       // Without a trained model there is nothing to score against, so the file
       // is reported as read and nothing more is claimed.
@@ -336,6 +344,8 @@ export function PredictTab({
               fileName={lastFile || 'input'}
               result={scoredResult}
               imageUrl={imageUrl}
+              conditionId={selectedId}
+              conditionName={disease.targetCondition}
               positiveLabel={disease.positiveLabel}
               negativeLabel={disease.negativeLabel}
             />
@@ -469,6 +479,23 @@ function Outcome({ state, positiveLabel }: { state: FieldState; positiveLabel: s
         <p className="mt-1 text-[11px] leading-relaxed text-ink-faint">
           Not scored: no trained model, or no column matched one the model uses.
         </p>
+      </div>
+    )
+  }
+
+  // An image is loaded for display only: it carries no rows to score, and no
+  // detector runs on the pixels.
+  if (state.kind === 'image') {
+    return (
+      <div className="readout mt-2 flex items-center justify-between gap-2 px-3 py-2">
+        <span className="font-mono text-[11px]" style={{ color: QUANTUM }}>
+          image loaded
+        </span>
+        <InfoDot label="What happens to this image">
+          The image is shown on the result screen with region markers over it.
+          Those markers come from a hash of the file name, not from a detector,
+          and nothing is scored from the pixels.
+        </InfoDot>
       </div>
     )
   }

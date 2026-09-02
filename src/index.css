@@ -161,6 +161,15 @@
     min-height: min(560px, max(340px, calc(100vh - 15.5rem)));
   }
 
+  /*
+   * The result step opts out of the tall sizing. Its content is a fixed set of
+   * metric tiles beside a bounded image, so filling a 560px card would only
+   * add empty space under them.
+   */
+  .flow-step-compact {
+    min-height: 0;
+  }
+
   /* The part that grows to fill whatever the step does not use. */
   .flow-body {
     flex: 1 1 auto;

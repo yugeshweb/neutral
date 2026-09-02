@@ -45,12 +45,44 @@ function rng(seed: number) {
   }
 }
 
-const LABELS = [
-  { label: 'Irregular mass margin', severity: 'high' as const },
-  { label: 'Clustered microcalcification', severity: 'moderate' as const },
-  { label: 'Focal asymmetry', severity: 'moderate' as const },
-  { label: 'Architectural distortion', severity: 'low' as const },
-]
+type LabelSpec = { label: string; severity: Finding['severity'] }
+
+/**
+ * Marker vocabularies per condition.
+ *
+ * A mammographic term like "clustered microcalcification" is meaningless over
+ * an EEG trace, so each condition has its own set. The markers are still
+ * placed from a filename hash rather than detected; this only keeps the words
+ * on screen plausible for the image being shown.
+ */
+const LABELS_BY_CONDITION: Record<string, LabelSpec[]> = {
+  'breast-cancer': [
+    { label: 'Irregular mass margin', severity: 'high' },
+    { label: 'Clustered microcalcification', severity: 'moderate' },
+    { label: 'Focal asymmetry', severity: 'moderate' },
+    { label: 'Architectural distortion', severity: 'low' },
+  ],
+  'brain-seizure': [
+    { label: 'High-frequency burst', severity: 'high' },
+    { label: 'Spike-and-wave complex', severity: 'moderate' },
+    { label: 'Rhythmic slowing', severity: 'moderate' },
+    { label: 'Interictal discharge', severity: 'low' },
+  ],
+  'heart-disease': [
+    { label: 'ST-segment depression', severity: 'high' },
+    { label: 'T-wave inversion', severity: 'moderate' },
+    { label: 'Q-wave abnormality', severity: 'moderate' },
+    { label: 'Baseline wander', severity: 'low' },
+  ],
+  alzheimers: [
+    { label: 'Hippocampal atrophy', severity: 'high' },
+    { label: 'Ventricular enlargement', severity: 'moderate' },
+    { label: 'Cortical thinning', severity: 'moderate' },
+    { label: 'White-matter hyperintensity', severity: 'low' },
+  ],
+}
+
+const LABELS = LABELS_BY_CONDITION['breast-cancer']
 
 const NOTES: Record<string, string[]> = {
   'Irregular mass margin': [
@@ -73,13 +105,14 @@ const NOTES: Record<string, string[]> = {
   ],
 }
 
-export function deriveFindings(fileName: string): Finding[] {
+export function deriveFindings(fileName: string, conditionId?: string): Finding[] {
   const next = rng(hash(fileName))
   const count = 2 + Math.floor(next() * 2) // 2 or 3 markers
+  const labels = (conditionId && LABELS_BY_CONDITION[conditionId]) || LABELS
 
   const out: Finding[] = []
   for (let i = 0; i < count; i++) {
-    const spec = LABELS[Math.floor(next() * LABELS.length)] ?? LABELS[0]
+    const spec = labels[Math.floor(next() * labels.length)] ?? labels[0]
     // Bias toward the centre: on a scan the subject occupies the middle, so
     // markers placed at the edges would visibly sit on empty background.
     const angle = next() * Math.PI * 2
@@ -92,6 +125,7 @@ export function deriveFindings(fileName: string): Finding[] {
       label: spec.label,
       severity: spec.severity,
       confidence: Number((0.62 + next() * 0.33).toFixed(2)),
+      // Only the mammographic labels carry notes; the others show none.
       notes: NOTES[spec.label] ?? [],
       metrics: {
         area_px: String(400 + Math.floor(next() * 2600)),
