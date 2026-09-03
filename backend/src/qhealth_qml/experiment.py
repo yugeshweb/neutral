@@ -116,6 +116,7 @@ class PreprocessingPipeline:
     feature_names: list[str]
     n_qubits: int
     reduction: str = "anova"
+    angle_scale: float = 1.0
     imputer: SimpleImputer | None = None
     standardizer: StandardScaler | None = None
     selector: SelectKBest | None = None
@@ -129,6 +130,8 @@ class PreprocessingPipeline:
             raise ValueError("n_qubits must be positive")
         if self.reduction not in {"anova", "pca"}:
             raise ValueError("reduction must be 'anova' or 'pca'")
+        if self.angle_scale <= 0:
+            raise ValueError("angle_scale must be positive")
         if X.shape[1] < self.n_qubits:
             raise ValueError(
                 f"dataset has {X.shape[1]} features but {self.n_qubits} qubits were requested"
@@ -150,7 +153,8 @@ class PreprocessingPipeline:
             self.selected_features = [
                 self.feature_names[index] for index in self.selector.get_support(indices=True)
             ]
-        self.angle_scaler = MinMaxScaler(feature_range=(-np.pi / 2, np.pi / 2))
+        half_width = (np.pi / 2) * self.angle_scale
+        self.angle_scaler = MinMaxScaler(feature_range=(-half_width, half_width))
         self.angle_scaler.fit(X_selected)
         return self
 
@@ -704,6 +708,8 @@ def prepare_dataset(
     reduction: str = "anova",
     holdout_site: str | None = None,
     split_indices: tuple[np.ndarray, np.ndarray] | None = None,
+    validation_indices: np.ndarray | None = None,
+    angle_scale: float = 1.0,
 ) -> PreparedDataset:
     if not 0 < test_size < 1:
         raise ValueError("test_size must be between 0 and 1")
@@ -711,6 +717,8 @@ def prepare_dataset(
         raise ValueError("validation_size must be between 0 and 1")
     if n_qubits < 1:
         raise ValueError("n_qubits must be positive")
+    if angle_scale <= 0:
+        raise ValueError("angle_scale must be positive")
     if dataset.X.shape[1] < n_qubits:
         raise ValueError(
             f"dataset has {dataset.X.shape[1]} features but {n_qubits} qubits were requested"
@@ -730,6 +738,8 @@ def prepare_dataset(
         raise ValueError("holdout_site requires site metadata")
     if split_indices is not None and holdout_site is not None:
         raise ValueError("split_indices and holdout_site cannot be combined")
+    if validation_indices is not None and split_indices is None:
+        raise ValueError("validation_indices requires explicit split_indices")
     if split_indices is not None:
         train_index = np.asarray(split_indices[0], dtype=int)
         test_index = np.asarray(split_indices[1], dtype=int)
@@ -737,6 +747,16 @@ def prepare_dataset(
             raise ValueError("explicit train and test indices must be disjoint")
         if any(index < 0 or index >= len(dataset.y) for index in np.concatenate((train_index, test_index))):
             raise ValueError("explicit split indices are outside the dataset")
+        if validation_indices is not None:
+            validation_indices = np.asarray(validation_indices, dtype=int)
+            if len(np.unique(validation_indices)) != len(validation_indices):
+                raise ValueError("explicit validation indices must be unique")
+            if any(index < 0 or index >= len(dataset.y) for index in validation_indices):
+                raise ValueError("explicit validation indices are outside the dataset")
+            if len(set(validation_indices.tolist()).intersection(test_index.tolist())):
+                raise ValueError("explicit validation and test indices must be disjoint")
+            if not set(validation_indices.tolist()).issubset(set(train_index.tolist())):
+                raise ValueError("explicit validation indices must be inside the train pool")
     elif holdout_site is not None:
         assert dataset.sites is not None
         test_index = np.flatnonzero(dataset.sites == str(holdout_site))
@@ -776,7 +796,27 @@ def prepare_dataset(
     X_fit, y_fit = X_train, y_train
     X_validation: np.ndarray | None = None
     y_validation: np.ndarray | None = None
-    if validation_size is not None:
+    if validation_indices is not None:
+        selected_train_index = train_index[train_cap_index]
+        validation_set = set(validation_indices.tolist())
+        local_validation = np.asarray(
+            [position for position, index in enumerate(selected_train_index) if index in validation_set],
+            dtype=int,
+        )
+        if len(local_validation) != len(validation_indices):
+            raise ValueError(
+                "explicit validation rows were removed by max_train; use max_train=0 "
+                "or include those rows in the selected training pool"
+            )
+        local_fit = np.asarray(
+            [position for position in range(len(selected_train_index)) if position not in set(local_validation.tolist())],
+            dtype=int,
+        )
+        if not len(local_fit) or not len(local_validation):
+            raise ValueError("explicit validation split needs rows in both partitions")
+        X_fit, X_validation = X_train[local_fit], X_train[local_validation]
+        y_fit, y_validation = y_train[local_fit], y_train[local_validation]
+    elif validation_size is not None:
         try:
             fit_index, validation_index = _split_indices(
                 y_train,
@@ -797,6 +837,7 @@ def prepare_dataset(
         feature_names=list(dataset.feature_names),
         n_qubits=n_qubits,
         reduction=reduction,
+        angle_scale=angle_scale,
     ).fit(X_fit, y_fit)
     X_train_classical, X_train_quantum = preprocessor.transform(X_fit)
     X_test_classical, X_test_quantum = preprocessor.transform(X_test)
@@ -975,7 +1016,14 @@ def _scores(
     X: np.ndarray,
     prefer_probability: bool = False,
 ) -> np.ndarray | None:
-    if prefer_probability and hasattr(model, "predict_proba"):
+    # PegasosQSVC exposes a predict_proba method whose output is effectively
+    # saturated for the fidelity-kernel margins used here.  Its decision
+    # function is the meaningful continuous score and must be calibrated
+    # instead; otherwise every ECG is mapped to nearly the same probability.
+    quantum_margin_model = hasattr(model, "_label_pos") and hasattr(
+        model, "decision_function"
+    )
+    if prefer_probability and hasattr(model, "predict_proba") and not quantum_margin_model:
         try:
             probabilities = np.asarray(model.predict_proba(X), dtype=float)
             if probabilities.ndim == 2 and probabilities.shape[1] >= 2:
@@ -993,6 +1041,28 @@ def _scores(
         if probabilities.ndim == 2 and probabilities.shape[1] >= 2:
             return probabilities[:, 1]
     return None
+
+
+def detection_confidence(
+    score: np.ndarray | None,
+    threshold: float | None,
+) -> np.ndarray | None:
+    """Return a bounded detection margin, not a clinical certainty estimate."""
+
+    if score is None or threshold is None:
+        return None
+    probabilities = np.asarray(score, dtype=float).reshape(-1)
+    threshold = float(threshold)
+    if not 0.0 < threshold < 1.0:
+        raise ValueError("detection confidence needs a threshold strictly between 0 and 1")
+    negative_scale = threshold
+    positive_scale = 1.0 - threshold
+    confidence = np.where(
+        probabilities >= threshold,
+        (probabilities - threshold) / positive_scale,
+        (threshold - probabilities) / negative_scale,
+    )
+    return np.clip(confidence, 0.0, 1.0)
 
 
 def classification_metrics(
@@ -1451,6 +1521,7 @@ def _normalise_models(models: Iterable[str]) -> list[str]:
             "rbf_svc",
             "hist_gradient_boosting",
             "qsvc",
+            "qsvc_aligned",
             "pegasos_qsvc",
             "vqc",
         }:
@@ -1490,13 +1561,19 @@ class ValidationSigmoidCalibratedModel:
 
     base_model: Any
     calibrator: LogisticRegression
+    score_center: float = 0.0
     classes_: np.ndarray = field(default_factory=lambda: np.array([0, 1], dtype=int))
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         raw = _scores(self.base_model, X, prefer_probability=True)
         if raw is None:
             raise ValueError("base model did not provide probabilities for calibration")
-        calibrated = self.calibrator.predict_proba(raw.reshape(-1, 1))[:, 1]
+        # Centering the margin avoids the intercept/slope degeneracy that can
+        # occur when quantum decision scores are large negative values.  That
+        # failure mode silently mapped every held-out example to ~0.5.
+        calibrated = self.calibrator.predict_proba(
+            (raw - self.score_center).reshape(-1, 1)
+        )[:, 1]
         return np.column_stack((1.0 - calibrated, calibrated))
 
     def predict(self, X: np.ndarray) -> np.ndarray:
@@ -1512,7 +1589,11 @@ def model_artifact_manifest(artifact: SavedModelArtifact) -> dict[str, Any]:
         "model_name": artifact.model_name,
         "feature_space": artifact.feature_space,
         "input_features": list(artifact.preprocessor.feature_names),
-        "qubits": artifact.preprocessor.n_qubits,
+        "qubits": (
+            artifact.preprocessor.n_qubits
+            if artifact.feature_space == "quantum"
+            else None
+        ),
         "reduction": artifact.preprocessor.reduction,
         "selected_features": list(artifact.selected_features),
         "threshold": artifact.threshold,
@@ -1623,6 +1704,16 @@ def _build_model(
     else:
         raise ValueError("vqc ansatz must be real_amplitudes, efficient_su2, or two_local")
 
+    # Qiskit's VQC default initial point is drawn from [0, 2*pi), which the
+    # literature (e.g. arXiv 2412.06462) identifies as a major source of the
+    # run-to-run instability observed empirically on small clinical datasets
+    # in this project. A narrower range around zero is markedly more stable
+    # without the complexity of a full barren-plateau-avoidance scheme.
+    initial_point_scale = float(parameters.get("initial_point_scale", np.pi / 4))
+    initial_point = np.random.default_rng(seed).uniform(
+        -initial_point_scale, initial_point_scale, size=ansatz.num_parameters
+    )
+
     return (
         VQC(
             num_qubits=num_qubits,
@@ -1631,7 +1722,97 @@ def _build_model(
             optimizer=optimizer,
             sampler=context.sampler,
             pass_manager=context.pass_manager,
+            initial_point=initial_point,
         ),
+        "quantum",
+    )
+
+
+def _best_of_vqc_restarts(
+    model_name: str,
+    context: QuantumContext | None,
+    seed: int,
+    pegasos_steps: int,
+    vqc_maxiter: int,
+    parameters: dict[str, Any],
+    restarts: int,
+    prepared: "PreparedDataset",
+) -> tuple[Any, str]:
+    """Fit several VQC candidates with different random initial points and keep the
+    best-training-accuracy one. COBYLA on a shallow 4-6 qubit circuit is a fast local
+    optimizer that can land in a poor basin depending on the initial point; multiple
+    restarts trade extra (still cheap) compute for resilience to that, rather than
+    reporting whichever single seed happened to be drawn.
+    """
+    best_model: Any = None
+    best_feature_space = "quantum"
+    best_score = -np.inf
+    for restart_index in range(restarts):
+        restart_seed = seed + restart_index * 104_729
+        candidate, feature_space = _build_model(
+            model_name,
+            context,
+            restart_seed,
+            pegasos_steps,
+            vqc_maxiter,
+            parameters=parameters,
+        )
+        X_train, _, _, _ = _model_arrays(prepared, feature_space)
+        candidate.fit(X_train, prepared.y_train)
+        score = balanced_accuracy_score(prepared.y_train, candidate.predict(X_train))
+        if score > best_score:
+            best_model, best_feature_space, best_score = candidate, feature_space, score
+    return best_model, best_feature_space
+
+
+def _build_qsvc_aligned(
+    context: QuantumContext | None,
+    seed: int,
+    parameters: dict[str, Any],
+    prepared: "PreparedDataset",
+) -> tuple[Any, str]:
+    """QSVC whose feature map is trained via quantum kernel alignment (SVC-loss /
+    kernel-target alignment) before the kernel is handed to QSVC, rather than using
+    the fixed ZZFeatureMap as-is. This directly targets the exponential-concentration
+    failure mode of quantum kernels (arXiv 2208.11060): alignment can push the kernel
+    away from the degenerate region instead of relying on hand-picked entanglement.
+    """
+    if context is None:
+        raise RuntimeError("qsvc_aligned needs a quantum execution context")
+    from qiskit.circuit import ParameterVector
+    from qiskit_algorithms.optimizers import COBYLA, SPSA
+    from qiskit_machine_learning.algorithms import QSVC
+    from qiskit_machine_learning.kernels import TrainableFidelityQuantumKernel
+    from qiskit_machine_learning.kernels.algorithms import QuantumKernelTrainer
+
+    num_qubits = context.feature_map.num_qubits
+    training_params = ParameterVector("alignment_theta", num_qubits)
+    trainable_layer = context.feature_map.copy()
+    for qubit, theta in enumerate(training_params):
+        trainable_layer.ry(theta, qubit)
+
+    trainable_kernel = TrainableFidelityQuantumKernel(
+        feature_map=trainable_layer,
+        training_parameters=training_params,
+    )
+    alignment_optimizer_name = str(parameters.get("alignment_optimizer", "cobyla")).lower()
+    alignment_maxiter = int(parameters.get("alignment_maxiter", 50))
+    if alignment_optimizer_name == "spsa":
+        alignment_optimizer = SPSA(maxiter=alignment_maxiter)
+    else:
+        alignment_optimizer = COBYLA(maxiter=alignment_maxiter)
+
+    trainer = QuantumKernelTrainer(
+        quantum_kernel=trainable_kernel,
+        loss="svc_loss",
+        optimizer=alignment_optimizer,
+        initial_point=np.zeros(num_qubits),
+    )
+    X_train, _, _, _ = _model_arrays(prepared, "quantum")
+    result = trainer.fit(X_train, prepared.y_train)
+
+    return (
+        QSVC(quantum_kernel=result.quantum_kernel, C=float(parameters.get("C", 1.0))),
         "quantum",
     )
 
@@ -1670,8 +1851,10 @@ def _prepare_run(
     reduction: str,
     holdout_site: str | None,
     split_indices: tuple[np.ndarray, np.ndarray] | None,
+    validation_indices: np.ndarray | None,
     feature_map_reps: int = 1,
     feature_map_entanglement: str = "linear",
+    angle_scale: float = 1.0,
 ) -> tuple[PreparedDataset, QuantumContext | None]:
     prepared = prepare_dataset(
         dataset,
@@ -1684,8 +1867,10 @@ def _prepare_run(
         reduction=reduction,
         holdout_site=holdout_site,
         split_indices=split_indices,
+        validation_indices=validation_indices,
+        angle_scale=angle_scale,
     )
-    quantum_models = {"qsvc", "pegasos_qsvc", "vqc"}.intersection(model_names)
+    quantum_models = {"qsvc", "qsvc_aligned", "pegasos_qsvc", "vqc"}.intersection(model_names)
     if not quantum_models:
         return prepared, None
     return prepared, build_quantum_context(
@@ -1794,12 +1979,18 @@ def predict_with_model_artifact(
         else {"status": "disabled"}
     )
     row_id_list = list(row_ids) if row_ids is not None else []
+    confidence = detection_confidence(score, artifact.threshold)
 
     return {
         "schema_version": SCHEMA_VERSION,
         "package_version": package_version(),
         "dataset": dataset_name,
         "model_name": artifact.model_name,
+        "endpoint": (
+            artifact.dataset.get("task_profile", {}).get("endpoint")
+            if isinstance(artifact.dataset.get("task_profile"), dict)
+            else artifact.dataset.get("positive_label")
+        ),
         "feature_space": artifact.feature_space,
         "selected_features": list(artifact.selected_features),
         "input_features": list(expected),
@@ -1811,6 +2002,11 @@ def predict_with_model_artifact(
         "predictions": predictions.tolist(),
         "abstained": abstained.tolist(),
         "scores": score.tolist() if score is not None else None,
+        "detection_confidence": confidence.tolist() if confidence is not None else None,
+        "confidence_definition": (
+            "normalized distance of calibrated detection probability from the operating threshold; "
+            "not a clinical certainty or confidence interval"
+        ),
         "prediction_rows": [
             {
                 "row_id": (
@@ -1821,6 +2017,9 @@ def predict_with_model_artifact(
                 "prediction": int(predictions[index]),
                 "abstained": bool(abstained[index]),
                 "score": float(score[index]) if score is not None else None,
+                "detection_confidence": (
+                    float(confidence[index]) if confidence is not None else None
+                ),
             }
             for index in range(len(predictions))
         ],
@@ -1846,15 +2045,53 @@ def _fit_model(
     calibrate: bool,
     model_parameters: dict[str, Any] | None = None,
 ) -> tuple[Any, str, np.ndarray, np.ndarray | None, np.ndarray, str]:
-    model, feature_space = _build_model(
-        model_name,
-        context,
-        seed,
-        pegasos_steps,
-        vqc_maxiter,
-        parameters=model_parameters,
-    )
+    restarts = int((model_parameters or {}).get("vqc_restarts", 1)) if model_name == "vqc" else 1
+    if model_name == "qsvc_aligned":
+        model, feature_space = _build_qsvc_aligned(
+            context,
+            seed,
+            model_parameters or {},
+            prepared,
+        )
+    elif restarts > 1:
+        model, feature_space = _best_of_vqc_restarts(
+            model_name,
+            context,
+            seed,
+            pegasos_steps,
+            vqc_maxiter,
+            model_parameters or {},
+            restarts,
+            prepared,
+        )
+    else:
+        model, feature_space = _build_model(
+            model_name,
+            context,
+            seed,
+            pegasos_steps,
+            vqc_maxiter,
+            parameters=model_parameters,
+        )
     X_train, X_test, X_validation, reference = _model_arrays(prepared, feature_space)
+    sample_weight = None
+    if model_parameters and model_parameters.get("class_weight") == "balanced":
+        from sklearn.utils.class_weight import compute_sample_weight
+
+        sample_weight = compute_sample_weight("balanced", prepared.y_train)
+
+    def _fit(estimator: Any, X: np.ndarray, y: np.ndarray) -> None:
+        """Cost-sensitive fit for imbalanced data (arXiv-backed WSVM precedent), gated
+        behind model_params["class_weight"]="balanced". Falls back silently for
+        estimators (e.g. VQC) whose fit() does not accept sample_weight."""
+        if sample_weight is not None:
+            try:
+                estimator.fit(X, y, sample_weight=sample_weight)
+                return
+            except TypeError:
+                pass
+        estimator.fit(X, y)
+
     calibration_strategy = "none"
     if calibrate and hasattr(model, "get_params"):
         model = CalibratedClassifierCV(
@@ -1863,7 +2100,7 @@ def _fit_model(
             cv=3,
         )
         calibration_strategy = "3-fold training cross-validation"
-        model.fit(X_train, prepared.y_train)
+        _fit(model, X_train, prepared.y_train)
     elif calibrate:
         if X_validation is None or prepared.y_validation is None:
             raise ValueError(
@@ -1873,16 +2110,20 @@ def _fit_model(
             raise ValueError(
                 f"{model_name} calibration needs validation probabilities and both classes"
             )
-        model.fit(X_train, prepared.y_train)
+        _fit(model, X_train, prepared.y_train)
         validation_score = _scores(model, X_validation, prefer_probability=True)
         if validation_score is None:
             raise ValueError(f"{model_name} did not provide probabilities for calibration")
+        score_center = float(np.mean(validation_score))
         calibrator = LogisticRegression(max_iter=1000, random_state=seed)
-        calibrator.fit(validation_score.reshape(-1, 1), prepared.y_validation)
-        model = ValidationSigmoidCalibratedModel(model, calibrator)
+        calibrator.fit(
+            (validation_score - score_center).reshape(-1, 1),
+            prepared.y_validation,
+        )
+        model = ValidationSigmoidCalibratedModel(model, calibrator, score_center)
         calibration_strategy = "sigmoid fit on held-out validation split"
     else:
-        model.fit(X_train, prepared.y_train)
+        _fit(model, X_train, prepared.y_train)
     return model, feature_space, X_test, X_validation, reference, calibration_strategy
 
 
@@ -1912,13 +2153,17 @@ def run_experiment(
     reduction: str = "anova",
     holdout_site: str | None = None,
     split_indices: tuple[np.ndarray, np.ndarray] | None = None,
+    validation_indices: np.ndarray | None = None,
     model_params: dict[str, dict[str, Any]] | None = None,
     feature_map_reps: int = 1,
     feature_map_entanglement: str = "linear",
+    angle_scale: float = 1.0,
 ) -> dict[str, Any]:
     model_names = _normalise_models(models)
     if pegasos_steps < 1:
         raise ValueError("pegasos_steps must be positive")
+    if angle_scale <= 0:
+        raise ValueError("angle_scale must be positive")
     if threshold_policy not in {"default", "max_balanced_accuracy", "target_sensitivity"}:
         raise ValueError(f"unsupported threshold policy: {threshold_policy}")
     if threshold_policy == "default" and target_sensitivity is not None:
@@ -1962,8 +2207,10 @@ def run_experiment(
         reduction=reduction,
         holdout_site=holdout_site,
         split_indices=split_indices,
+        validation_indices=validation_indices,
         feature_map_reps=feature_map_reps,
         feature_map_entanglement=feature_map_entanglement,
+        angle_scale=angle_scale,
     )
     if effective_calibration:
         class_counts = np.bincount(prepared.y_train, minlength=2)
@@ -2023,7 +2270,11 @@ def run_experiment(
                 if reduction == "anova"
                 else "PCA fit on training split"
             ),
-            "angle_range": [-float(np.pi / 2), float(np.pi / 2)],
+            "angle_range": [
+                -float(np.pi / 2) * angle_scale,
+                float(np.pi / 2) * angle_scale,
+            ],
+            "angle_scale": angle_scale,
             "selected_features": prepared.selected_features,
             "qubits": n_qubits,
             "fit_rows": int(len(prepared.y_train)),
@@ -2146,14 +2397,25 @@ def run_experiment(
             abstained = np.abs(score - threshold) < margin
         else:
             abstained = np.zeros(len(X_test), dtype=bool)
+        confidence = detection_confidence(score, threshold)
         covered = ~abstained
         evaluation_y = prepared.y_test[covered]
         evaluation_pred = y_pred_raw[covered]
         evaluation_score = score[covered] if score is not None else None
-        metrics = classification_metrics(
+        covered_metrics = classification_metrics(
             evaluation_y,
             evaluation_pred,
             evaluation_score,
+            probability_score=probability_score,
+        )
+        # Headline diagnostic metrics must describe the complete held-out
+        # cohort.  Abstention is an operational policy, so report its
+        # covered-only metrics separately instead of silently improving the
+        # apparent sensitivity/specificity by removing hard cases.
+        metrics = classification_metrics(
+            prepared.y_test,
+            y_pred_raw,
+            score,
             probability_score=probability_score,
         )
         model_explanation: dict[str, Any]
@@ -2174,13 +2436,10 @@ def run_experiment(
             )
 
         subgroup_report = subgroup_metrics(
-            evaluation_y,
-            evaluation_pred,
-            evaluation_score,
-            {
-                name: values[covered]
-                for name, values in prepared.test_subgroups.items()
-            },
+            prepared.y_test,
+            y_pred_raw,
+            score,
+            prepared.test_subgroups,
             probability_score=probability_score,
         )
         resource_report = {
@@ -2208,6 +2467,9 @@ def run_experiment(
                 "prediction": int(y_pred_raw[index]),
                 "abstained": bool(abstained[index]),
                 "score": float(score[index]) if score is not None else None,
+                "detection_confidence": (
+                    float(confidence[index]) if confidence is not None else None
+                ),
                 "label": int(prepared.y_test[index]),
             }
             for index in range(len(y_pred_raw))
@@ -2220,20 +2482,20 @@ def run_experiment(
             "metrics": metrics,
             "clinical_evaluation": {
                 "calibration_curve": calibration_bins(
-                    evaluation_y,
-                    evaluation_score if probability_score else None,
+                    prepared.y_test,
+                    score if probability_score else None,
                 ),
                 "decision_curve": decision_curve(
-                    evaluation_y,
-                    evaluation_score if probability_score else None,
+                    prepared.y_test,
+                    score if probability_score else None,
                 ),
                 "subgroups": subgroup_report,
             },
             "resource": resource_report,
             "confidence_intervals": bootstrap_confidence_intervals(
-                evaluation_y,
-                evaluation_pred,
-                evaluation_score,
+                prepared.y_test,
+                y_pred_raw,
+                score,
                 probability_score,
                 bootstrap_samples,
                 seed,
@@ -2249,11 +2511,17 @@ def run_experiment(
                 "abstained_rows": int(np.sum(abstained)),
                 "evaluated_rows": int(np.sum(covered)),
                 "coverage": float(np.mean(covered)) if len(covered) else None,
+                "covered_metrics": covered_metrics,
             },
             "score_type": "probability" if probability_score else "decision",
             "predictions": y_pred_raw.tolist(),
             "abstained": abstained.tolist(),
             "scores": score.tolist() if score is not None else None,
+            "detection_confidence": confidence.tolist() if confidence is not None else None,
+            "confidence_definition": (
+                "normalized distance of calibrated detection probability from the operating threshold; "
+                "not a clinical certainty or confidence interval"
+            ),
             "prediction_rows": prediction_rows,
             "elapsed_seconds": round(time.perf_counter() - started, 4),
             "explanation": model_explanation,

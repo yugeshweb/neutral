@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "model_id": "alzheimers-t1-mri",
+  "condition": "Alzheimer's disease",
+  "temporal_framing": "screening",
+  "labels": {
+    "positive": "alzheimers_disease",
+    "negative": "healthy_control"
+  },
+  "expects": {
+    "channels": [
+      "t1"
+    ],
+    "grid": [
+      64,
+      64,
+      64
+    ],
+    "channel_count": 1
+  },
+  "encoder": {
+    "kind": "pretrained_volume",
+    "in_channels": 1,
+    "latent_dim": 32,
+    "slice_stride": 2,
+    "backbone": "frozen ImageNet ResNet18, slice-wise"
+  },
+  "head": "qsvc",
+  "quantum": {
+    "n_qubits": 4,
+    "feature_map": "ZZFeatureMap",
+    "feature_map_reps": 1,
+    "entanglement": "linear",
+    "C": 5.0,
+    "angle_scale": 0.2,
+    "backend": "statevector"
+  },
+  "operating_point": {
+    "threshold": 0.7311154441627808,
+    "policy": "target_sensitivity@0.8 (validation only)"
+  },
+  "training_provenance": {
+    "dataset": "Zenodo 3935636 AD vs bipolar vs control MRI, CC BY 4.0",
+    "cohort_size": 54,
+    "positives": 35,
+    "split": {
+      "train": 34,
+      "validation": 9,
+      "test": 11
+    },
+    "held_out_performance": {
+      "balanced_accuracy": 0.6071428571428572,
+      "sensitivity": 0.7142857142857143,
+      "specificity": 0.5,
+      "roc_auc": 0.7142857142857143
+    },
+    "parameters": {
+      "total_parameters": 11447169,
+      "trainable_parameters": 270657,
+      "frozen_parameters": 11176512
+    },
+    "modality": "MR",
+    "ct_windows": null,
+    "limitations": [
+      "RESEARCH USE ONLY, NOT A MEDICAL DEVICE",
+      "PERFORMS AT OR BELOW CHANCE: leave-out balanced accuracy 0.43-0.61 across three encoder architectures, all CIs span 0.5 - NO demonstrated discriminative ability",
+      "n=54 (35 AD / 19 control) is far too small for a 3-D CNN; this is the binding constraint, not the architecture",
+      "Single-site 1.5T cohort, no scanner diversity, no external validation",
+      "Discriminates DIAGNOSED Alzheimer's from healthy controls; NOT prodromal, NOT MCI-to-AD progression",
+      "Calibration not assessed"
+    ]
+  },
+  "created_at": "2026-09-03T13:05:31.773327+00:00"
+}

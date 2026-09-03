@@ -1,0 +1,88 @@
+{
+  "schema_version": 2,
+  "model_id": "seizure-preictal-eeg",
+  "condition": "epilepsy (seizure prediction)",
+  "temporal_framing": "prediction",
+  "labels": {
+    "positive": "preictal_seizure_imminent",
+    "negative": "interictal_baseline"
+  },
+  "expects": {
+    "channels": [
+      "delta_mean",
+      "delta_std",
+      "theta_mean",
+      "theta_std",
+      "alpha_mean",
+      "alpha_std",
+      "beta_mean",
+      "beta_std",
+      "gamma_mean",
+      "gamma_std",
+      "amplitude_std",
+      "derivative_std",
+      "mean_abs",
+      "line_length"
+    ],
+    "grid": [
+      14
+    ],
+    "channel_count": 14
+  },
+  "encoder": {
+    "kind": "none",
+    "features": 14,
+    "representation": "engineered EEG band-power + dynamics"
+  },
+  "head": "qsvc",
+  "quantum": {
+    "n_qubits": 4,
+    "feature_map": "ZZFeatureMap",
+    "feature_map_reps": 1,
+    "entanglement": "linear",
+    "C": 5.0,
+    "angle_scale": 0.2,
+    "backend": "statevector"
+  },
+  "operating_point": {
+    "threshold": 0.6322185263470724,
+    "policy": "target_sensitivity@0.8 (held-out patient only)"
+  },
+  "training_provenance": {
+    "dataset": "CHB-MIT Scalp EEG (PhysioNet, ODC-By)",
+    "modality": "signal",
+    "cohort_size": 586,
+    "patients": [
+      "chb01",
+      "chb02",
+      "chb03",
+      "chb05"
+    ],
+    "positives": 320,
+    "lead_time_minutes": 5.0,
+    "task": "pre-ictal prediction: is a seizure coming in the next ~30 minutes",
+    "preictal_definition": "35-5 min before annotated onset; 5 min seizure-prediction-horizon gap",
+    "held_out_performance": {
+      "protocol": "leave-one-patient-out",
+      "balanced_accuracy": 0.5045230263157895,
+      "balanced_accuracy_std": 0.25732625387383024,
+      "auc": 0.4676538514254386,
+      "per_patient": [
+        0.5,
+        0.33125,
+        0.26249999999999996,
+        0.924342105263158
+      ]
+    },
+    "limitations": [
+      "RESEARCH USE ONLY, NOT A MEDICAL DEVICE",
+      "PERFORMS AT CHANCE patient-independently: leave-one-patient-out balanced accuracy 0.505 +/- 0.257, AUC 0.468 - NO demonstrated ability to predict seizures in an unseen patient, and must not be used for warning or alerting",
+      "Per-patient results range 0.26 to 0.92; two of four held-out patients scored BELOW chance with inverted ranking, indicating pre-ictal signatures are patient-specific",
+      "Only 4 patients (CHB-MIT has 24); patient-independent literature SOTA is AUC ~0.81 using 22 patients and spectrogram inputs rather than these 14 band-power features",
+      "Pre-ictal windows come from seizure-bearing recordings and interictal from seizure-free ones, so session-level confounds are not controlled",
+      "Input must be 14 features in the documented order, computed from 30 s of multi-channel scalp EEG at 256 Hz",
+      "Calibration not assessed"
+    ]
+  },
+  "created_at": "2026-09-03T13:03:26.564006+00:00"
+}

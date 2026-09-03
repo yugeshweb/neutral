@@ -1,172 +1,76 @@
-# Cardiovascular hybrid ML frame — handover bundle
+# Hybrid quantum-classical neurological models — handover package
 
-Work by Shuvam. A pluggable frame that declares cardiovascular input channels, fits a
-detector per channel that has data, and pools their calibrated opinions into one risk
-assessment. Built so it can be integrated into another system rather than only run here.
+Self-contained snapshot of the neuro-conditions work: five models over radiologist-grade data,
+a deployable serving layer, and the research records behind every number.
 
-> **Canonical source is `backend/`.** The files under `src/` and `tests/` here are a
-> snapshot for review and handover. `cardiovascular.py` imports `.multimodal`,
-> `.experiment` and `.ecg`, so it only *runs* from inside the `qhealth_qml` package.
-> Refresh this snapshot with `./sync.sh` rather than editing these copies — otherwise
-> the two diverge silently.
+**Research use only. Not a medical device. Nothing here is validated for clinical use.**
 
----
+## Read this first — what actually works
 
-## 1. What actually works
-
-Verified end-to-end against real data on disk. Both ready modalities trained and earned
-their fusion weights from their own **validation** splits:
-
-| Modality | Data | Validation BA | Fusion weight | Test AUROC |
+| Model | Modality | Framing | Held-out | Usable? |
 |---|---|---|---|---|
-| `ecg_12lead` | 6000 × 294, 2960 pos | 0.8486 | **0.6971** | 0.8352 |
-| `ehr_tabular` | 888 × 97, 185 pos | 0.6046 | **0.2092** | 0.7896 |
+| `stroke-core-volume-mri` | MRI: DWI + ADC + FLAIR | characterisation | **BA 0.7765**, AUC 0.879 | Best available |
+| `parkinsons-gait-signal` | 18-ch force-plate gait @100 Hz | detection | **BA 0.7980** (subject-grouped) | Best available |
+| `ich-intraventricular-ct` | Head CT, 3 clinical windows | detection | BA ~0.54–0.58 | **At chance** |
+| `glioma-mgmt-mpmri` | MRI: T1/T1c/T2/FLAIR | characterisation | BA 0.533 | **At chance (n=47)** |
+| `alzheimers-t1-mri` | T1 structural MRI | screening | BA 0.43–0.61 | **At/below chance (n=54)** |
+| `seizure-preictal-eeg` | 14 EEG band-power features | **prediction**, 5-min lead | **LOPO BA 0.505** | **At chance patient-independently** |
 
-From a `--max-train 600` screening run. At full scale the ECG channel reaches
-**BA 0.8620 / AUROC 0.9374**; MUSIC reaches **AUROC 0.768** over a genuine 4-year
-horizon. The point of the table is that weights are *earned and differentiated*
-(0.70 vs 0.21), not that these are headline numbers.
+Four of six perform at chance. They are packaged so the integration surface is uniform and
+testable, **not** because they work — each carries a `PERFORMS AT CHANCE` string returned in every
+prediction response. In all cases the binding constraint is cohort size (47–192 subjects), which was
+tested directly against three encoder architectures, not assumed.
 
-**103 tests pass.** The library imports with zero heavy dependencies — no torch, qiskit,
-wfdb or monai load until you actually fit something — so `readiness_report()` is safe to
-call anywhere.
-
-## 2. Modality status
-
-| Modality | State | Framing | Note |
-|---|---|---|---|
-| `ecg_12lead` | **ready** | detection | PTB-XL; reads a present state, not an early warning |
-| `ehr_tabular` | **ready** | prediction | MUSIC; the only genuinely prognostic channel |
-| `angiography` | needs_data | detection | Extractor implemented + tested; no frames on disk |
-| `cad_prs` | needs_data | screening | Engine implemented; no genotypes anywhere |
-| `echocardiography` | stub | characterisation | Declared, not implemented |
-
-`needs_data` means **code-complete and starved**, not broken. `stub` means declared but
-unimplemented. The readiness report distinguishes these deliberately so an integrator
-can plan against it instead of discovering failures by catching exceptions.
-
-## 3. What's in here
+## What this contains
 
 ```
-README.md                      this file
-LICENSE.md                     licensing position + third-party obligations — READ BEFORE SHARING
-CARDIOVASCULAR_FRAME.md        integration guide: API, contract, worked examples
-sync.sh                        refresh this snapshot from backend/
-src/qhealth_qml/
-  cardiovascular.py            the frame: registry, fit, pool, readiness
-  cardiovascular_cli.py        console entry point (qhealth-cardiovascular)
-  prs.py                       polygenic score engine (PGS Catalog -> per-patient risk)
-  multimodal.py                skill-weighted combiner
-  ecg.py                       12-lead -> 294 deterministic features
-  angiography.py               multi-scale Hessian vesselness
-  hybrid_qnn.py                dressed quantum circuit (Mari et al.) via TorchConnector
-  pretrained_encoder.py        frozen ImageNet ResNet18 encoder
-tests/                         103 passing
-results/                       measured results (JSON) — no patient-level rows
-profiles/                      MUSIC early-detection cohort profile
-prepare.py                     MUSIC cohort builder (code only; no data)
-run_cardiovascular.py          dev shim for the CLI
+src/        14 library modules — ingest, encoders, quantum heads, serving
+runners/    11 entry points — training, bundling, registration, HTTP service
+docs/       INTEGRATION.md (the contract) + pinned requirements
+manifests/  model manifests (what each artifact expects and its measured performance)
+research/   per-condition research records + result JSONs
+test_serving_integration.py   12 acceptance tests
 ```
 
-**No datasets are included.** PTB-XL and MUSIC are third-party licensed and excluded by
-`.gitignore`; both are freely obtainable at source. See LICENSE.md.
+Model binaries (`*.pkl`, ~91 MB) are **not** included — they are build outputs, reproducible from
+`runners/build_*.py`. The `*.manifest.json` files describe them exactly.
 
-## 4. Quick start
+## The headline finding
+
+Two conditions that failed six architecture-search levers on tabular features cleared the viability
+gate immediately once the **input modality** changed to what a clinician actually reads — with the
+quantum configuration untouched. P1 stroke went 0.549 (failed) → 0.810; P6 Parkinson's 0.561
+(failed) → 0.750. Where cohorts were small (47–192), nothing helped: not modality, not resolution,
+not architecture. **The lever is data, not circuits.** No quantum advantage is claimed anywhere —
+classical heads stay level or ahead and confidence intervals overlap.
+
+## Three bugs worth knowing about
+
+1. **Score-normalisation clipping.** Raw `decision_function` output (unbounded, often negative) was
+   clipped to [0,1], flattening negatives to zero and driving the threshold to 0.0 — an all-positive
+   predictor. The model was fine (ROC-AUC 0.819); the deployment path destroyed it. Fixing it moved
+   held-out balanced accuracy **0.500 → 0.7765** on identical data. Constants are now persisted in
+   the artifact and regression-tested.
+2. **Missing respacing (D5).** Volumes were resampled to a fixed array grid without first being
+   respaced to a common physical voxel size, so scans at different mm/voxel occupied different real
+   fields of view in the same tensor. Fixed via MONAI `Spacingd`. Use `src/cohort_audit.py` to check
+   whether a cohort is exposed before treating any number measured on it as a reference value.
+3. **Batch scoring rebuilt the encoder per sample** — 33M parameters reconstructed per study.
+
+## Reproducing
 
 ```bash
-pip install ./backend
-qhealth-cardiovascular status
-qhealth-cardiovascular fit  --artifact-dir runtime/cvd --max-train 600
-qhealth-cardiovascular pool --score ecg_12lead=0.81 --score ehr_tabular=0.44 \
-                            --weights runtime/cvd/fit-report.json
+pip install -r docs/requirements-serving.txt
+python runners/serve_api.py --bundles runtime/bundles --port 8080
+curl localhost:8080/models
 ```
 
-Library form:
+See `docs/INTEGRATION.md` for the full response contract, the four fields a caller must handle,
+and the real portability blockers (pickle format, `qhealth_qml` import, runtime weight download).
 
-```python
-from qhealth_qml.cardiovascular import CardiovascularFrame
+## Provenance
 
-frame = CardiovascularFrame(root="backend")
-frame.readiness_report()["runnable_now"]     # ['ecg_12lead', 'ehr_tabular']
-frame.fit_available(artifact_dir="runtime/cvd")
-frame.pool({"ecg_12lead": 0.81, "ehr_tabular": 0.44, "angiography": None})
-```
-
-## 5. Design rules enforced in code
-
-Not conventions — these are constraints a caller cannot bypass:
-
-1. **Influence must be earned.** Weight is `2·(balanced_accuracy − 0.5)` from a
-   modality's own **validation** split, never the test fold, never set by hand. There is
-   no API to grant weight directly. A chance-level channel gets ~0 influence.
-2. **Absent modalities are omitted, never imputed.** Missing channels drop out and the
-   remaining weights renormalise. No zero-filling.
-3. **Scores are threshold-aligned before averaging.** 0.42 is positive for a model
-   thresholded at 0.30 and negative at 0.60; each score is remapped so its own threshold
-   sits at 0.5.
-4. **Pooled framing takes the weakest contributor.** A 4-year prediction pooled with a
-   present-state ECG detection yields `"detection"`. A combined answer cannot claim more
-   reach than its least forward-looking input.
-5. **Polygenic scores refuse below coverage.** A PRS over a fraction of its variants is a
-   *different* score, not a weaker one; published risk strata do not apply. Raises below
-   80% by default.
-
-## 6. Extension points
-
-**Register a modality** — never edit the library:
-
-```python
-frame.register(ModalitySpec(
-    name="ct_angiography",
-    clinical_role="Coronary CT angiography",
-    temporal_framing="detection",
-    data_requirement="CCTA volumes plus a labels CSV",
-    loader=my_loader,                    # (source, **opts) -> LoadedDataset
-    default_source="data/ccta",
-))
-```
-
-**Plug in an external scorer** (medical LLM on the EHR, vendor imaging model). It pools
-on identical terms — but its influence is not automatic:
-
-```python
-frame.pool({"ehr_tabular": llm_probability, "ecg_12lead": 0.81})
-```
-
-A channel with no recorded validation score contributes at **zero weight**. To let it
-count, register a `ModalityModel` carrying the balanced accuracy it *demonstrated* on a
-held-out split. Measured, not asserted.
-
-## 7. Honest limitations
-
-Read this before presenting the work.
-
-- **The quantum path has no demonstrated advantage.** Across everything measured in this
-  project: **zero wins, one parity, six losses** against classical baselines. The frame
-  is genuinely useful as a *multimodal pooling architecture with a quantum option* —
-  that is the defensible claim. Do not present it as a proven quantum advantage.
-- **The cohorts are disjoint.** PTB-XL's ECG patients are not MUSIC's heart-failure
-  patients. Joint fusion and learned stacking both need per-patient alignment, so the
-  combiner is a fixed rule. The pooled score is a defensible way to combine independent
-  evidence; it is **not** a measured improvement over the best single modality, and the
-  frame's own report says so.
-- **Only one channel is prognostic.** `ehr_tabular` predicts over 4 years; `ecg_12lead`
-  reads a present state. Never present a pooled score as early warning unless
-  `temporal_framing` says `prediction`.
-- **No angiography number exists.** The extractor is unit-tested against synthetic
-  vessels and has never seen a real angiogram.
-- **No genomics data exists.** The PRS engine is implemented and the published model is
-  openly downloadable (PGS000018 metaGRS_CAD, 1,745,180 variants — verified HTTP 200,
-  no auth). What is missing is individual-level genotypes.
-- **Trained `.pkl` artifacts are deliberately not included.** Pickle executes arbitrary
-  code on load, and the artifact schema is mid-migration. Ship the fit script and let
-  the receiving side refit; `results/fit-report.json` carries the weights.
-
-## 8. Next steps, in priority order
-
-1. **CADICA angiography** (3.08 GB, openly downloadable) — `angiography.py` already
-   consumes this format. Would produce the first cardiovascular *imaging* number.
-2. **Extract ISLES-2022** (1.69 GB, already on disk, unzipped) — tests the
-   frozen-pretrained-backbone hypothesis that `pretrained_encoder.py` was written for.
-3. **Genotypes** for the PRS channel. Publicly, cardiac imaging + genotypes for the same
-   people means UK Biobank (application + fee).
+All datasets are open-licensed and were fetched without any data-use agreement: ISLES 2022
+(CC BY 4.0), BHSD (MIT), UPenn-GBM via TCIA (CC BY 4.0), Zenodo 3935636 (CC BY 4.0), PhysioNet
+gaitpdb and CHB-MIT (ODC-By). Gated sources (ADNI, PPMI, OASIS image tiers, PhysioNet ct-ich) were
+identified and deliberately not used.

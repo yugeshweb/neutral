@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "model_id": "stroke-core-volume-mri",
+  "condition": "acute ischaemic stroke",
+  "temporal_framing": "characterisation",
+  "labels": {
+    "positive": "large_infarct_core",
+    "negative": "small_infarct_core"
+  },
+  "expects": {
+    "channels": [
+      "dwi",
+      "adc",
+      "flair"
+    ],
+    "grid": [
+      64,
+      64,
+      64
+    ],
+    "channel_count": 3
+  },
+  "encoder": {
+    "kind": "pretrained_volume",
+    "in_channels": 3,
+    "latent_dim": 32,
+    "slice_stride": 2,
+    "backbone": "frozen ImageNet ResNet18, slice-wise"
+  },
+  "head": "qsvc",
+  "quantum": {
+    "n_qubits": 4,
+    "feature_map": "ZZFeatureMap",
+    "feature_map_reps": 1,
+    "entanglement": "linear",
+    "C": 5.0,
+    "angle_scale": 0.2,
+    "backend": "statevector"
+  },
+  "operating_point": {
+    "threshold": 0.30511398534154244,
+    "policy": "target_sensitivity@0.8 (validation only)"
+  },
+  "training_provenance": {
+    "dataset": "ISLES 2022 (Zenodo 7153326, CC BY 4.0)",
+    "cohort_size": 250,
+    "positives": 65,
+    "split": {
+      "train": 160,
+      "validation": 40,
+      "test": 50
+    },
+    "held_out_performance": {
+      "balanced_accuracy": 0.7765072765072765,
+      "sensitivity": 0.7692307692307693,
+      "specificity": 0.7837837837837838,
+      "roc_auc": 0.8794178794178794
+    },
+    "parameters": {
+      "total_parameters": 11971457,
+      "trainable_parameters": 794945,
+      "frozen_parameters": 11176512
+    },
+    "modality": "MR",
+    "ct_windows": null,
+    "limitations": [
+      "Research use only, not a medical device",
+      "Labels derived from expert lesion masks, not prospective radiologist measurement",
+      "Single public cohort, no external site validation",
+      "DAWN 21 mL threshold; DEFUSE-3 uses 70 mL"
+    ]
+  },
+  "created_at": "2026-09-03T11:27:22.188795+00:00"
+}

@@ -1,0 +1,125 @@
+{
+  "model_id": "stroke-core-volume-mri",
+  "condition_id": "neuro.stroke.ischemic.acute",
+  "version": "0.1.0",
+  "display_name": "Acute stroke infarct-core volume (MRI, hybrid)",
+  "task_type": "binary_classification",
+  "availability": "available",
+  "lifecycle": "experimental",
+  "executor": "imaging_hybrid",
+  "input_contract": {
+    "required_modalities": [
+      "imaging"
+    ],
+    "optional_modalities": [],
+    "required_fields": [
+      "dwi",
+      "adc",
+      "flair"
+    ],
+    "min_rows": 1,
+    "population": "ISLES 2022 (Zenodo 7153326, CC BY 4.0)",
+    "population_filters": {},
+    "quality_constraints": {
+      "grid": "volumes are resampled to [64, 64, 64]",
+      "channels": "all of ['dwi', 'adc', 'flair'] are required; missing sequences are refused, not zero-filled",
+      "modality": "MR"
+    }
+  },
+  "dataset_profile_path": "backend/profiles/p1_stroke_isles_imaging.json",
+  "temporal_validation": "not applicable \u2014 cross-sectional imaging cohort, no index or outcome time",
+  "preprocessing": {
+    "imputation": "none (dense imaging)",
+    "scaling": "percentile intensity normalisation",
+    "reduction": "PCA to qubit count at the quantum boundary",
+    "n_components": 4,
+    "angle_scaling": "minmax (angle_scale=0.2)",
+    "fitted_on": "train_partition_only"
+  },
+  "quantum": {
+    "framework": "qiskit",
+    "encoding": "ZZFeatureMap",
+    "ansatz": null,
+    "circuit_version": "qiskit-2.5/ZZFeatureMap-reps1-linear-C5.0-anglescale0.2",
+    "backend_mode": "statevector",
+    "n_qubits": 4,
+    "shots": 512
+  },
+  "classical_baseline_model_id": "stroke-clinical-risk-tabular-classical",
+  "artifact": {
+    "kind": "inference_bundle",
+    "path": "runtime/bundles/stroke-core-volume-mri.pkl",
+    "manifest_path": "runtime/bundles/stroke-core-volume-mri.pkl.manifest.json",
+    "sha256": null,
+    "schema_version": 2
+  },
+  "calibration": {
+    "method": "validation_selected_threshold",
+    "status": "not_assessed",
+    "note": "Operating threshold selected on the validation split only (target_sensitivity@0.8 (validation only)). Held-out test performance: {\"balanced_accuracy\": 0.7765072765072765, \"sensitivity\": 0.7692307692307693, \"specificity\": 0.7837837837837838, \"roc_auc\": 0.8794178794178794}. Reliability curve / ECE not yet computed \u2014 calibration is NOT assessed."
+  },
+  "explainability": {
+    "method": "none",
+    "scope": "per_row",
+    "surrogate": false
+  },
+  "output_score_type": "calibrated_probability",
+  "evaluation_record_ids": [
+    "eval-stroke-core-volume-mri-0.1.0"
+  ],
+  "safety": {
+    "allows_negative_finding": true,
+    "abstain_margin": 0.05,
+    "requires_full_coverage": true,
+    "disclaimer": "Research characterisation estimate from imaging. Not a diagnosis and not a medical device.",
+    "limitations": [
+      "Research use only, not a medical device",
+      "Labels derived from expert lesion masks, not prospective radiologist measurement",
+      "Single public cohort, no external site validation",
+      "DAWN 21 mL threshold; DEFUSE-3 uses 70 mL",
+      "Cohort size 250 \u2014 see research record for confidence intervals.",
+      "No external-site or multi-cohort validation has been performed.",
+      "Calibration (reliability/ECE) is not assessed; the score is a thresholded decision value."
+    ]
+  },
+  "model_card": {
+    "intended_use": "Research benchmarking of a hybrid quantum-classical characterisation model on MR for neuro.stroke.ischemic.acute.",
+    "excluded_use": "Any clinical use. Diagnosis. Triage of real patients.",
+    "training_population": "ISLES 2022 (Zenodo 7153326, CC BY 4.0)",
+    "evaluation_population": "Stratified held-out split of the same cohort. No external cohort.",
+    "label_policy": "large_infarct_core",
+    "data_sources": [
+      {
+        "label": "ISLES 2022 (Zenodo 7153326, CC BY 4.0)",
+        "url": "",
+        "citation": ""
+      }
+    ],
+    "data_licenses": [
+      "see research record"
+    ],
+    "limitations": [
+      "See safety.limitations."
+    ],
+    "calibration_status": "not_assessed",
+    "explanation_method": "none",
+    "maintainer": "tech@centai.in",
+    "reuse_manifest": [
+      {
+        "component": "pretrained encoder",
+        "decision": "reused",
+        "source_url": "",
+        "release_or_commit": "frozen ImageNet ResNet18, slice-wise",
+        "paper_citation": null,
+        "license": "",
+        "license_verified": false,
+        "weight_source": "",
+        "weight_sha256": null,
+        "preprocessing_assumptions": "volumes resampled to [64, 64, 64]",
+        "io_contract": "volume [C,D,H,W] -> latent -> quantum/classical head",
+        "local_modifications": "backbone frozen; trainable projection head added"
+      }
+    ],
+    "research_record": ""
+  }
+}

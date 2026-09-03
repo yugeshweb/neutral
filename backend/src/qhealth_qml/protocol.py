@@ -12,6 +12,18 @@ if TYPE_CHECKING:
     from .experiment import LoadedDataset
 
 
+# Task types a profile may declare. "early_detection" remains the default so every existing
+# profile is unchanged; the others exist because the imaging conditions genuinely are not
+# early-detection tasks and must not claim to be.
+TASK_TYPES = frozenset({"early_detection", "detection", "characterisation", "screening"})
+
+# "imaging" and "signal" cover the volumetric and waveform conditions; the original four are
+# retained verbatim.
+PROFILE_MODALITIES = frozenset(
+    {"tabular", "gene_expression", "imaging_features", "ehr_numeric", "imaging", "signal"}
+)
+
+
 @dataclass(frozen=True)
 class EarlyDetectionProfile:
     """A small, explicit contract for turning rows into a prediction task."""
@@ -73,14 +85,20 @@ def load_early_detection_profile(path: str | Path) -> tuple[EarlyDetectionProfil
         reduction=str(raw.get("reduction", "pca")),
         task_type=str(raw.get("task_type", "early_detection")),
     )
-    if profile.task_type != "early_detection":
-        raise ValueError("profile task_type must be 'early_detection'")
+    # The platform originally served only early-detection tabular cohorts, so this loader
+    # hardcoded that task type. It is now the general profile loader for every model
+    # (execution._load_dataset_for_model calls it unconditionally), and the imaging conditions
+    # answer questions that are genuinely NOT early detection -- characterising an
+    # already-identified finding, or detecting a present one. Forcing those to declare
+    # "early_detection" to satisfy a validator would misrepresent what the model does, which is
+    # the exact failure the temporal-framing field exists to prevent. The allowed set therefore
+    # mirrors serving.TEMPORAL_FRAMINGS.
+    if profile.task_type not in TASK_TYPES:
+        raise ValueError(f"profile task_type must be one of {sorted(TASK_TYPES)}")
     if profile.reduction not in {"anova", "pca"}:
         raise ValueError("profile reduction must be 'anova' or 'pca'")
-    if profile.modality not in {"tabular", "gene_expression", "imaging_features", "ehr_numeric"}:
-        raise ValueError(
-            "profile modality must be tabular, gene_expression, imaging_features, or ehr_numeric"
-        )
+    if profile.modality not in PROFILE_MODALITIES:
+        raise ValueError(f"profile modality must be one of {sorted(PROFILE_MODALITIES)}")
     if profile.horizon_days is not None and profile.horizon_days < 1:
         raise ValueError("profile horizon_days must be positive")
     if len(set(profile.subgroup_columns)) != len(profile.subgroup_columns):

@@ -1,0 +1,59 @@
+{
+  "task": "pre-ictal prediction (early detection)",
+  "protocol": "leave-one-patient-out",
+  "preictal_window": "35-5 min before onset (5 min seizure prediction horizon)",
+  "windows": 586,
+  "patients": [
+    "chb01",
+    "chb02",
+    "chb03",
+    "chb05"
+  ],
+  "summary": {
+    "hist_gradient_boosting": {
+      "balanced_accuracy_mean": 0.4711074561403509,
+      "balanced_accuracy_std": 0.29137810241317874,
+      "auc_mean": 0.44751644736842106,
+      "per_patient_ba": [
+        0.22291666666666665,
+        0.5,
+        0.225,
+        0.9365131578947368
+      ]
+    },
+    "logistic_regression": {
+      "balanced_accuracy_mean": 0.3862664473684211,
+      "balanced_accuracy_std": 0.12877698678221072,
+      "auc_mean": 0.419921875,
+      "per_patient_ba": [
+        0.5,
+        0.2875,
+        0.23125,
+        0.5263157894736842
+      ]
+    },
+    "qsvc": {
+      "balanced_accuracy_mean": 0.5045230263157895,
+      "balanced_accuracy_std": 0.25732625387383024,
+      "auc_mean": 0.4676538514254386,
+      "per_patient_ba": [
+        0.5,
+        0.33125,
+        0.26249999999999996,
+        0.924342105263158
+      ]
+    },
+    "rbf_svc": {
+      "balanced_accuracy_mean": 0.40476973684210527,
+      "balanced_accuracy_std": 0.215328969981667,
+      "auc_mean": 0.4135546875,
+      "per_patient_ba": [
+        0.5,
+        0.19375,
+        0.21250000000000002,
+        0.7128289473684211
+      ]
+    }
+  },
+  "literature_reference_auc": 0.81
+}
