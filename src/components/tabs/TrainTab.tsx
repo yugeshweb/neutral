@@ -4,7 +4,7 @@ import {
   saveTrainedPipeline,
   type TrainedPipelineArtifact,
 } from '../../lib/diseaseRegistry'
-import { INTAKE_DISEASE_IDS } from '../../lib/intakeSpec'
+import { INTAKE_DISEASE_IDS, UNTRAINABLE_DISEASE_IDS } from '../../lib/intakeSpec'
 import { CONDITION_VECTOR, VecLesion } from '../vectors'
 import {
   CUSTOM_DATASET_ID,
@@ -524,6 +524,57 @@ export function TrainTab({
                       </div>
                     </div>
                   </button>
+                )
+              })}
+              {/* Visible but disabled: these two conditions are real
+                  Benchmark entries with no per-feature statistics behind
+                  them to synthesize a trainable dataset from (see
+                  UNTRAINABLE_DISEASE_IDS). Shown rather than omitted, so the
+                  picker does not silently under-represent what the platform
+                  covers. */}
+              {UNTRAINABLE_DISEASE_IDS.map(({ diseaseId, reason }) => {
+                const d = getDiseasePipeline(diseaseId)
+                const Vec = CONDITION_VECTOR[diseaseId] ?? VecLesion
+                return (
+                  <div
+                    key={diseaseId}
+                    aria-disabled="true"
+                    className="tile relative mx-auto flex aspect-square w-full max-w-[220px] cursor-not-allowed flex-col p-3 text-left opacity-50"
+                    style={{ ['--tile-accent' as string]: LANE_COLOR.quantum }}
+                  >
+                    {/* Anchored to the card, not the plate: `.tile-art` clips
+                        its own overflow for the scan-line effect, which was
+                        cutting off this popover's left edge when it lived
+                        there. */}
+                    <span
+                      className="absolute right-2 top-2 z-10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <InfoDot label={`Why ${d.shortName} cannot be trained here`}>
+                        {reason}
+                      </InfoDot>
+                    </span>
+
+                    <div className="tile-art relative min-h-0 w-full flex-1">
+                      <Vec size={56} accent="#6A6C72" />
+                      <span className="engraved absolute left-2 top-1.5 font-mono text-[10.5px]">
+                        {d.categoryLabel.split(' / ')[0]}
+                      </span>
+                    </div>
+
+                    <div className="mt-2.5 min-w-0 shrink-0">
+                      <div
+                        className="truncate text-[13.5px] font-medium leading-snug"
+                        title={d.name}
+                        style={{ color: '#6A6C72' }}
+                      >
+                        {d.shortName}
+                      </div>
+                      <div className="tile-muted mt-1 font-mono text-[10.5px]">
+                        not trainable here
+                      </div>
+                    </div>
+                  </div>
                 )
               })}
               </div>

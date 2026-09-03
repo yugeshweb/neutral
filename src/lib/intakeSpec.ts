@@ -208,3 +208,33 @@ export function intakeFor(diseaseId: string): IntakeField[] {
 
 /** The conditions Train and Predict offer, in display order. */
 export const INTAKE_DISEASE_IDS = CONDITION_INTAKE.map((c) => c.diseaseId)
+
+/**
+ * Conditions shown on the Train/Predict pickers as visible-but-disabled
+ * cards, rather than omitted the way the other four imaging/signal bundles
+ * in the registry are (see the comment above the six-entry block in
+ * `diseaseRegistry.ts`).
+ *
+ * `stroke-mri-core` and `parkinsons-gait` differ from `stroke-risk` and
+ * `parkinsons` above in one specific way: those two just needed wiring here,
+ * because `lib/ml/datasets.ts` already had per-feature mean/sd specs to
+ * synthesize trainable rows from. These two have none - their real inputs
+ * are a 3-channel MRI volume and an 18-channel gait trace, reduced by a
+ * frozen encoder to a latent vector, and the manifest records only that
+ * encoder's architecture, not per-feature summary statistics. There is
+ * nothing honest to build a synthetic tabular dataset from, so Train has no
+ * run to offer and Predict has no model to score with. The card says this
+ * plainly rather than pretending the condition is not part of the platform.
+ */
+export const UNTRAINABLE_DISEASE_IDS: { diseaseId: string; reason: string }[] = [
+  {
+    diseaseId: 'stroke-mri-core',
+    reason:
+      'This model reads a 3-channel MRI volume through a frozen image encoder, not tabular features. There are no per-feature statistics to synthesize a trainable dataset from, so this condition is Benchmark-only.',
+  },
+  {
+    diseaseId: 'parkinsons-gait',
+    reason:
+      'This model reads an 18-channel gait force trace through a frozen signal encoder, not tabular features. There are no per-feature statistics to synthesize a trainable dataset from, so this condition is Benchmark-only.',
+  },
+]
