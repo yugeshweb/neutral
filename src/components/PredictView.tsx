@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   DEFAULT_VALUES,
   FEATURES,
@@ -93,8 +93,8 @@ function Readout({
         className="mt-3 flex justify-between pt-2.5 font-mono text-[12px]"
         style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
       >
-        <span className="text-ink-faint">decision margin</span>
-        <span className="tabular-nums text-ink-dim">{result.confidence.toFixed(3)}</span>
+        <span className="text-ink-faint" title="Decision margin from threshold — not a probability">decision margin</span>
+        <span className="tabular-nums text-ink-dim" title="Decision margin from threshold — not a probability">{result.confidence.toFixed(3)}</span>
       </div>
     </div>
   )

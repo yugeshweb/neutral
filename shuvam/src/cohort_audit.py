@@ -170,6 +170,25 @@ def audit_directory(directory: str | Path, limit: int = 0) -> CohortGeometry:
     return audit_paths(files, limit=limit)
 
 
+def check_cohort_spacing(paths: Iterable[str | Path]) -> dict[str, Any]:
+    """Pre-training check that logs a warning if cohort spacing is not homogeneous.
+
+    Does NOT block training. Returns the geometry audit verdict dict.
+    """
+    import logging
+
+    geometry = audit_paths(paths)
+    verdict = geometry.verdict()
+    if not geometry.is_homogeneous:
+        logging.warning(
+            "COHORT AUDIT WARNING: Spacing is not homogeneous across cohort scans. "
+            "Verdict: %s. Spacing spread: %s mm",
+            verdict.get("reason"),
+            geometry.spacing_spread_mm,
+        )
+    return verdict
+
+
 if __name__ == "__main__":
     import argparse
 

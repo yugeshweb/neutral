@@ -183,30 +183,17 @@ MODELS_DIR = Path(__file__).resolve().parent / "platform" / "registry_data" / "m
 # ignores). That's the honest state for a disease nobody has trained or
 # evaluated a model for yet - see each profile's "status" field.
 _DISEASE_SOURCES: dict[str, tuple[str, str | None]] = {
-    # heart-disease and breast-cancer are this platform's own tabular demo
-    # pipelines (Cleveland UCI cohort; WDBC biopsy features respectively) -
-    # neither corresponds to a condition in the neuro-conditions research
-    # program below. See STANDARDIZER_CONTRACT.md for what each does and
-    # does not cover, including how "heart-disease" here differs from the
-    # separate raw-PTB-XL-ECG-waveform MI/abnormal-ECG detection effort
-    # elsewhere in this repo (backend/run_raw_hybrid.py).
     "heart-disease": ("heart_disease_clinical.json", None),
     "breast-cancer": ("breast_cancer_wdbc.json", None),
-    # The six neuro-conditions research program below. P2 ICH is
-    # deliberately absent: registered `not available` upstream (no lawful
-    # dataset found after two exhaustive checks) - there is nothing to
-    # standardize for it, and adding a placeholder entry would misrepresent
-    # that as a working pipeline.
     "stroke": ("p1_stroke_clinical.json", "stroke-clinical-risk-tabular.json"),
-    # No dedicated "general brain tumor detection" profile exists - the one
-    # audited pipeline in this area is glioma MGMT-methylation status from
-    # mpMRI radiomics, a much narrower task than "detect a tumor from a
-    # CT/MRI + confirming biopsy". Exposed under the "brain-tumor" id with
-    # that gap stated in `notes`, rather than silently overclaiming scope.
     "brain-tumor": ("p3_glioma_mgmt.json", "glioma-mgmt-radiomics-tabular.json"),
     "seizure": ("p4_seizure_eeg.json", "seizure-window-risk-tabular.json"),
     "alzheimers": ("p5_alzheimers_clinical.json", "alzheimers-clinical-risk-tabular.json"),
     "parkinsons": ("p6_parkinsons_clinical.json", "parkinsons-voice-risk-tabular.json"),
+}
+
+_DISEASE_ALIASES: dict[str, str] = {
+    "glioma": "brain-tumor",
 }
 
 _NOTES_FOR_EMPTY_REQUIRED_FIELDS = (
@@ -254,7 +241,7 @@ def _build_registry() -> dict[str, DiseaseSchema]:
             model_id = None
             status = profile.get("status", "no_trained_model_yet")
 
-        if disease_id == "brain-tumor":
+        if disease_id in {"brain-tumor", "glioma"}:
             notes = _NOTES_FOR_BRAIN_TUMOR
         else:
             notes = "" if required_fields else _NOTES_FOR_EMPTY_REQUIRED_FIELDS
@@ -300,8 +287,9 @@ def list_supported_diseases() -> list[dict[str, Any]]:
 
 
 def get_disease_schema(disease_id: str) -> DiseaseSchema:
+    resolved_id = _DISEASE_ALIASES.get(disease_id, disease_id)
     try:
-        return _REGISTRY[disease_id]
+        return _REGISTRY[resolved_id]
     except KeyError:
         supported = ", ".join(sorted(_REGISTRY)) or "(none registered)"
         raise UnknownDiseaseError(

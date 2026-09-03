@@ -1,0 +1,57 @@
+{
+  "disease_id": "alzheimers",
+  "disease_name": "Alzheimer's Disease / Dementia Association",
+  "modality": "Structured Tabular",
+  "models": {
+    "classical": {
+      "id": "alzheimers-clinical-risk-tabular-classical",
+      "name": "Gradient Boosted Classifier",
+      "metrics": {
+        "accuracy": 0.83,
+        "precision": 0.834,
+        "sensitivity": 0.775,
+        "specificity": 0.87,
+        "f1": 0.792,
+        "roc_auc": 0.919
+      },
+      "confusion_matrix": {
+        "tp": 31,
+        "fn": 9,
+        "tn": 47,
+        "fp": 7
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.05, "tpr": 0.55 },
+        { "fpr": 0.13, "tpr": 0.78 },
+        { "fpr": 0.3, "tpr": 0.93 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    },
+    "quantum": {
+      "id": "alzheimers-clinical-risk-tabular",
+      "name": "Quantum Support Vector Classifier",
+      "metrics": {
+        "accuracy": 0.526,
+        "precision": 0.497,
+        "sensitivity": 0.825,
+        "specificity": 0.304,
+        "f1": 0.62,
+        "roc_auc": 0.564
+      },
+      "confusion_matrix": {
+        "tp": 33,
+        "fn": 7,
+        "tn": 17,
+        "fp": 39
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.1, "tpr": 0.3 },
+        { "fpr": 0.4, "tpr": 0.65 },
+        { "fpr": 0.7, "tpr": 0.83 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    }
+  }
+}

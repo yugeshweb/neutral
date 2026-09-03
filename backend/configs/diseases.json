@@ -1,0 +1,81 @@
+{
+  "diseases": [
+    {
+      "disease_id": "heart-disease",
+      "name": "Heart Disease / Myocardial Infarction",
+      "short_name": "Heart Disease",
+      "standardizer_disease_id": "heart-disease",
+      "benchmark_file": "benchmarks/heart-disease.json",
+      "default_qubits": 6,
+      "modality": "Clinical & Hemodynamic Tabular",
+      "positive_label": "High Risk (Stenosis/CAD)",
+      "negative_label": "Normal / Low Risk"
+    },
+    {
+      "disease_id": "breast-cancer",
+      "name": "Breast Cancer Early Detection",
+      "short_name": "Breast Cancer",
+      "standardizer_disease_id": "breast-cancer",
+      "benchmark_file": "benchmarks/breast-cancer.json",
+      "default_qubits": 6,
+      "modality": "Structured Tabular",
+      "positive_label": "Malignant",
+      "negative_label": "Benign"
+    },
+    {
+      "disease_id": "alzheimers",
+      "name": "Alzheimer's Disease / Dementia Association",
+      "short_name": "Alzheimer's",
+      "standardizer_disease_id": "alzheimers",
+      "benchmark_file": "benchmarks/alzheimers.json",
+      "default_qubits": 6,
+      "modality": "Structured Tabular",
+      "positive_label": "Dementia (CDR > 0)",
+      "negative_label": "No Dementia (CDR 0)"
+    },
+    {
+      "disease_id": "glioma",
+      "name": "Glioma MGMT Radiomics Characterization",
+      "short_name": "Glioma",
+      "standardizer_disease_id": "glioma",
+      "benchmark_file": "benchmarks/glioma.json",
+      "default_qubits": 6,
+      "modality": "MRI-derived Radiomics Tabular",
+      "positive_label": "MGMT Methylated",
+      "negative_label": "Unmethylated"
+    },
+    {
+      "disease_id": "stroke",
+      "name": "Stroke Clinical Risk",
+      "short_name": "Stroke Risk",
+      "standardizer_disease_id": "stroke",
+      "benchmark_file": "benchmarks/stroke.json",
+      "default_qubits": 6,
+      "modality": "Clinical & Hemodynamic Tabular",
+      "positive_label": "Stroke Event",
+      "negative_label": "No Stroke"
+    },
+    {
+      "disease_id": "seizure",
+      "name": "Epileptic Seizure & Neural Abnormality Detection",
+      "short_name": "Seizure",
+      "standardizer_disease_id": "seizure",
+      "benchmark_file": "benchmarks/seizure.json",
+      "default_qubits": 6,
+      "modality": "EEG Biosignal Features",
+      "positive_label": "Abnormality / Seizure",
+      "negative_label": "Baseline"
+    },
+    {
+      "disease_id": "parkinsons",
+      "name": "Parkinson's Disease Prodromal Assessment",
+      "short_name": "Parkinson's",
+      "standardizer_disease_id": "parkinsons",
+      "benchmark_file": "benchmarks/parkinsons.json",
+      "default_qubits": 6,
+      "modality": "Acoustic & Motor Feature Tabular",
+      "positive_label": "Parkinsons Positive",
+      "negative_label": "Healthy Control"
+    }
+  ]
+}

@@ -76,6 +76,7 @@ class InferenceBundle:
             "model_id": self.model_id,
             "condition": self.condition,
             "temporal_framing": self.temporal_framing,
+            "score_semantics": "normalised_margin_from_threshold",
             "labels": {"positive": self.positive_label, "negative": self.negative_label},
             "expects": {
                 "channels": self.channel_names,
@@ -95,20 +96,27 @@ class InferenceBundle:
 
 
 def save_bundle(bundle: InferenceBundle, path: str | Path) -> Path:
-    """Persist the bundle plus a sidecar JSON manifest."""
+    """Persist the bundle using joblib plus a sidecar JSON manifest."""
+
+    import joblib
 
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("wb") as handle:
-        pickle.dump(bundle, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    joblib.dump(bundle, target)
     manifest = target.with_suffix(target.suffix + ".manifest.json")
     manifest.write_text(json.dumps(bundle.to_manifest(), indent=2, default=str) + "\n", encoding="utf-8")
     return target
 
 
 def load_bundle(path: str | Path) -> InferenceBundle:
-    with Path(path).open("rb") as handle:
-        bundle = pickle.load(handle)
+    """Load an InferenceBundle using joblib (with pickle fallback for legacy artifacts)."""
+    import joblib
+
+    try:
+        bundle = joblib.load(path)
+    except Exception:
+        with Path(path).open("rb") as handle:
+            bundle = pickle.load(handle)
     if not isinstance(bundle, InferenceBundle):
         raise ValueError("file is not a qhealth inference bundle")
     if bundle.schema_version != SERVING_SCHEMA_VERSION:

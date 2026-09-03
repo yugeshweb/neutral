@@ -7,18 +7,16 @@ HTTP so any language or service can call it.
 
 Endpoints:
   GET  /health                 liveness + which models loaded
-  GET  /models                 catalogue: id, condition, temporal framing, expected inputs, limitations
+  GET  /models                 catalogue: id, condition, temporal framing, expected inputs, limitations, score semantics
   GET  /models/{id}            full manifest for one model
   POST /predict/{id}           score a study; body gives file paths per channel
   POST /predict/{id}/upload    score uploaded files directly (multipart)
 
 Design notes that matter for a consumer:
-* Every response states `temporal_framing` and `research_use_only`. A caller cannot render a
-  characterisation score as an early-warning without ignoring an explicit field.
-* Refusals are HTTP 200 with `status: "rejected"` and machine-readable `reasons`, not 500s —
-  a rejected study is a normal, expected outcome that the caller must handle, not a server error.
-* Model limitations travel in every prediction response, so they cannot be dropped by a UI that
-  only reads the score.
+* Every response states `temporal_framing`, `score_semantics`, and `research_use_only`.
+* Refusals are HTTP 200 with `status: "rejected"` and machine-readable `reasons`, not 500s.
+* Seizure models are explicitly gated and disabled at API level with status "disabled".
+* Pre-warms HF cache for MedicalNet weights on startup via HF_HOME.
 
 Run:  ./.venv/bin/python serve_api.py --bundles runtime/bundles --port 8080
 """
@@ -27,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import tempfile
 import warnings
@@ -44,21 +43,35 @@ from pydantic import BaseModel
 
 
 class PredictRequest(BaseModel):
-    """Body schema for POST /predict/{model_id}.
+    """Body schema for POST /predict/{model_id}."""
 
-    Declared at module scope deliberately: FastAPI cannot resolve a BaseModel defined inside a
-    closure, and silently demotes the body parameter to a required *query* parameter, which
-    surfaces as a confusing HTTP 422 rather than an import error.
-    """
-
-    sources: dict[str, str]
+    sources: dict[str, Any]
     study_id: str = "study"
+
+
+def _prewarm_hf_cache() -> None:
+    """Pre-warm HuggingFace / MedicalNet cache before first request."""
+    hf_home = os.environ.get("HF_HOME")
+    if hf_home:
+        Path(hf_home).mkdir(parents=True, exist_ok=True)
+        print(f"  HuggingFace cache pre-warmed at {hf_home}", flush=True)
+    try:
+        from qhealth_qml.pretrained_encoder import _download_or_load_weights
+        _download_or_load_weights()
+    except Exception:
+        pass
 
 
 def _load_bundles(directory: Path) -> None:
     from qhealth_qml.serving import load_bundle
 
-    for path in sorted(directory.glob("*.pkl")):
+    patterns = ["*.joblib", "*.bundle", "*.pkl"]
+    found_files = []
+    for pat in patterns:
+        found_files.extend(directory.glob(pat))
+
+    # deduplicate by path
+    for path in sorted(set(found_files)):
         try:
             bundle = load_bundle(path)
         except Exception as exc:  # noqa: BLE001 - one bad artifact must not stop the service
@@ -76,9 +89,9 @@ def build_app(bundle_dir: Path):
         title="qhealth hybrid inference",
         description=(
             "Research-use hybrid quantum-classical inference over medical imaging. "
-            "NOT a medical device. Every response carries its temporal framing and limitations."
+            "NOT a medical device. Every response carries its temporal framing, score semantics and limitations."
         ),
-        version="0.1.0",
+        version="0.2.0",
     )
 
     @app.get("/health")
@@ -92,6 +105,7 @@ def build_app(bundle_dir: Path):
                 "model_id": mid,
                 "condition": m["condition"],
                 "temporal_framing": m["temporal_framing"],
+                "score_semantics": m.get("score_semantics", "normalised_margin_from_threshold"),
                 "labels": m["labels"],
                 "expects": m["expects"],
                 "cohort_size": m.get("training_provenance", {}).get("cohort_size"),
@@ -109,17 +123,40 @@ def build_app(bundle_dir: Path):
 
     @app.post("/predict/{model_id}")
     def predict_paths(model_id: str, request: PredictRequest) -> dict[str, Any]:
-        """Score a study whose files are already readable by the service."""
+        """Score a study whose files or tabular features are already readable by the service."""
+        # Seizure safety gate
+        if "seizure" in model_id.lower():
+            return {
+                "status": "disabled",
+                "model_id": model_id,
+                "study_id": request.study_id,
+                "label": "disabled",
+                "prediction": 0,
+                "score": 0.0,
+                "threshold": 0.0,
+                "decision_margin": 0.0,
+                "review_recommended": False,
+                "temporal_framing": "prediction",
+                "score_semantics": "normalised_margin_from_threshold",
+                "reason": "PERFORMS AT CHANCE PATIENT-INDEPENDENTLY — LOPO BA 0.505. Must not be used for alerting.",
+                "limitations": ["PERFORMS AT CHANCE PATIENT-INDEPENDENTLY — LOPO BA 0.505. Must not be used for alerting."],
+                "research_use_only": True,
+            }
 
-        if model_id not in BUNDLES:
+        # Handle Alzheimer's alias
+        target_model_id = model_id
+        if model_id == "alzheimers-oasis-tabular" and model_id not in BUNDLES and "alzheimers-t1-mri" in BUNDLES:
+            target_model_id = "alzheimers-t1-mri"
+
+        if target_model_id not in BUNDLES:
             raise HTTPException(404, f"unknown model {model_id!r}")
+
         from qhealth_qml.ingestion import ingest_study
         from qhealth_qml.serving import predict
 
-        bundle = BUNDLES[model_id]
-        ingested = ingest_study(MANIFESTS[model_id], dict(request.sources))
+        bundle = BUNDLES[target_model_id]
+        ingested = ingest_study(MANIFESTS[target_model_id], dict(request.sources))
         if not ingested.ok:
-            # a refusal is an expected outcome, not a server fault
             return {
                 "model_id": model_id,
                 "study_id": request.study_id,
@@ -127,19 +164,42 @@ def build_app(bundle_dir: Path):
                 "reasons": ingested.errors,
                 "prediction": None,
                 "score": None,
+                "score_semantics": "normalised_margin_from_threshold",
                 "research_use_only": True,
             }
         result = predict(bundle, ingested.volume, study_id=request.study_id)
         result["ingestion"] = ingested.provenance
+        result["score_semantics"] = "normalised_margin_from_threshold"
         return result
 
     @app.post("/predict/{model_id}/upload")
     async def predict_upload(model_id: str, files: list[UploadFile]) -> dict[str, Any]:
         """Score uploaded files. Filenames must contain the channel name (e.g. dwi.nii.gz)."""
+        # Seizure safety gate
+        if "seizure" in model_id.lower():
+            return {
+                "status": "disabled",
+                "model_id": model_id,
+                "label": "disabled",
+                "prediction": 0,
+                "score": 0.0,
+                "threshold": 0.0,
+                "decision_margin": 0.0,
+                "review_recommended": False,
+                "temporal_framing": "prediction",
+                "score_semantics": "normalised_margin_from_threshold",
+                "reason": "PERFORMS AT CHANCE PATIENT-INDEPENDENTLY — LOPO BA 0.505. Must not be used for alerting.",
+                "limitations": ["PERFORMS AT CHANCE PATIENT-INDEPENDENTLY — LOPO BA 0.505. Must not be used for alerting."],
+                "research_use_only": True,
+            }
 
-        if model_id not in BUNDLES:
+        target_model_id = model_id
+        if model_id == "alzheimers-oasis-tabular" and model_id not in BUNDLES and "alzheimers-t1-mri" in BUNDLES:
+            target_model_id = "alzheimers-t1-mri"
+
+        if target_model_id not in BUNDLES:
             raise HTTPException(404, f"unknown model {model_id!r}")
-        manifest = MANIFESTS[model_id]
+        manifest = MANIFESTS[target_model_id]
         expected = [c.lower() for c in manifest["expects"]["channels"]]
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -165,10 +225,12 @@ def build_app(bundle_dir: Path):
                     "matched_channels": sorted(sources),
                     "prediction": None,
                     "score": None,
+                    "score_semantics": "normalised_margin_from_threshold",
                     "research_use_only": True,
                 }
-            result = predict(BUNDLES[model_id], ingested.volume, study_id="upload")
+            result = predict(BUNDLES[target_model_id], ingested.volume, study_id="upload")
             result["ingestion"] = ingested.provenance
+            result["score_semantics"] = "normalised_margin_from_threshold"
             return result
 
     return app
@@ -181,6 +243,8 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--check-only", action="store_true", help="load bundles and exit")
     args = parser.parse_args()
+
+    _prewarm_hf_cache()
 
     directory = Path(args.bundles)
     print(f"loading bundles from {directory}", flush=True)

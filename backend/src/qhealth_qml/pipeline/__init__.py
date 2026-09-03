@@ -1,31 +1,7 @@
-"""Unified ingestion & preprocessing pipeline (spec 002-ingestion-preprocessing).
+"""Unified ingestion & preprocessing pipeline and training orchestration layer."""
 
-One component used unchanged by training and prediction, for one record or
-a whole cohort, across tabular EHR and (in later phases) ECG, EEG, gait,
-CT and MR. See the spec bundle this was built from for the full contract:
-`spec.md` (requirements), `data-model.md` (I/O shape), `design.md`
-(architecture and rationale).
-
-Public surface - two calls, no third, no single-record variant:
-
-    from qhealth_qml.pipeline import Pipeline, SourceSpec, Batch, Recipe
-
-    spec  = SourceSpec.load("profiles/cardiac_prognosis.json")
-    batch = Pipeline.read(spec)
-    fit   = Pipeline.from_spec(spec).fit(batch, n_qubits=6)
-
-    recipe = Recipe.load("runtime/cardiac.recipe.pkl")
-    batch  = Pipeline.read(recipe.spec, source="incoming/case.csv")
-    run    = Pipeline.from_recipe(recipe).run(batch)
-
-This is Phase 0 + a Phase 1 tabular slice of the 6-phase build in
-`tasks.md`: the tabular adapter and the full cleaning/QC/split/selection/
-recipe machinery are implemented and tested; the signal (ECG/EEG/gait) and
-imaging (NIfTI/DICOM) adapters in Phases 2-3, and Phase 4's consolidation
-of the platform's existing code onto this component, are not yet built.
-"""
-
-from .pipeline import Pipeline, PipelineError
+# --- Ingestion & Preprocessing Pipeline (spec 002-ingestion-preprocessing) ---
+from .pipeline import Pipeline, PipelineError as StandardizerPipelineError
 from .recipe import ManifestMismatchError, Recipe, RecipePredatesRecipeFormatError, RecipeVersionError
 from .registry import AdapterRegistry, AdapterUnavailableError, DispatchError, default_registry
 from .spec import SourceSpec, SpecValidationError
@@ -45,12 +21,131 @@ from .types import (
     Source,
 )
 
+# --- Training Orchestration Layer ---
+from qhealth_qml.pipeline.exceptions import (
+    StandardizationError,
+    UnknownDiseaseError,
+    UnsupportedFormatError,
+    EmptyDatasetError,
+    SchemaMismatchError,
+    SchemaNotFittedError,
+    PipelineError,
+    ModelTrainingError,
+    BenchmarkNotFoundError,
+)
+from qhealth_qml.pipeline.interfaces import (
+    ModelOutput,
+    TrainDiseaseModelsFn,
+    DiseaseModelTrainer,
+)
+from qhealth_qml.pipeline.model_registry import (
+    register_disease_models,
+    unregister_disease_models,
+    get_disease_models_trainer,
+    has_disease_models_trainer,
+    list_registered_disease_trainers,
+    clear_model_registry,
+)
+from qhealth_qml.pipeline.disease_registry import (
+    DiseaseConfig,
+    DiseaseRegistry,
+    disease_registry,
+)
+from qhealth_qml.pipeline.preprocessor import (
+    LeakageSafePreprocessor,
+    stratified_split,
+    create_and_fit_preprocessor,
+)
+from qhealth_qml.pipeline.evaluator import (
+    ModelMetrics,
+    evaluate_model_predictions,
+    find_optimal_threshold_youden_j,
+)
+from qhealth_qml.pipeline.benchmarks import (
+    load_benchmark_reference,
+    compute_metric_deltas,
+    compare_with_benchmarks,
+)
+from qhealth_qml.pipeline.persistence import (
+    persist_training_artifacts,
+    load_training_artifacts,
+    compute_dataset_hash,
+)
+from qhealth_qml.pipeline.dispatcher import (
+    run_training_pipeline,
+)
+from qhealth_qml.pipeline.fakes import (
+    fake_standardize,
+    fake_train_disease_models,
+    fake_list_supported_diseases,
+    MockQuantumModel,
+)
+from qhealth_qml.pipeline.api import app
+
 __all__ = [
-    "Pipeline", "PipelineError",
-    "Recipe", "RecipeVersionError", "RecipePredatesRecipeFormatError", "ManifestMismatchError",
-    "AdapterRegistry", "AdapterUnavailableError", "DispatchError", "default_registry",
-    "SourceSpec", "SpecValidationError",
-    "Batch", "Sample", "Source", "Issue", "IssueCode", "QCVerdict",
-    "PreparedArrays", "Ledger", "FitResult", "RunResult",
-    "LABEL_POSITIVE", "LABEL_NEGATIVE", "LABEL_EXCLUDE",
+    # Ingestion pipeline
+    "Pipeline",
+    "Recipe",
+    "RecipeVersionError",
+    "RecipePredatesRecipeFormatError",
+    "ManifestMismatchError",
+    "AdapterRegistry",
+    "AdapterUnavailableError",
+    "DispatchError",
+    "default_registry",
+    "SourceSpec",
+    "SpecValidationError",
+    "Batch",
+    "Sample",
+    "Source",
+    "Issue",
+    "IssueCode",
+    "QCVerdict",
+    "PreparedArrays",
+    "Ledger",
+    "FitResult",
+    "RunResult",
+    "LABEL_POSITIVE",
+    "LABEL_NEGATIVE",
+    "LABEL_EXCLUDE",
+    # Training orchestration
+    "StandardizationError",
+    "UnknownDiseaseError",
+    "UnsupportedFormatError",
+    "EmptyDatasetError",
+    "SchemaMismatchError",
+    "SchemaNotFittedError",
+    "PipelineError",
+    "ModelTrainingError",
+    "BenchmarkNotFoundError",
+    "ModelOutput",
+    "TrainDiseaseModelsFn",
+    "DiseaseModelTrainer",
+    "register_disease_models",
+    "unregister_disease_models",
+    "get_disease_models_trainer",
+    "has_disease_models_trainer",
+    "list_registered_disease_trainers",
+    "clear_model_registry",
+    "DiseaseConfig",
+    "DiseaseRegistry",
+    "disease_registry",
+    "LeakageSafePreprocessor",
+    "stratified_split",
+    "create_and_fit_preprocessor",
+    "ModelMetrics",
+    "evaluate_model_predictions",
+    "find_optimal_threshold_youden_j",
+    "load_benchmark_reference",
+    "compute_metric_deltas",
+    "compare_with_benchmarks",
+    "persist_training_artifacts",
+    "load_training_artifacts",
+    "compute_dataset_hash",
+    "run_training_pipeline",
+    "fake_standardize",
+    "fake_train_disease_models",
+    "fake_list_supported_diseases",
+    "MockQuantumModel",
+    "app",
 ]

@@ -1,0 +1,59 @@
+{
+  "disease_id": "heart-disease",
+  "disease_name": "Heart Disease & Myocardial Infarction Risk",
+  "modality": "Clinical & Hemodynamic Tabular",
+  "models": {
+    "classical": {
+      "id": "classical-logreg-rf",
+      "name": "Logistic Regression + Random Forest Ensemble",
+      "metrics": {
+        "accuracy": 0.852,
+        "precision": 0.846,
+        "sensitivity": 0.846,
+        "specificity": 0.857,
+        "f1": 0.846,
+        "roc_auc": 0.912
+      },
+      "confusion_matrix": {
+        "tp": 22,
+        "fn": 4,
+        "tn": 30,
+        "fp": 5
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.05, "tpr": 0.65 },
+        { "fpr": 0.12, "tpr": 0.82 },
+        { "fpr": 0.2, "tpr": 0.9 },
+        { "fpr": 0.35, "tpr": 0.96 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    },
+    "quantum": {
+      "id": "quantum-vqc-heart",
+      "name": "Hybrid Quantum Neural Classifier (VQC)",
+      "metrics": {
+        "accuracy": 0.869,
+        "precision": 0.88,
+        "sensitivity": 0.846,
+        "specificity": 0.886,
+        "f1": 0.863,
+        "roc_auc": 0.924
+      },
+      "confusion_matrix": {
+        "tp": 22,
+        "fn": 4,
+        "tn": 31,
+        "fp": 4
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.03, "tpr": 0.68 },
+        { "fpr": 0.09, "tpr": 0.86 },
+        { "fpr": 0.16, "tpr": 0.92 },
+        { "fpr": 0.3, "tpr": 0.98 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    }
+  }
+}

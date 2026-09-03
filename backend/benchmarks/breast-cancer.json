@@ -1,0 +1,59 @@
+{
+  "disease_id": "breast-cancer",
+  "disease_name": "Breast Cancer Early Detection",
+  "modality": "Structured Tabular",
+  "models": {
+    "classical": {
+      "id": "classical-xgb-rf",
+      "name": "Gradient Boosted Ensemble (XGBoost + RF)",
+      "metrics": {
+        "accuracy": 0.965,
+        "precision": 0.97,
+        "sensitivity": 0.941,
+        "specificity": 0.98,
+        "f1": 0.955,
+        "roc_auc": 0.988
+      },
+      "confusion_matrix": {
+        "tp": 32,
+        "fn": 2,
+        "tn": 50,
+        "fp": 1
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.01, "tpr": 0.88 },
+        { "fpr": 0.02, "tpr": 0.94 },
+        { "fpr": 0.05, "tpr": 0.98 },
+        { "fpr": 0.12, "tpr": 0.99 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    },
+    "quantum": {
+      "id": "quantum-vqc",
+      "name": "Variational Quantum Classifier (VQC)",
+      "metrics": {
+        "accuracy": 0.977,
+        "precision": 0.971,
+        "sensitivity": 0.971,
+        "specificity": 0.98,
+        "f1": 0.971,
+        "roc_auc": 0.992
+      },
+      "confusion_matrix": {
+        "tp": 33,
+        "fn": 1,
+        "tn": 50,
+        "fp": 1
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.01, "tpr": 0.92 },
+        { "fpr": 0.02, "tpr": 0.97 },
+        { "fpr": 0.04, "tpr": 0.99 },
+        { "fpr": 0.09, "tpr": 1.0 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    }
+  }
+}

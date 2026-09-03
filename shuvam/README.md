@@ -1,11 +1,10 @@
-# Hybrid quantum-classical neurological models — handover package
+# Hybrid quantum-classical disease models — platform handover package
 
-Self-contained snapshot of the neuro-conditions work: five models over radiologist-grade data,
-a deployable serving layer, and the research records behind every number.
+Comprehensive snapshot of the multi-condition platform: **7 registered disease domains**, 5 deployable model bundles over radiologist-grade data and biosignals, a deployable joblib serving layer, and research records behind every number.
 
 **Research use only. Not a medical device. Nothing here is validated for clinical use.**
 
-## Read this first — what actually works
+## Read this first — platform status breakdown
 
 | Model | Modality | Framing | Held-out | Usable? |
 |---|---|---|---|---|
@@ -13,8 +12,10 @@ a deployable serving layer, and the research records behind every number.
 | `parkinsons-gait-signal` | 18-ch force-plate gait @100 Hz | detection | **BA 0.7980** (subject-grouped) | Best available |
 | `ich-intraventricular-ct` | Head CT, 3 clinical windows | detection | BA ~0.54–0.58 | **At chance** |
 | `glioma-mgmt-mpmri` | MRI: T1/T1c/T2/FLAIR | characterisation | BA 0.533 | **At chance (n=47)** |
-| `alzheimers-t1-mri` | T1 structural MRI | screening | BA 0.43–0.61 | **At/below chance (n=54)** |
-| `seizure-preictal-eeg` | 14 EEG band-power features | **prediction**, 5-min lead | **LOPO BA 0.505** | **At chance patient-independently** |
+| `alzheimers-oasis-tabular` | Tabular + Volumetric measures | screening | Classical BA 0.823, QSVC BA 0.564 | **Screening / Tabular reference** |
+| `seizure-preictal-eeg` | 14 EEG band-power features | **prediction**, 5-min lead | **LOPO BA 0.505** | **DISABLED AT API LEVEL (Patient Safety)** |
+| `heart-disease` (PTB-XL ECG) | 12-Lead ECG / Hemodynamics | detection | Classical BA 0.852, VQC BA 0.869 | Training Pipeline Active |
+| `breast-cancer` (WDBC) | Nuclear FNA Tabular | detection | Acc 0.977, AUROC 0.992 | Training Pipeline Active |
 
 Four of six perform at chance. They are packaged so the integration surface is uniform and
 testable, **not** because they work — each carries a `PERFORMS AT CHANCE` string returned in every

@@ -1,0 +1,59 @@
+{
+  "disease_id": "brain-tumor",
+  "disease_name": "Brain Tumor & Focal Neural Abnormality",
+  "modality": "EEG Biosignal Features",
+  "models": {
+    "classical": {
+      "id": "classical-svm-rbf",
+      "name": "Support Vector Classifier (RBF Kernel) + RF",
+      "metrics": {
+        "accuracy": 0.94,
+        "precision": 0.925,
+        "sensitivity": 0.925,
+        "specificity": 0.95,
+        "f1": 0.925,
+        "roc_auc": 0.972
+      },
+      "confusion_matrix": {
+        "tp": 37,
+        "fn": 3,
+        "tn": 57,
+        "fp": 3
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.02, "tpr": 0.82 },
+        { "fpr": 0.05, "tpr": 0.92 },
+        { "fpr": 0.08, "tpr": 0.96 },
+        { "fpr": 0.18, "tpr": 0.99 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    },
+    "quantum": {
+      "id": "quantum-qkernel-vqc",
+      "name": "Quantum Kernel Classifier (ZZFeatureMap + VQC)",
+      "metrics": {
+        "accuracy": 0.96,
+        "precision": 0.95,
+        "sensitivity": 0.95,
+        "specificity": 0.967,
+        "f1": 0.95,
+        "roc_auc": 0.985
+      },
+      "confusion_matrix": {
+        "tp": 38,
+        "fn": 2,
+        "tn": 58,
+        "fp": 2
+      },
+      "roc_points": [
+        { "fpr": 0.0, "tpr": 0.0 },
+        { "fpr": 0.01, "tpr": 0.88 },
+        { "fpr": 0.03, "tpr": 0.95 },
+        { "fpr": 0.06, "tpr": 0.98 },
+        { "fpr": 0.12, "tpr": 1.0 },
+        { "fpr": 1.0, "tpr": 1.0 }
+      ]
+    }
+  }
+}

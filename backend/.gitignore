@@ -5,6 +5,8 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 artifacts/*.json
+runtime/
+runs/
 
 # Third-party dataset payloads: license status must be verified per FR-035
 # before anything gets committed (see specs/001-neurological-conditions/

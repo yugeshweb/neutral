@@ -22,7 +22,10 @@ import io
 from pathlib import Path
 from typing import BinaryIO, Union
 
-from pypdf import PdfReader
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
 
 
 class PdfTextExtractionError(Exception):
@@ -74,6 +77,8 @@ def _locate_tesseract_binary(pytesseract_module) -> None:
 
 
 def _native_text(pdf_bytes: bytes) -> tuple[str, int]:
+    if PdfReader is None:
+        return "", 0
     reader = PdfReader(io.BytesIO(pdf_bytes))
     pages = [page.extract_text() or "" for page in reader.pages]
     return "\n".join(pages), len(pages)
