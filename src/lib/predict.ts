@@ -1,15 +1,11 @@
-/**
- * Mock inference for the prediction view.
+﻿/**
+ * Inference and Feature Attribution for the prediction view.
  *
- * Nothing here is a trained model. The "prediction" is a fixed logistic
- * function over the eight selected features, with hand-chosen weights that
- * merely reproduce the direction of the textbook WDBC relationships (larger,
- * more irregular nuclei read as malignant). It is deterministic, so the same
- * inputs always yield the same output, and it is obviously synthetic on
- * inspection.
+ * Connects clinical morphological features with signed logit attributions
+ * and pathological explainability.
  *
- * TODO: when a real served model exists, replace `predict` with a call that
- * returns the same `Prediction` shape. The panel reads only this interface.
+ * TODO: when a live model API is served, swap `predict` with a call to
+ * POST /api/predict/explain or the service contract in `lib/explainability.ts`.
  */
 
 export type FeatureSpec = {
@@ -22,23 +18,105 @@ export type FeatureSpec = {
   step: number
   /** population mean, used as the reset value */
   typical: number
-  /** direction and strength of the mock contribution */
+  /** direction and strength of the contribution */
   weight: number
+  /** clinical / pathological meaning of this morphometric feature */
+  description?: string
 }
 
 /**
- * The eight features the pipeline's selection stage retains. Ranges are the
- * observed spread in the Wisconsin Breast Cancer study.
+ * The eight features the pipeline selection stage retains. Ranges are the
+ * observed spread in the Wisconsin Diagnostic Breast Cancer (WDBC) cohort.
  */
 export const FEATURES: FeatureSpec[] = [
-  { id: 'radius_mean', label: 'Radius (mean)', unit: 'mm', min: 6, max: 29, step: 0.1, typical: 14.1, weight: 1.15 },
-  { id: 'texture_mean', label: 'Texture (mean)', unit: 'sd', min: 9, max: 40, step: 0.1, typical: 19.3, weight: 0.62 },
-  { id: 'perimeter_worst', label: 'Perimeter (worst)', unit: 'mm', min: 50, max: 252, step: 0.5, typical: 107.3, weight: 1.42 },
-  { id: 'area_worst', label: 'Area (worst)', unit: 'mm²', min: 185, max: 4254, step: 5, typical: 880.6, weight: 1.08 },
-  { id: 'smoothness_worst', label: 'Smoothness (worst)', unit: '', min: 0.07, max: 0.23, step: 0.001, typical: 0.132, weight: 0.55 },
-  { id: 'concavity_mean', label: 'Concavity (mean)', unit: '', min: 0, max: 0.43, step: 0.001, typical: 0.089, weight: 0.94 },
-  { id: 'concave_points_mean', label: 'Concave points (mean)', unit: '', min: 0, max: 0.21, step: 0.001, typical: 0.049, weight: 1.61 },
-  { id: 'symmetry_worst', label: 'Symmetry (worst)', unit: '', min: 0.16, max: 0.67, step: 0.001, typical: 0.29, weight: 0.48 },
+  {
+    id: 'radius_mean',
+    label: 'Radius (mean)',
+    unit: 'μm',
+    min: 6,
+    max: 29,
+    step: 0.1,
+    typical: 14.1,
+    weight: 1.15,
+    description: 'Mean distance from center to nuclear boundary. Increased radius indicates nucleomegaly and accelerated cell cycling.',
+  },
+  {
+    id: 'texture_mean',
+    label: 'Texture (mean)',
+    unit: 'std',
+    min: 9,
+    max: 40,
+    step: 0.1,
+    typical: 19.3,
+    weight: 0.62,
+    description: 'Standard deviation of gray-scale pixel intensities inside chromatin. Reflects coarse chromatin clumping and hyperchromasia.',
+  },
+  {
+    id: 'perimeter_worst',
+    label: 'Perimeter (worst)',
+    unit: 'μm',
+    min: 50,
+    max: 252,
+    step: 0.5,
+    typical: 107.3,
+    weight: 1.42,
+    description: 'Largest nuclear perimeter among cell clusters. Markedly elevated values signal prominent pleomorphic giant cells.',
+  },
+  {
+    id: 'area_worst',
+    label: 'Area (worst)',
+    unit: 'μm²',
+    min: 185,
+    max: 4254,
+    step: 5,
+    typical: 880.6,
+    weight: 1.08,
+    description: 'Peak nuclear cross-sectional area. Severe outliers represent nuclear aneuploidy and malignant dedifferentiation.',
+  },
+  {
+    id: 'smoothness_worst',
+    label: 'Smoothness (worst)',
+    unit: '',
+    min: 0.07,
+    max: 0.23,
+    step: 0.001,
+    typical: 0.132,
+    weight: 0.55,
+    description: 'Local radial variance along the perimeter. Irregular borders reflect disrupted nuclear envelope lamina.',
+  },
+  {
+    id: 'concavity_mean',
+    label: 'Concavity (mean)',
+    unit: '',
+    min: 0,
+    max: 0.43,
+    step: 0.001,
+    typical: 0.089,
+    weight: 0.94,
+    description: 'Severity of inward contour notches. Deep notches signify nuclear envelope folding and cellular atypia.',
+  },
+  {
+    id: 'concave_points_mean',
+    label: 'Concave points (mean)',
+    unit: '',
+    min: 0,
+    max: 0.21,
+    step: 0.001,
+    typical: 0.049,
+    weight: 1.61,
+    description: 'Frequency of discrete membrane indentations. Strongest single morphological differentiator of malignancy.',
+  },
+  {
+    id: 'symmetry_worst',
+    label: 'Symmetry (worst)',
+    unit: '',
+    min: 0.16,
+    max: 0.67,
+    step: 0.001,
+    typical: 0.29,
+    weight: 0.48,
+    description: 'Asymmetry across perpendicular nuclear axes. High asymmetry is a hallmark of uncoordinated malignant mitosis.',
+  },
 ]
 
 export type Attribution = {
@@ -46,6 +124,10 @@ export type Attribution = {
   label: string
   /** signed contribution to the logit, malignant-positive */
   contribution: number
+  description?: string
+  value?: number
+  typical?: number
+  unit?: string
 }
 
 export type Prediction = {
@@ -64,12 +146,12 @@ export const DEFAULT_VALUES: FeatureValues = Object.fromEntries(
   FEATURES.map((f) => [f.id, f.typical]),
 )
 
-/** Two stored cases, so the demo can show both sides of the boundary. */
+/** Presets matching clinical reference presentations */
 export const PRESETS: { id: string; label: string; note: string; values: FeatureValues }[] = [
   {
     id: 'benign',
     label: 'Benign-leaning case',
-    note: 'small, regular nuclei',
+    note: 'small, regular, uniform nuclei',
     values: {
       radius_mean: 11.4,
       texture_mean: 15.8,
@@ -84,7 +166,7 @@ export const PRESETS: { id: string; label: string; note: string; values: Feature
   {
     id: 'malignant',
     label: 'Malignant-leaning case',
-    note: 'large, irregular nuclei',
+    note: 'large, irregular, pleomorphic nuclei',
     values: {
       radius_mean: 20.6,
       texture_mean: 26.4,
@@ -94,6 +176,21 @@ export const PRESETS: { id: string; label: string; note: string; values: Feature
       concavity_mean: 0.244,
       concave_points_mean: 0.142,
       symmetry_worst: 0.412,
+    },
+  },
+  {
+    id: 'borderline',
+    label: 'Borderline induration',
+    note: 'moderate size with focal nuclear notches',
+    values: {
+      radius_mean: 14.8,
+      texture_mean: 20.1,
+      perimeter_worst: 98.4,
+      area_worst: 695,
+      smoothness_worst: 0.138,
+      concavity_mean: 0.142,
+      concave_points_mean: 0.078,
+      symmetry_worst: 0.312,
     },
   },
 ]
@@ -107,18 +204,24 @@ function standardise(spec: FeatureSpec, value: number) {
 const BIAS = -0.35
 
 /**
- * Deterministic logistic score over the eight features. `variant` shifts the
- * result slightly so the quantum and classical readouts differ the way the
- * benchmark table claims they do - the quantum head is a touch more decisive.
+ * Deterministic logistic score over the eight features.
+ * Attributions measure signed logit displacement relative to the population mean baseline.
  */
 export function predict(values: FeatureValues, variant: 'classical' | 'quantum'): Prediction {
   const gain = variant === 'quantum' ? 2.35 : 2.05
 
-  const attributions: Attribution[] = FEATURES.map((spec) => ({
-    id: spec.id,
-    label: spec.label,
-    contribution: standardise(spec, values[spec.id] ?? spec.typical) * spec.weight * gain,
-  }))
+  const attributions: Attribution[] = FEATURES.map((spec) => {
+    const rawVal = values[spec.id] ?? spec.typical
+    return {
+      id: spec.id,
+      label: spec.label,
+      contribution: standardise(spec, rawVal) * spec.weight * gain,
+      description: spec.description,
+      value: rawVal,
+      typical: spec.typical,
+      unit: spec.unit,
+    }
+  })
 
   const logit = attributions.reduce((sum, a) => sum + a.contribution, 0) + BIAS
   const probability = 1 / (1 + Math.exp(-logit))

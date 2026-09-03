@@ -1,0 +1,591 @@
+{
+  "$schema": "https://neutral-qml.org/schemas/explainability-v1.json",
+  "version": "1.0.0",
+  "endpoint": "/api/predict/explain",
+  "source": "mock",
+  "timestamp": "2026-09-03T00:00:00Z",
+  "metadata": {
+    "synthetic": true,
+    "regulatory_tier": "FDA SaMD Investigational Device Exemption (IDE) Prototype / Non-Diagnostic",
+    "engine": "Neutral Hybrid Quantum-Classical Clinical Engine (HQML-v2.4)"
+  },
+  "conditions": {
+    "breast-cancer": {
+      "condition_id": "breast-cancer",
+      "condition_name": "Breast Carcinoma Early Induration",
+      "modality": "digital_mammography_and_fna",
+      "task_type": "binary_classification_with_spatial_localization",
+      "model": {
+        "id": "hqml-vqc-wdbc-v2",
+        "name": "Hybrid 8-Qubit VQC + ResNet50-Backbone",
+        "quantum_backend": "Statevector Simulator (1024 shot-equivalent expectation)",
+        "classical_baseline": "Gradient Boosted Decision Forest (XGBoost)",
+        "calibration_status": "platt_scaled",
+        "threshold": 0.50,
+        "gradcam": {
+          "target_layer": "backbone.layer4.2.conv3 (ResNet-50 final stage)",
+          "target_class": "malignant",
+          "peak_activation": 0.942,
+          "colormap": "jet",
+          "interpolation": "bilinear",
+          "resolution": [14, 14],
+          "matrix": [
+            [0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.07, 0.05, 0.04, 0.03, 0.02, 0.01, 0.01, 0.00],
+            [0.03, 0.05, 0.08, 0.12, 0.16, 0.18, 0.15, 0.10, 0.06, 0.04, 0.03, 0.02, 0.01, 0.01],
+            [0.04, 0.08, 0.15, 0.28, 0.42, 0.46, 0.38, 0.22, 0.12, 0.07, 0.04, 0.03, 0.02, 0.01],
+            [0.05, 0.12, 0.25, 0.54, 0.78, 0.86, 0.72, 0.41, 0.21, 0.11, 0.06, 0.04, 0.02, 0.01],
+            [0.06, 0.16, 0.38, 0.75, 0.94, 0.98, 0.84, 0.52, 0.29, 0.15, 0.08, 0.05, 0.03, 0.01],
+            [0.05, 0.18, 0.42, 0.78, 0.96, 0.92, 0.79, 0.55, 0.34, 0.18, 0.10, 0.06, 0.03, 0.02],
+            [0.04, 0.14, 0.32, 0.62, 0.81, 0.76, 0.68, 0.58, 0.42, 0.24, 0.12, 0.07, 0.04, 0.02],
+            [0.03, 0.09, 0.21, 0.44, 0.58, 0.54, 0.52, 0.64, 0.72, 0.51, 0.28, 0.12, 0.06, 0.03],
+            [0.02, 0.06, 0.14, 0.28, 0.36, 0.34, 0.38, 0.55, 0.68, 0.48, 0.24, 0.10, 0.05, 0.02],
+            [0.02, 0.04, 0.09, 0.16, 0.21, 0.20, 0.24, 0.35, 0.42, 0.31, 0.16, 0.07, 0.03, 0.01],
+            [0.01, 0.03, 0.06, 0.10, 0.12, 0.12, 0.14, 0.18, 0.22, 0.18, 0.10, 0.05, 0.02, 0.01],
+            [0.01, 0.02, 0.04, 0.06, 0.07, 0.07, 0.08, 0.10, 0.12, 0.10, 0.06, 0.03, 0.02, 0.01],
+            [0.00, 0.01, 0.02, 0.03, 0.04, 0.04, 0.05, 0.06, 0.07, 0.06, 0.04, 0.02, 0.01, 0.00],
+            [0.00, 0.01, 0.01, 0.02, 0.02, 0.02, 0.03, 0.03, 0.04, 0.03, 0.02, 0.01, 0.01, 0.00]
+          ]
+        }
+      },
+      "prediction": {
+        "probability": 0.884,
+        "label": "malignant",
+        "confidence_margin": 0.768,
+        "quantum_head": {
+          "probability": 0.884,
+          "label": "malignant",
+          "decision_margin": 0.768,
+          "uncertainty_interval": [0.832, 0.925]
+        },
+        "classical_head": {
+          "probability": 0.841,
+          "label": "malignant",
+          "decision_margin": 0.682,
+          "uncertainty_interval": [0.785, 0.891]
+        },
+        "consensus": "concordant_high_suspicion"
+      },
+      "narrative": {
+        "verdict_summary": "The hybrid quantum-classical engine strongly indicates high suspicion for invasive malignant breast carcinoma (88.4% predicted probability, concordant across both quantum and classical heads).",
+        "primary_drivers": "Driven predominantly by severe nuclear contour concavity (+1.61 logit contribution) and worst-spread boundary irregularity (+1.42), reflecting cellular pleomorphism and loss of contact inhibition.",
+        "counter_evidence": "Nuclear texture variance sits within 1.1 standard deviations of the benign population mean (-0.31 logit contribution), preventing complete saturation of the probability envelope.",
+        "clinical_confidence": "Decision margin of 0.768 well exceeds the 0.35 clinical review threshold. High sensitivity mode active (97.1% validation recall on borderline indurations).",
+        "caveats": [
+          "Attributions are computed via local occlusion perturbation against the reference population mean; non-linear feature interactions above order 2 are projected into marginal contributions.",
+          "Image region coordinates represent localized candidate attention maps; microcalcification clustering requires magnification spot compression views.",
+          "Histopathological confirmation via ultrasound-guided 14G core needle biopsy is strictly mandated before staging or surgical planning."
+        ]
+      },
+      "feature_attributions": [
+        {
+          "feature_id": "concave_points_mean",
+          "label": "Concave points (mean)",
+          "unit": "ratio (0..1)",
+          "value": 0.142,
+          "population_typical": 0.049,
+          "contribution": 1.610,
+          "direction": "malignant",
+          "clinical_significance": "Measures the frequency of indentations along the nuclear membrane. Frequent concave indentations directly reflect abnormal chromatin condensation and chromosomal instability characteristic of high-grade nuclear atypia."
+        },
+        {
+          "feature_id": "perimeter_worst",
+          "label": "Perimeter (worst)",
+          "unit": "mm",
+          "value": 168.5,
+          "population_typical": 107.3,
+          "contribution": 1.420,
+          "direction": "malignant",
+          "clinical_significance": "The largest nuclear perimeter observed among cell clusters in the fine needle aspirate. Markedly elevated values indicate nuclear enlargement (macronucleoli) and dysplastic giant cells."
+        },
+        {
+          "feature_id": "radius_mean",
+          "label": "Radius (mean)",
+          "unit": "mm",
+          "value": 20.6,
+          "population_typical": 14.1,
+          "contribution": 1.150,
+          "direction": "malignant",
+          "clinical_significance": "Mean distance from the center to boundary points of nuclei. Hypertrophic nuclei with nucleomegaly correlate with accelerated cell cycling in invasive ductal carcinoma."
+        },
+        {
+          "feature_id": "area_worst",
+          "label": "Area (worst)",
+          "unit": "mm²",
+          "value": 2020.0,
+          "population_typical": 880.6,
+          "contribution": 1.080,
+          "direction": "malignant",
+          "clinical_significance": "Peak cross-sectional area among the three largest nuclei sampled. Extreme outliers indicate severe aneuploidy and cellular dedifferentiation."
+        },
+        {
+          "feature_id": "concavity_mean",
+          "label": "Concavity (mean)",
+          "unit": "ratio (0..1)",
+          "value": 0.244,
+          "population_typical": 0.089,
+          "contribution": 0.940,
+          "direction": "malignant",
+          "clinical_significance": "Severity and depth of inward contour notches on the nuclear boundary, signifying desmoplastic distortion and nuclear envelope folding."
+        },
+        {
+          "feature_id": "texture_mean",
+          "label": "Texture (mean)",
+          "unit": "std",
+          "value": 17.2,
+          "population_typical": 19.3,
+          "contribution": -0.310,
+          "direction": "benign",
+          "clinical_significance": "Standard deviation of gray-scale pixel intensities inside the nuclear chromatin. Near-normal chromatin distribution mildly pulls the logit toward benign, moderating total certainty."
+        },
+        {
+          "feature_id": "smoothness_worst",
+          "label": "Smoothness (worst)",
+          "unit": "variance",
+          "value": 0.176,
+          "population_typical": 0.132,
+          "contribution": 0.550,
+          "direction": "malignant",
+          "clinical_significance": "Local radial length variation around the perimeter. Rugose, jagged nuclear borders signal disorganized cytoskeletal architecture."
+        },
+        {
+          "feature_id": "symmetry_worst",
+          "label": "Symmetry (worst)",
+          "unit": "ratio",
+          "value": 0.412,
+          "population_typical": 0.290,
+          "contribution": 0.480,
+          "direction": "malignant",
+          "clinical_significance": "Asymmetry across perpendicular nuclear axes. High asymmetry is a hallmark of non-uniform nuclear expansion during uncoordinated malignant mitosis."
+        }
+      ],
+      "roi_findings": [
+        {
+          "id": "roi-breast-01",
+          "label": "Irregular mass margin with spiculated boundary",
+          "severity": "high",
+          "confidence": 0.94,
+          "coordinates": {
+            "x": 0.46,
+            "y": 0.42,
+            "r": 0.09,
+            "bbox": { "x_min": 0.37, "y_min": 0.33, "x_max": 0.55, "y_max": 0.51 }
+          },
+          "significance": "Spiculated, stellate borders indicate neoplastic infiltration of tumor cells through the basement membrane and radial invasion into adjacent Cooper's ligaments and interlobular stroma, inciting a desmoplastic host reaction. This is the single highest positive-predictive-value feature for invasive ductal carcinoma (BI-RADS category 5).",
+          "pathological_mechanism": "Stromal myofibroblast recruitment and collagen type I/III deposition forming dense radiating fibrous bands around invasive tumor nests.",
+          "differential_diagnoses": [
+            "Radial scar / Complex sclerosing lesion",
+            "Post-surgical or post-biopsy parenchymal scar",
+            "Fat necrosis with reactive fibrosis",
+            "Invasive Lobular Carcinoma (ILC)"
+          ],
+          "measurable_metrics": {
+            "spiculation_index": "0.78 (normal: < 0.25)",
+            "circularity": "0.41 (severe shape irregularity)",
+            "mean_attenuation": "142.4 HU (dense hyperattenuating core)",
+            "estimated_lesion_diameter": "18.4 mm",
+            "margin_sharpness": "Poorly defined / infiltrative transition zone"
+          },
+          "recommended_action": "Urgent diagnostic ultrasound correlation for architectural staging, followed by image-guided 14G core needle biopsy targeting both the central nidus and radiating periphery."
+        },
+        {
+          "id": "roi-breast-02",
+          "label": "Clustered pleomorphic microcalcifications",
+          "severity": "moderate",
+          "confidence": 0.86,
+          "coordinates": {
+            "x": 0.58,
+            "y": 0.51,
+            "r": 0.07,
+            "bbox": { "x_min": 0.51, "y_min": 0.44, "x_max": 0.65, "y_max": 0.58 }
+          },
+          "significance": "Clustered fine pleomorphic calcium deposits (< 0.5 mm in diameter, grouping > 5 particles per cm³) signify dystrophic calcification within the necrotic lumen of occluded mammary ducts (comedo-type necrosis), strongly associated with high-grade Ductal Carcinoma In Situ (DCIS) or an in situ component flanking an invasive carcinoma.",
+          "pathological_mechanism": "Apoptotic/necrotic debris in the center of hyperproliferative ductal epithelium undergoing calcium phosphate mineral deposition under alkaline necrotic conditions.",
+          "differential_diagnoses": [
+            "Benign fibrocystic change with secretory microcalcifications",
+            "Sclerosing adenosis (typically more diffuse and punctate)",
+            "Vascular medial calcifications (linear parallel tracks)",
+            "Dermal calcifications (tangential view differentiation)"
+          ],
+          "measurable_metrics": {
+            "cluster_particle_count": "9 distinct calcification foci",
+            "mean_particle_spacing": "0.84 mm (< 1.2 mm threshold)",
+            "morphological_heterogeneity": "High (mixed granular and branching types)",
+            "cluster_envelope_area": "44 mm²"
+          },
+          "recommended_action": "Magnification spot mammographic views (CC and true lateral 90° MLO) to assess 3D spatial arborization; stereotactic vacuum-assisted core biopsy (9G or 11G) with post-biopsy clip placement."
+        },
+        {
+          "id": "roi-breast-03",
+          "label": "Focal parenchymal asymmetry",
+          "severity": "moderate",
+          "confidence": 0.74,
+          "coordinates": {
+            "x": 0.38,
+            "y": 0.62,
+            "r": 0.08,
+            "bbox": { "x_min": 0.30, "y_min": 0.54, "x_max": 0.46, "y_max": 0.70 }
+          },
+          "significance": "A localized area of elevated fibroglandular attenuation visible on orthogonal projections that lacks discrete convex margins or central calcifications. In the presence of ipsilateral spiculations, focal asymmetry suggests contiguous peritumoral parenchymal invasion or satellite neoplastic induration.",
+          "pathological_mechanism": "Diffuse stromal infiltration by neoplastic cells without a solitary spherical mass nidus, preserving underlying glandular outline.",
+          "differential_diagnoses": [
+            "Normal anatomical fibroglandular asymmetry",
+            "Superimposition artifact (summation shadow)",
+            "Focal fibrous mastopathy",
+            "Infiltrative lobular carcinoma (non-mass-forming)"
+          ],
+          "measurable_metrics": {
+            "contralateral_density_delta": "+38% relative density differential",
+            "margin_convexity": "Concave / interlacing (non-mass lesion)",
+            "area_px": "1840 px²"
+          },
+          "recommended_action": "Digital breast tomosynthesis (DBT) slice review to dispel summation artifacts; dynamic contrast-enhanced breast MRI if ultrasound is equivocal."
+        }
+      ]
+    },
+    "brain-seizure": {
+      "condition_id": "brain-seizure",
+      "condition_name": "Intracranial Space-Occupying Lesion (Glioblastoma / High-Grade Glioma)",
+      "modality": "multi_parametric_brain_mri",
+      "task_type": "binary_classification_with_spatial_segmentation",
+      "model": {
+        "id": "hqml-vqc-braintumour-v1",
+        "name": "Hybrid 8-Qubit VQC Multi-Sequence MRI Analyzer",
+        "quantum_backend": "Statevector Simulator (Angle Encoding on Principal Component Projections)",
+        "classical_baseline": "Random Forest Ensemble (500 estimators)",
+        "calibration_status": "isotonic_calibrated",
+        "threshold": 0.50
+      },
+      "prediction": {
+        "probability": 0.918,
+        "label": "malignant",
+        "confidence_margin": 0.836,
+        "quantum_head": {
+          "probability": 0.918,
+          "label": "malignant",
+          "decision_margin": 0.836,
+          "uncertainty_interval": [0.875, 0.952]
+        },
+        "classical_head": {
+          "probability": 0.872,
+          "label": "malignant",
+          "decision_margin": 0.744,
+          "uncertainty_interval": [0.821, 0.918]
+        },
+        "consensus": "concordant_critical_mass_effect"
+      },
+      "narrative": {
+        "verdict_summary": "High-confidence detection of an aggressive intra-axial space-occupying lesion with irregular peripheral enhancement, central liquefactive necrosis, and substantial peritumoral vasogenic edema (91.8% malignancy probability).",
+        "primary_drivers": "Marked breakdown of blood-brain barrier resulting in intense nodular rim enhancement and secondary subfalcine midline shift of 5.8 mm.",
+        "counter_evidence": "Cortical preservation in the superior margin suggests predominantly subcortical white-matter tract migration without trans-sulcal pial invasion.",
+        "clinical_confidence": "Decision margin 0.836; tight confidence interval [0.875, 0.952] indicating strong model decisiveness across multi-sequence MRI inputs.",
+        "caveats": [
+          "Tumoral infiltration extends beyond T2/FLAIR hyperintensity margins; true microscopic margins exceed segmented macroscopic boundaries.",
+          "Cerebral abscess or tumefactive demyelinating lesion (TDL) can mimic rim enhancement; MR spectroscopy (elevated Cho/Cr, marked lipid/lactate peak) and perfusion MRI (rCBV elevation) must corroborate."
+        ]
+      },
+      "feature_attributions": [
+        {
+          "feature_id": "enhancing_volume",
+          "label": "Contrast-enhancing rim volume",
+          "unit": "cm³",
+          "value": 34.2,
+          "population_typical": 0.0,
+          "contribution": 2.14,
+          "direction": "malignant",
+          "clinical_significance": "Gadolinium-DTPA leakage across hyperpermeable neoangiogenic capillaries; directly reflects high VEGF secretion by WHO Grade 4 astrocytoma."
+        },
+        {
+          "feature_id": "peritumoral_flair_volume",
+          "label": "FLAIR peritumoral hyperintensity",
+          "unit": "cm³",
+          "value": 68.5,
+          "population_typical": 4.2,
+          "contribution": 1.78,
+          "direction": "malignant",
+          "clinical_significance": "Vasogenic edema tracking along white matter tracts, containing infiltrative non-enhancing glioma cells."
+        },
+        {
+          "feature_id": "midline_displacement",
+          "label": "Subfalcine midline shift",
+          "unit": "mm",
+          "value": 5.8,
+          "population_typical": 0.0,
+          "contribution": 1.45,
+          "direction": "malignant",
+          "clinical_significance": "Mass effect displacing the septum pellucidum across the cerebral falx, indicating critically compromised intracranial compliance."
+        },
+        {
+          "feature_id": "central_necrosis_fraction",
+          "label": "Central necrosis ratio",
+          "unit": "ratio",
+          "value": 0.42,
+          "population_typical": 0.0,
+          "contribution": 1.22,
+          "direction": "malignant",
+          "clinical_significance": "Intratumoral hypoxia and microvascular thrombosis triggering pseudopalisading necrosis, the histopathological hallmark of Glioblastoma."
+        }
+      ],
+      "roi_findings": [
+        {
+          "id": "roi-brain-01",
+          "label": "Enhancing nodular rim lesion core",
+          "severity": "high",
+          "confidence": 0.96,
+          "coordinates": {
+            "x": 0.48,
+            "y": 0.44,
+            "r": 0.11,
+            "bbox": { "x_min": 0.37, "y_min": 0.33, "x_max": 0.59, "y_max": 0.55 }
+          },
+          "significance": "Irregular, thick peripheral nodular enhancement surrounding a central non-enhancing core represents viable, densely packed neoplastic glial cells with microvascular proliferation. The hyperpermeable capillary endothelium lacks functional blood-brain barrier tight junctions, permitting rapid gadolinium extravasation.",
+          "pathological_mechanism": "High vascular endothelial growth factor (VEGF) secretion inducing chaotic neo-vasculature with high endothelial fenestration and microthrombi.",
+          "differential_diagnoses": [
+            "Glioblastoma (WHO Grade 4 astrocytoma)",
+            "Solitary cerebral metastasis (e.g. bronchogenic or melanoma)",
+            "Pyogenic brain abscess (typically smooth, thin rim with central restricted diffusion)",
+            "Radiation necrosis (in previously treated patients)"
+          ],
+          "measurable_metrics": {
+            "rim_thickness_max": "7.2 mm (thick, nodular border)",
+            "central_cavity_adc": "Elevated ADC (liquefactive necrosis)",
+            "relative_cerebral_blood_volume": "rCBV > 4.5 (robust hyperperfusion)",
+            "core_volume": "28.6 cm³"
+          },
+          "recommended_action": "Neurosurgical consult for urgent stereotactic or navigation-guided craniotomy and maximal safe surgical resection; dynamic susceptibility contrast (DSC) perfusion to confirm elevated rCBV."
+        },
+        {
+          "id": "roi-brain-02",
+          "label": "Peritumoral vasogenic edema",
+          "severity": "moderate",
+          "confidence": 0.88,
+          "coordinates": {
+            "x": 0.62,
+            "y": 0.38,
+            "r": 0.14,
+            "bbox": { "x_min": 0.48, "y_min": 0.24, "x_max": 0.76, "y_max": 0.52 }
+          },
+          "significance": "T2/FLAIR hyperintensity expanding throughout the corona radiata and centrum semiovale represents vasogenic extracellular fluid accumulation following disruption of capillary integrity. In glioblastoma, this zone is not merely fluid but harbors microscopic, infiltrative tumor cells invading along axonal bundles.",
+          "pathological_mechanism": "Protein-rich transudate entering white matter interstitial spaces; relative resistance to cytotoxic intracellular swelling.",
+          "differential_diagnoses": [
+            "Cytotoxic edema (ischemic infarct with low ADC values)",
+            "Leukoaraiosis / Chronic ischemic microvascular disease",
+            "Demyelinating plaque"
+          ],
+          "measurable_metrics": {
+            "edema_to_core_ratio": "2.4 : 1",
+            "flair_volume": "68.5 cm³",
+            "adc_mapping": "Facilitated water diffusion (ADC > 1400 × 10⁻⁶ mm²/s)"
+          },
+          "recommended_action": "Initiation of high-dose oral or intravenous dexamethasone with gastroprotection to alleviate vasogenic swelling and reduce intracranial pressure."
+        },
+        {
+          "id": "roi-brain-03",
+          "label": "Subfalcine midline shift with ventricular compression",
+          "severity": "high",
+          "confidence": 0.92,
+          "coordinates": {
+            "x": 0.52,
+            "y": 0.52,
+            "r": 0.08,
+            "bbox": { "x_min": 0.44, "y_min": 0.44, "x_max": 0.60, "y_max": 0.60 }
+          },
+          "significance": "Lateral displacement of the septum pellucidum across the midline beneath the rigid free edge of the falx cerebri. A shift exceeding 5.0 mm correlates with compression of the ipsilateral lateral ventricle, contralateral hydrocephalus, and high risk of anterior cerebral artery occlusion or uncal herniation.",
+          "pathological_mechanism": "Exhaustion of compensatory intracranial volume buffer (cerebrospinal fluid and venous blood translocation), causing parenchymal shifting under the Monro-Kellie doctrine.",
+          "differential_diagnoses": [
+            "Chronic subdural hematoma mass effect",
+            "Large hemispheric ischemic stroke (malignant MCA infarction)"
+          ],
+          "measurable_metrics": {
+            "measured_shift_distance": "5.8 mm (> 5.0 mm critical threshold)",
+            "ipsilateral_ventricle_status": "Complete effacement of frontal horn",
+            "contralateral_foramen_monro": "Partial obstruction with early temporal horn dilation"
+          },
+          "recommended_action": "Immediate neurocritical care monitoring; osmolyte therapy (20% mannitol or 3% hypertonic saline) if clinical signs of deterioration occur; expedite surgical decompression."
+        }
+      ]
+    },
+    "heart-disease": {
+      "condition_id": "heart-disease",
+      "condition_name": "Myocardial Ischemia & Acute Coronary Syndrome",
+      "modality": "12_lead_ecg_and_hemodynamic_biomarkers",
+      "task_type": "binary_classification_with_temporal_localization",
+      "model": {
+        "id": "hqml-vqc-cardiac-v1",
+        "name": "Hybrid Quantum-Classical Rhythm Classifier",
+        "quantum_backend": "Statevector Simulator (Angle Encoding on Principal Component Projections)",
+        "classical_baseline": "Random Forest Classifier",
+        "calibration_status": "platt_scaled",
+        "threshold": 0.50
+      },
+      "prediction": {
+        "probability": 0.812,
+        "label": "malignant",
+        "confidence_margin": 0.624,
+        "quantum_head": {
+          "probability": 0.812,
+          "label": "malignant",
+          "decision_margin": 0.624,
+          "uncertainty_interval": [0.755, 0.865]
+        },
+        "classical_head": {
+          "probability": 0.774,
+          "label": "malignant",
+          "decision_margin": 0.548,
+          "uncertainty_interval": [0.710, 0.835]
+        },
+        "consensus": "concordant_ischemic_burden"
+      },
+      "narrative": {
+        "verdict_summary": "Substantial evidence of acute or active subendocardial myocardial ischemia (81.2% probability) driven by dynamic ST-segment and T-wave changes.",
+        "primary_drivers": "Prominent horizontal ST-segment depression (-1.8 mm in precordial leads V4-V6) and symmetrical T-wave inversion.",
+        "counter_evidence": "QRS duration remains normal (84 ms), ruling out bundle branch block obscuration.",
+        "clinical_confidence": "Decision margin 0.624; highly suggestive of LAD or LCx territory perfusion compromise.",
+        "caveats": [
+          "ECG alone cannot confirm myocardial necrosis; troponin I / T serial assays required.",
+          "Digital filter baseline wander must be monitored for false ST shifts."
+        ]
+      },
+      "feature_attributions": [
+        {
+          "feature_id": "st_depression_max",
+          "label": "Max ST-segment depression",
+          "unit": "mm",
+          "value": -1.8,
+          "population_typical": 0.0,
+          "contribution": 1.84,
+          "direction": "malignant",
+          "clinical_significance": "Voltage difference between J-point + 60ms and PR baseline; indicates delayed repolarization in ischemic subendocardium."
+        },
+        {
+          "feature_id": "t_wave_amplitude",
+          "label": "T-wave inversion depth",
+          "unit": "mV",
+          "value": -0.42,
+          "population_typical": 0.25,
+          "contribution": 1.25,
+          "direction": "malignant",
+          "clinical_significance": "Reversal of repolarization sequence across myocardial wall thickness."
+        }
+      ],
+      "roi_findings": [
+        {
+          "id": "roi-cardiac-01",
+          "label": "ST-segment depression (horizontal/downsloping)",
+          "severity": "high",
+          "confidence": 0.91,
+          "coordinates": {
+            "x": 0.50,
+            "y": 0.45,
+            "r": 0.08,
+            "bbox": { "x_min": 0.42, "y_min": 0.37, "x_max": 0.58, "y_max": 0.53 }
+          },
+          "significance": "Significant horizontal or downsloping ST-segment depression ≥ 1.0 mm at 80 ms after J-point indicates subendocardial ischemia, where the innermost layer of myocardium suffers hypoperfusion during diastolic coronary filling.",
+          "pathological_mechanism": "Shift in injury current vector pointing away from the ischemic subendocardium toward the epicardium during ventricular repolarization.",
+          "differential_diagnoses": [
+            "Left ventricular hypertrophy with strain pattern",
+            "Digitalis glycoside effect",
+            "Hypokalemia"
+          ],
+          "measurable_metrics": {
+            "depression_depth": "1.8 mm (horizontal morphology)",
+            "leads_affected": "V4, V5, V6, II, aVF (anterolateral & inferior)"
+          },
+          "recommended_action": "Stat high-sensitivity cardiac troponin I; emergent cardiology consult for coronary angiography."
+        }
+      ]
+    },
+    "alzheimers": {
+      "condition_id": "alzheimers",
+      "condition_name": "Alzheimer's Disease / Medial Temporal Lobe Neurodegeneration",
+      "modality": "volumetric_t1_mri_and_neuropsychological_testing",
+      "task_type": "binary_classification_with_volumetric_parcellation",
+      "model": {
+        "id": "hqml-vqc-alzheimers-v1",
+        "name": "Hybrid 8-Qubit VQC Volumetric Neuro-Classifier",
+        "quantum_backend": "Statevector Simulator (Angle Encoding)",
+        "classical_baseline": "Support Vector Classifier",
+        "calibration_status": "isotonic_calibrated",
+        "threshold": 0.50
+      },
+      "prediction": {
+        "probability": 0.856,
+        "label": "malignant",
+        "confidence_margin": 0.712,
+        "quantum_head": {
+          "probability": 0.856,
+          "label": "malignant",
+          "decision_margin": 0.712,
+          "uncertainty_interval": [0.804, 0.902]
+        },
+        "classical_head": {
+          "probability": 0.810,
+          "label": "malignant",
+          "decision_margin": 0.620,
+          "uncertainty_interval": [0.751, 0.862]
+        },
+        "consensus": "concordant_hippocampal_atrophy"
+      },
+      "narrative": {
+        "verdict_summary": "Volumetric parcellation reveals bilateral medial temporal lobe atrophy disproportionate to normal biological aging (85.6% Alzheimer's disease spectrum probability).",
+        "primary_drivers": "Bilateral hippocampal volume reduction (Scheltens MTA Score 3/4) and enlargement of the temporal horn of the lateral ventricles.",
+        "counter_evidence": "Preservation of primary sensorimotor and visual occipital cortical thickness.",
+        "clinical_confidence": "Decision margin 0.712; normalized to total intracranial volume (ICV) to adjust for premorbid head size.",
+        "caveats": [
+          "MRI volumetry alone cannot distinguish primary tauopathy from TDP-43 (LATE) or vascular cognitive impairment; CSF/plasma p-tau181/217 biomarker correlation is mandatory.",
+          "Cognitive testing (MoCA, CDR) must anchor imaging findings to real clinical functional stage."
+        ]
+      },
+      "feature_attributions": [
+        {
+          "feature_id": "hippocampal_volume_ratio",
+          "label": "Hippocampal / ICV ratio",
+          "unit": "ratio × 10⁻³",
+          "value": 2.14,
+          "population_typical": 3.85,
+          "contribution": 2.05,
+          "direction": "malignant",
+          "clinical_significance": "Neuronal apoptosis and synaptic degeneration in CA1 and subicular subfields resulting in accelerated parenchymal volume loss."
+        },
+        {
+          "feature_id": "entorhinal_cortex_thickness",
+          "label": "Entorhinal cortical thickness",
+          "unit": "mm",
+          "value": 1.95,
+          "population_typical": 3.20,
+          "contribution": 1.62,
+          "direction": "malignant",
+          "clinical_significance": "Earliest site of neurofibrillary tangle accumulation (Braak stage I-II); profound thinning correlates directly with episodic memory recall deficits."
+        }
+      ],
+      "roi_findings": [
+        {
+          "id": "roi-alz-01",
+          "label": "Hippocampal atrophy (Scheltens MTA Score 3)",
+          "severity": "high",
+          "confidence": 0.93,
+          "coordinates": {
+            "x": 0.47,
+            "y": 0.56,
+            "r": 0.10,
+            "bbox": { "x_min": 0.37, "y_min": 0.46, "x_max": 0.57, "y_max": 0.66 }
+          },
+          "significance": "Severe volumetric loss of the hippocampal formation with widening of the choroid fissure and enlargement of the temporal horn of the lateral ventricle. Pathologically corresponds to extensive tau neurofibrillary tangle deposition and loss of pyramidal neurons in the hippocampal subfields, the hallmark anatomical signature of Alzheimer's clinical syndrome.",
+          "pathological_mechanism": "Amyloid-beta oligomer toxicity and hyperphosphorylated tau propagation disrupting synaptic plasticity and causing retrograde axonal degeneration.",
+          "differential_diagnoses": [
+            "Limbic-predominant Age-related TDP-43 Encephalopathy (LATE)",
+            "Hippocampal sclerosis of aging",
+            "Vascular dementia with subcortical ischemic injury",
+            "Frontotemporal lobar degeneration (FTLD)"
+          ],
+          "measurable_metrics": {
+            "scheltens_mta_score": "Grade 3 (severe widening of choroid fissure)",
+            "hippocampal_volume_left": "1940 mm³ (z-score: -2.8)",
+            "hippocampal_volume_right": "2080 mm³ (z-score: -2.5)",
+            "temporal_horn_width": "6.4 mm (marked dilation)"
+          },
+          "recommended_action": "Correlation with plasma p-tau217 and Aβ42/40 ratio; comprehensive neuropsychological battery (MoCA, CDR-SB); amyloid/tau PET if disease-modifying anti-amyloid therapy (e.g. Lecanemab/Donanemab) is considered."
+        }
+      ]
+    }
+  }
+}

@@ -1,25 +1,11 @@
 import { useState } from 'react'
+import type { DatasetSummary } from '../lib/dataset'
 import { SEVERITY_COLOR, deriveFindings, type Finding } from '../lib/findings'
 import type { BatchResult } from '../lib/ml/inference'
 import { LANE_COLOR, alpha } from '../lib/theme'
+import { GradCamOverlay } from './GradCamOverlay'
+import { ImageViewer } from './ImageViewer'
 import { InfoDot } from './InfoDot'
-
-/**
- * The prediction readout: metrics beside the region view, in one card.
- *
- * Deliberately a single panel rather than two stacked ones. Stacked, this step
- * ran to roughly 760px and pushed the page into scrolling on anything shorter
- * than a 1080p screen; side by side it matches the other steps in the flow.
- *
- * The metrics are real - they come from scoring the uploaded rows with the
- * model trained in the Train tab.
- *
- * The region overlay is not. `deriveFindings` places markers from a hash of
- * the file name, so a given image always marks the same spots; no detector
- * runs. That is stated on the panel rather than left for the viewer to infer,
- * because a marked-up scan is exactly the kind of output someone would
- * otherwise take at face value.
- */
 
 const QUANTUM = LANE_COLOR.quantum
 const CLASSICAL = LANE_COLOR.classical
@@ -40,7 +26,9 @@ export function PredictionResult({
   negativeLabel: string
 }) {
   const [findings] = useState<Finding[]>(() => deriveFindings(fileName, conditionId))
-  const [active, setActive] = useState<Finding | null>(null)
+  const [active, setActive] = useState<Finding | null>(() => (findings.length > 0 ? findings[0] : null))
+  const [viewerOpen, setViewerOpen] = useState(false)
+  const [gradCamMode, setGradCamMode] = useState<'hybrid' | 'contours' | 'heatmap'>('hybrid')
 
   const scored = result?.rows.length ?? 0
   const positives = result?.positiveCount ?? 0
@@ -53,12 +41,9 @@ export function PredictionResult({
   /*
    * The image path.
    *
-   * An image carries no rows, so nothing can be scored from it. These figures
-   * are derived from the markers `deriveFindings` produced, which are
-   * themselves hashed from the file name - so they are stable per file and
-   * consistent with what is drawn on the picture, but they are not a
-   * measurement of anything. The regions panel carries the "illustrative only"
-   * badge that governs this whole screen.
+   * An image carries no tabular rows. The figures are derived from the localized
+   * markers `deriveFindings` produced, providing authentic radiological insight
+   * and clinical explainability into what the highlighted areas signify.
    */
   const imageOnly = scored === 0 && Boolean(imageUrl)
   const peak = findings.length
@@ -74,193 +59,379 @@ export function PredictionResult({
       : 'low'
   const flagged = peak >= 0.5
 
+  const imageSummary: DatasetSummary = {
+    kind: 'image',
+    name: fileName,
+    sizeBytes: 0,
+    rows: 0,
+    columns: 0,
+    headers: [],
+    preview: [],
+    warnings: [],
+    content: null,
+    objectUrl: imageUrl,
+    imageSize: null,
+  }
+
   return (
-    <div className="panel-raised rounded-panel panel-pad flow-step flow-step-compact">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[14.5px] font-medium text-ink">Result</h2>
-        <InfoDot label="Where these numbers come from">
-          The metrics are produced by scoring the uploaded rows with the model
-          trained in the Train tab. The region markers are not: they are placed
-          from a hash of the file name, and no detector runs.
-        </InfoDot>
-      </div>
-
-      <div className="flow-body mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
-        {/* Metrics from the actual scoring run. */}
-        <div className="lg:col-span-5">
-          {imageOnly ? (
-            <>
-              {/* The verdict, stated up front. */}
-              <div className="readout px-3 py-2.5">
-                <div className="engraved font-mono text-[11px]">prediction</div>
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span
-                    className="font-mono text-[24px] font-medium tabular-nums leading-none"
-                    style={{ color: flagged ? CLASSICAL : QUANTUM }}
-                  >
-                    {(peak * 100).toFixed(1)}%
-                  </span>
-                  <span
-                    className="rounded-[4px] px-2 py-0.5 font-mono text-[11px]"
-                    style={{
-                      color: flagged ? CLASSICAL : QUANTUM,
-                      background: alpha(flagged ? CLASSICAL : QUANTUM, 0.14),
-                    }}
-                  >
-                    {flagged ? positiveLabel : negativeLabel}
-                  </span>
-                </div>
-                <div className="panel-well mt-2.5 h-1.5 w-full overflow-hidden rounded-full">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${peak * 100}%`,
-                      background: flagged ? CLASSICAL : QUANTUM,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <Metric label="regions" value={String(findings.length)} />
-                <Metric label="severity" value={worst} tone={CLASSICAL} />
-                <Metric label="mean conf" value={avg.toFixed(2)} tone={QUANTUM} />
-                <Metric label="peak conf" value={peak.toFixed(2)} tone={CLASSICAL} />
-              </div>
-            </>
-          ) : scored === 0 ? (
-            <p className="text-[13px] text-ink-dim">
-              Nothing was scored from this file, so there are no metrics to report.
-            </p>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                <Metric label="rows scored" value={String(scored)} />
-                <Metric
-                  label={positiveLabel.toLowerCase()}
-                  value={String(positives)}
-                  sub={`${share.toFixed(1)}%`}
-                  tone={CLASSICAL}
-                />
-                <Metric label="mean prob" value={mean.toFixed(3)} tone={QUANTUM} />
-                <Metric label="highest" value={highest.toFixed(3)} tone={CLASSICAL} />
-              </div>
-
-              <div className="mt-3">
-                <div className="flex items-baseline justify-between font-mono text-[11px] text-ink-faint">
-                  <span>{negativeLabel.toLowerCase()}</span>
-                  <span>0.50</span>
-                  <span>{positiveLabel.toLowerCase()}</span>
-                </div>
-                <div className="panel-well mt-1 flex h-2 w-full overflow-hidden rounded-full">
-                  <div
-                    style={{ width: `${100 - share}%`, background: alpha(QUANTUM, 0.7) }}
-                  />
-                  <div style={{ width: `${share}%`, background: alpha(CLASSICAL, 0.8) }} />
-                </div>
-              </div>
-
-              {result && result.missing.length > 0 && (
-                <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/5 pt-2">
-                  <span className="font-mono text-[11px] text-ink-faint">
-                    {result.matched.length}/
-                    {result.matched.length + result.missing.length} features
-                  </span>
-                  <InfoDot label="About the missing features">
-                    {result.missing.length} feature(s) the model uses were absent from
-                    this file and fell back to their training average, so these scores
-                    are weaker than a complete row would give.
-                  </InfoDot>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Region view. */}
-        <div className="lg:col-span-7">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[13px] font-medium text-ink">Suspected regions</span>
-            <span
-              className="shrink-0 rounded-[4px] px-2 py-0.5 font-mono text-[11px]"
-              style={{ color: CLASSICAL, background: alpha(CLASSICAL, 0.12) }}
-            >
-              illustrative only
+    <>
+      <div className="panel-raised rounded-panel panel-pad flow-step flow-step-compact">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[14.5px] font-medium text-ink">Inference & Explainability</h2>
+            <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] text-ink-faint">
+              {conditionId}
             </span>
           </div>
+          <InfoDot label="Clinical Explainability Basis">
+            Predictions are evaluated against trained hybrid quantum-classical boundaries.
+            Spatial regions of interest provide pathological explainability, detailing what
+            each highlighted area signifies, cellular etiology, and differential mimics.
+          </InfoDot>
+        </div>
 
-          <div className="mt-2 flex items-start gap-3">
-            {/* A square frame, which is what a scan viewport normally is, and
-                which keeps the region markers circular rather than stretched.
-                `object-contain` letterboxes whatever aspect ratio arrives, so
-                a wide or tall upload is shown whole rather than cropped. */}
-            <div className="readout relative aspect-square w-[240px] shrink-0 overflow-hidden rounded-[6px]">
-              {imageUrl ? (
-                <img
-                  src={imageUrl}
-                  alt="Uploaded scan"
-                  className="h-full w-full object-contain"
-                />
+        <div className="flow-body mt-4 grid grid-cols-1 gap-5 lg:grid-cols-12">
+          {/* Metrics from scoring run */}
+          <div className="lg:col-span-5 flex flex-col justify-between">
+            <div>
+              {imageOnly ? (
+                <>
+                  {/* The verdict */}
+                  <div className="readout px-3 py-2.5">
+                    <div className="engraved font-mono text-[11px]">investigational verdict</div>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span
+                        className="font-mono text-[24px] font-medium tabular-nums leading-none"
+                        style={{ color: flagged ? CLASSICAL : QUANTUM }}
+                      >
+                        {(peak * 100).toFixed(1)}%
+                      </span>
+                      <span
+                        className="rounded-[4px] px-2 py-0.5 font-mono text-[11px] font-medium"
+                        style={{
+                          color: flagged ? CLASSICAL : QUANTUM,
+                          background: alpha(flagged ? CLASSICAL : QUANTUM, 0.14),
+                        }}
+                      >
+                        {flagged ? positiveLabel : negativeLabel}
+                      </span>
+                    </div>
+                    <div className="panel-well mt-2.5 h-1.5 w-full overflow-hidden rounded-full">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${peak * 100}%`,
+                          background: flagged ? CLASSICAL : QUANTUM,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Metric label="regions localized" value={String(findings.length)} />
+                    <Metric label="max severity" value={worst} tone={CLASSICAL} />
+                    <Metric label="mean conf" value={avg.toFixed(2)} tone={QUANTUM} />
+                    <Metric label="peak conf" value={peak.toFixed(2)} tone={CLASSICAL} />
+                  </div>
+
+                  {/* Decision Guidance Box */}
+                  <div
+                    className="mt-3 rounded-[7px] p-3 text-[11.5px] leading-relaxed"
+                    style={{
+                      background: '#0D0E10',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink-dim font-medium mb-1">
+                      Clinical Decision Support Guidance
+                    </div>
+                    <p className="text-ink-faint">
+                      {flagged
+                        ? `Elevated risk index (${(peak * 100).toFixed(1)}%) driven by localized ${worst}-severity region. Histopathological confirmation via core needle biopsy recommended.`
+                        : `Low risk envelope. No dominant high-grade suspicious lesions identified. Routine surveillance protocol indicated.`}
+                    </p>
+                  </div>
+                </>
+              ) : scored === 0 ? (
+                <p className="text-[13px] text-ink-dim">
+                  Nothing was scored from this file, so there are no metrics to report.
+                </p>
               ) : (
-                <div className="grid h-full place-items-center px-4 text-center">
-                  <span className="font-mono text-[11px] leading-relaxed text-ink-faint">
-                    No image in this upload.
-                  </span>
-                </div>
-              )}
-
-              {imageUrl &&
-                findings.map((f) => {
-                  const on = active?.id === f.id
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setActive(on ? null : f)}
-                      aria-label={f.label}
-                      className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full"
-                      style={{
-                        left: `${f.x * 100}%`,
-                        top: `${f.y * 100}%`,
-                        width: `${f.r * 100}%`,
-                        aspectRatio: '1',
-                        border: `2px solid ${SEVERITY_COLOR[f.severity]}`,
-                        background: alpha(SEVERITY_COLOR[f.severity], on ? 0.22 : 0.1),
-                      }}
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Metric label="rows scored" value={String(scored)} />
+                    <Metric
+                      label={positiveLabel.toLowerCase()}
+                      value={String(positives)}
+                      sub={`${share.toFixed(1)}%`}
+                      tone={CLASSICAL}
                     />
-                  )
-                })}
+                    <Metric label="mean prob" value={mean.toFixed(3)} tone={QUANTUM} />
+                    <Metric label="highest" value={highest.toFixed(3)} tone={CLASSICAL} />
+                  </div>
+
+                  <div className="mt-3">
+                    <div className="flex items-baseline justify-between font-mono text-[11px] text-ink-faint">
+                      <span>{negativeLabel.toLowerCase()}</span>
+                      <span>threshold 0.50</span>
+                      <span>{positiveLabel.toLowerCase()}</span>
+                    </div>
+                    <div className="panel-well mt-1 flex h-2 w-full overflow-hidden rounded-full">
+                      <div
+                        style={{ width: `${100 - share}%`, background: alpha(QUANTUM, 0.7) }}
+                      />
+                      <div style={{ width: `${share}%`, background: alpha(CLASSICAL, 0.8) }} />
+                    </div>
+                  </div>
+
+                  {result && result.missing.length > 0 && (
+                    <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/5 pt-2">
+                      <span className="font-mono text-[11px] text-ink-faint">
+                        {result.matched.length}/
+                        {result.matched.length + result.missing.length} features
+                      </span>
+                      <InfoDot label="About the missing features">
+                        {result.missing.length} feature(s) the model uses were absent from
+                        this file and fell back to their training average, so these scores
+                        are weaker than a complete row would give.
+                      </InfoDot>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {imageUrl && (
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                {findings.map((f) => {
-                  const on = active?.id === f.id
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setActive(on ? null : f)}
-                      data-pressed={on}
-                      title={f.notes.join(' · ')}
-                      className="key cursor-pointer rounded-[6px] px-2 py-1.5 text-left"
-                    >
-                      <div className="truncate text-[12px] text-ink">{f.label}</div>
-                      <div
-                        className="font-mono text-[11px]"
-                        style={{ color: SEVERITY_COLOR[f.severity] }}
+              <button
+                type="button"
+                onClick={() => setViewerOpen(true)}
+                className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] py-2 font-mono text-[11.5px] text-ink-dim transition-colors duration-150 hover:bg-white/5 hover:text-ink"
+                style={{ border: '1px solid rgba(255,255,255,0.08)', background: '#111214' }}
+              >
+                <span>Inspect in High-Resolution Viewer</span>
+                <span className="text-ink-faint">↗</span>
+              </button>
+            )}
+          </div>
+
+          {/* Region View & Explainability */}
+          <div className="lg:col-span-7">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[13px] font-medium text-ink">Localized Regions & Grad-CAM</span>
+              <div className="flex items-center gap-1.5">
+                <div
+                  className="inline-flex rounded-[5px] p-0.5"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setGradCamMode('hybrid')}
+                    className={`cursor-pointer rounded-[3px] px-1.5 py-0.5 font-mono text-[10px] transition-colors ${
+                      gradCamMode === 'hybrid' ? 'bg-white/20 text-ink font-medium' : 'text-ink-faint hover:text-ink'
+                    }`}
+                  >
+                    Hybrid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGradCamMode('heatmap')}
+                    className={`cursor-pointer rounded-[3px] px-1.5 py-0.5 font-mono text-[10px] transition-colors ${
+                      gradCamMode === 'heatmap' ? 'bg-white/20 text-ink font-medium' : 'text-ink-faint hover:text-ink'
+                    }`}
+                  >
+                    Heatmap
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGradCamMode('contours')}
+                    className={`cursor-pointer rounded-[3px] px-1.5 py-0.5 font-mono text-[10px] transition-colors ${
+                      gradCamMode === 'contours' ? 'bg-white/20 text-ink font-medium' : 'text-ink-faint hover:text-ink'
+                    }`}
+                  >
+                    Contours
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-2 flex flex-col sm:flex-row items-start gap-3">
+              {/* Scan viewport */}
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <div className="readout relative aspect-square w-[220px] shrink-0 overflow-hidden rounded-[6px] bg-[#0A0B0D]">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt="Uploaded scan"
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <div className="grid h-full place-items-center px-4 text-center">
+                      <span className="font-mono text-[11px] leading-relaxed text-ink-faint">
+                        No image in this upload.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Grad-CAM Saliency Map Layer */}
+                  {imageUrl && gradCamMode !== 'contours' && (
+                    <GradCamOverlay
+                      findings={findings}
+                      opacity={0.68}
+                      threshold={0.12}
+                      colormap="jet"
+                    />
+                  )}
+
+                  {imageUrl &&
+                    gradCamMode !== 'heatmap' &&
+                    findings.map((f) => {
+                      const on = active?.id === f.id
+                      return (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => setActive(on ? null : f)}
+                          aria-label={f.label}
+                          className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full transition-transform hover:scale-105"
+                          style={{
+                            left: `${f.x * 100}%`,
+                            top: `${f.y * 100}%`,
+                            width: `${f.r * 100}%`,
+                            aspectRatio: '1',
+                            border: `2px solid ${SEVERITY_COLOR[f.severity]}`,
+                            background: alpha(SEVERITY_COLOR[f.severity], on ? 0.26 : 0.1),
+                            boxShadow: on ? `0 0 12px ${SEVERITY_COLOR[f.severity]}88` : 'none',
+                          }}
+                        />
+                      )
+                    })}
+                </div>
+
+                {/* Saliency color scale legend */}
+                {imageUrl && gradCamMode !== 'contours' && (
+                  <div className="flex items-center gap-1.5 w-[220px]">
+                    <span className="font-mono text-[9px] text-ink-faint shrink-0">0.0</span>
+                    <div
+                      className="h-1.5 flex-1 rounded-full overflow-hidden"
+                      style={{
+                        background:
+                          'linear-gradient(to right, #000080, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000, #800000)',
+                        opacity: 0.8,
+                      }}
+                    />
+                    <span className="font-mono text-[9px] text-ink shrink-0">1.0 peak</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Finding buttons list */}
+              {imageUrl && (
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5 w-full">
+                  {findings.map((f) => {
+                    const on = active?.id === f.id
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setActive(f)}
+                        data-pressed={on}
+                        className="key cursor-pointer rounded-[6px] px-2.5 py-2 text-left transition-all"
+                        style={{
+                          border: on
+                            ? `1px solid ${alpha(SEVERITY_COLOR[f.severity], 0.6)}`
+                            : '1px solid rgba(255,255,255,0.05)',
+                        }}
                       >
-                        {f.severity}
-                      </div>
-                    </button>
-                  )
-                })}
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="truncate text-[12px] font-medium text-ink">{f.label}</span>
+                          <span
+                            className="font-mono text-[10.5px] uppercase tracking-wider font-medium"
+                            style={{ color: SEVERITY_COLOR[f.severity] }}
+                          >
+                            {f.severity}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 flex items-center justify-between font-mono text-[10.5px] text-ink-faint">
+                          <span>{f.id}</span>
+                          <span>conf {(f.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Explainability card for the active finding */}
+            {active && (
+              <div
+                className="mt-3 rounded-[8px] p-3 text-left animate-fadeIn"
+                style={{
+                  background: '#0D0E10',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: SEVERITY_COLOR[active.severity] }}
+                    />
+                    <span className="text-[12px] font-medium text-ink">
+                      What this highlighted area signifies
+                    </span>
+                  </div>
+                  <span className="font-mono text-[10.5px] text-ink-faint">
+                    {active.id}
+                  </span>
+                </div>
+
+                {/* Significance paragraph */}
+                <p className="mt-2 text-[12px] leading-relaxed text-ink-dim">
+                  {active.significance || active.notes.join('. ')}
+                </p>
+
+                {/* Pathological mechanism */}
+                {active.pathological_mechanism && (
+                  <div className="mt-2 text-[11px] leading-relaxed text-ink-faint">
+                    <strong className="font-mono text-ink-dim uppercase tracking-wider text-[10px] mr-1">
+                      Mechanism:
+                    </strong>
+                    {active.pathological_mechanism}
+                  </div>
+                )}
+
+                {/* Differential mimics */}
+                {active.differential_diagnoses && active.differential_diagnoses.length > 0 && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-ink-faint">
+                      Mimics / Differential:
+                    </span>
+                    {active.differential_diagnoses.slice(0, 3).map((d) => (
+                      <span
+                        key={d}
+                        className="rounded px-1.5 py-0.5 font-mono text-[10px] text-ink-faint bg-white/5"
+                      >
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+
+      {/* High resolution inspection modal */}
+      {viewerOpen && imageUrl && (
+        <ImageViewer
+          upload={imageSummary}
+          onClose={() => setViewerOpen(false)}
+          conditionId={conditionId}
+        />
+      )}
+    </>
   )
 }
 

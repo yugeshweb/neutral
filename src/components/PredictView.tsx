@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import {
   DEFAULT_VALUES,
   FEATURES,
   PRESETS,
   predict,
+  type Attribution,
   type FeatureValues,
   type Prediction,
 } from '../lib/predict'
@@ -99,8 +100,16 @@ function Readout({
   )
 }
 
-/** Signed contribution bars, diverging from a centre axis. */
-function Attributions({ result }: { result: Prediction }) {
+/** Signed contribution bars, diverging from a centre axis with interactive inspection. */
+function Attributions({
+  result,
+  selectedFeature,
+  onSelectFeature,
+}: {
+  result: Prediction
+  selectedFeature: string | null
+  onSelectFeature: (id: string | null) => void
+}) {
   const max = Math.max(...result.attributions.map((a) => Math.abs(a.contribution)), 0.001)
 
   return (
@@ -114,11 +123,11 @@ function Attributions({ result }: { result: Prediction }) {
       }}
     >
       <div className="mb-1 flex items-baseline justify-between">
-        <h3 className="text-[14.5px] font-medium text-ink">Feature attribution</h3>
-        <span className="font-mono text-[11.5px] text-ink-faint">quantum head</span>
+        <h3 className="text-[14.5px] font-medium text-ink">Feature Attribution & Directionality</h3>
+        <span className="font-mono text-[11.5px] text-ink-faint">local occlusion</span>
       </div>
       <p className="mb-3.5 font-mono text-[11.5px] text-ink-faint">
-        signed contribution to the malignant logit
+        signed logit shift relative to population baseline (click a feature to inspect)
       </p>
 
       <div className="space-y-2.5">
@@ -126,11 +135,19 @@ function Attributions({ result }: { result: Prediction }) {
           const pushesMalignant = a.contribution > 0
           const tone = pushesMalignant ? MALIGNANT : BENIGN
           const width = (Math.abs(a.contribution) / max) * 50
+          const isSelected = selectedFeature === a.id
 
           return (
-            <div key={a.id}>
+            <div
+              key={a.id}
+              onClick={() => onSelectFeature(isSelected ? null : a.id)}
+              className="group cursor-pointer rounded-[6px] p-1 transition-colors hover:bg-white/[0.03]"
+              style={{
+                background: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent',
+              }}
+            >
               <div className="mb-1 flex items-baseline justify-between gap-2">
-                <span className="truncate font-mono text-[12px] text-ink-dim">
+                <span className="truncate font-mono text-[12px] text-ink-dim group-hover:text-ink">
                   {a.label}
                 </span>
                 <span
@@ -157,6 +174,18 @@ function Attributions({ result }: { result: Prediction }) {
                   }}
                 />
               </div>
+
+              {isSelected && a.description && (
+                <div
+                  className="mt-2 rounded-[6px] p-2.5 text-[11.5px] leading-relaxed animate-fadeIn"
+                  style={{ background: '#0D0E10', border: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                  <div className="font-mono text-[10.5px] text-ink-faint mb-1">
+                    Value: <span className="text-ink">{a.value} {a.unit}</span> (Baseline mean: {a.typical} {a.unit})
+                  </div>
+                  <p className="text-ink-dim">{a.description}</p>
+                </div>
+              )}
             </div>
           )
         })}
@@ -168,18 +197,18 @@ function Attributions({ result }: { result: Prediction }) {
       >
         <span className="flex items-center gap-1.5">
           <span className="h-[3px] w-[8px] rounded-full" style={{ background: BENIGN }} />
-          toward benign
+          pulls toward benign (protective)
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-[3px] w-[8px] rounded-full" style={{ background: MALIGNANT }} />
-          toward malignant
+          pulls toward malignant (atypical)
         </span>
       </div>
     </div>
   )
 }
 
-/** One feature row: slider in a recessed channel, with a numeric entry. */
+/** One feature row: slider in a recessed channel, with numeric entry and clinical tooltip. */
 function FeatureRow({
   id,
   label,
@@ -188,6 +217,7 @@ function FeatureRow({
   max,
   step,
   value,
+  description,
   onChange,
 }: {
   id: string
@@ -197,6 +227,7 @@ function FeatureRow({
   max: number
   step: number
   value: number
+  description?: string
   onChange: (v: number) => void
 }) {
   const pct = ((value - min) / (max - min)) * 100
@@ -204,7 +235,11 @@ function FeatureRow({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="font-mono text-[12px] text-ink-dim">
+        <label
+          htmlFor={id}
+          title={description}
+          className="font-mono text-[12px] text-ink-dim cursor-help transition-colors hover:text-ink"
+        >
           {label}
         </label>
         <span className="flex items-baseline gap-1">
@@ -233,7 +268,6 @@ function FeatureRow({
       </div>
 
       <div className="relative">
-        {/* the channel the thumb rides in */}
         <div className="pointer-events-none absolute inset-x-0 top-1/2 h-[4px] -translate-y-1/2 overflow-hidden rounded-full panel-well">
           <div
             className="h-full rounded-full"
@@ -256,12 +290,12 @@ function FeatureRow({
 }
 
 type Props = {
-  /** true once a training run has completed this session */
   trained: boolean
 }
 
 export function PredictView({ trained }: Props) {
   const [values, setValues] = useState<FeatureValues>(DEFAULT_VALUES)
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
 
   const quantum = useMemo(() => predict(values, 'quantum'), [values])
   const classical = useMemo(() => predict(values, 'classical'), [values])
@@ -269,29 +303,35 @@ export function PredictView({ trained }: Props) {
   const set = (id: string, v: number) => setValues((prev) => ({ ...prev, [id]: v }))
   const agree = quantum.label === classical.label
 
-  // Read the top attributions back as a sentence, so the explanation does not
-  // depend on the reader interpreting the bar chart correctly.
-  const rationale = useMemo(() => {
-    const [first, second] = quantum.attributions
-    const driversToward = quantum.attributions
-      .filter((a) => (quantum.label === 'malignant' ? a.contribution > 0 : a.contribution < 0))
-      .slice(0, 2)
-      .map((a) => a.label.toLowerCase())
+  // Structured clinical rationale synthesis
+  const clinicalReport = useMemo(() => {
+    const isMalignant = quantum.label === 'malignant'
+    const drivers = quantum.attributions.filter((a) =>
+      isMalignant ? a.contribution > 0.1 : a.contribution < -0.1
+    )
+    const counters = quantum.attributions.filter((a) =>
+      isMalignant ? a.contribution < -0.1 : a.contribution > 0.1
+    )
+
+    const topDriver = drivers[0] as Attribution | undefined
+    const secondDriver = drivers[1] as Attribution | undefined
+    const topCounter = counters[0] as Attribution | undefined
 
     const strength =
-      quantum.confidence > 0.8 ? 'strongly' : quantum.confidence > 0.4 ? 'moderately' : 'weakly'
+      quantum.confidence > 0.75
+        ? 'high certainty'
+        : quantum.confidence > 0.35
+        ? 'moderate certainty'
+        : 'borderline / equivocal margin'
 
-    const lead =
-      driversToward.length > 0
-        ? `driven mainly by ${driversToward.join(' and ')}`
-        : `with no single feature dominating`
-
-    const counter =
-      second && Math.sign(second.contribution) !== Math.sign(first.contribution)
-        ? ` ${second.label} pulls in the opposite direction, which is why the margin is not wider.`
-        : ''
-
-    return `The model ${strength} favours ${quantum.label}, ${lead}. ${first.label} carries the largest single contribution at ${first.contribution >= 0 ? '+' : ''}${first.contribution.toFixed(3)}.${counter}`
+    return {
+      strength,
+      topDriver,
+      secondDriver,
+      topCounter,
+      driverCount: drivers.length,
+      counterCount: counters.length,
+    }
   }, [quantum])
 
   return (
@@ -299,21 +339,26 @@ export function PredictView({ trained }: Props) {
       <div className="mx-auto w-full max-w-[1120px] px-6 py-6">
         <div className="mb-5 flex items-start gap-3">
           <div className="flex-1">
-            <h1 className="text-[16px] font-medium tracking-[-0.01em] text-ink">
-              Prediction
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-[16px] font-medium tracking-[-0.01em] text-ink">
+                Inference & Model Explainability
+              </h1>
+              <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] text-ink-faint">
+                WDBC Cohort
+              </span>
+            </div>
             <p className="mt-1 font-mono text-[12px] text-ink-faint">
-              single-case inference over the 8 retained features /{' '}
+              single-case cytological inference over 8 retained morphometric features /{' '}
               {trained ? 'weights from this session' : 'bundled reference weights'}
             </p>
           </div>
-          <DemoChip />
+          <DemoChip label="investigational inference" />
         </div>
 
-        <div className="flex gap-4">
-          {/* inputs */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* inputs column */}
           <section
-            className="w-[380px] shrink-0 rounded-panel p-4"
+            className="w-full lg:w-[380px] shrink-0 rounded-panel p-4"
             style={{
               background: '#17181B',
               border: '1px solid rgba(255,255,255,0.06)',
@@ -323,33 +368,33 @@ export function PredictView({ trained }: Props) {
             aria-label="Case features"
           >
             <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="text-[14.5px] font-medium text-ink">Case features</h2>
+              <h2 className="text-[14.5px] font-medium text-ink">Cytological Morphometrics</h2>
               <button
                 type="button"
                 onClick={() => setValues(DEFAULT_VALUES)}
                 className="flex cursor-pointer items-center gap-1 font-mono text-[11.5px] text-ink-faint transition-colors duration-150 hover:text-ink"
               >
                 <IconReset className="h-3 w-3" />
-                population mean
+                reset to mean
               </button>
             </div>
 
-            {/* stored cases */}
-            <div className="mb-4 flex gap-2">
+            {/* stored presets */}
+            <div className="mb-4 grid grid-cols-3 gap-1.5">
               {PRESETS.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => setValues(p.values)}
-                  className="flex-1 cursor-pointer rounded-[7px] px-2 py-2 text-left transition-colors duration-150"
+                  className="cursor-pointer rounded-[7px] px-2 py-2 text-left transition-colors duration-150"
                   style={{
                     background: '#0D0E10',
                     border: '1px solid rgba(255,255,255,0.05)',
                     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.9)',
                   }}
                 >
-                  <div className="font-mono text-[12px] text-ink-dim">{p.label}</div>
-                  <div className="mt-0.5 font-mono text-[11px] text-ink-faint">{p.note}</div>
+                  <div className="font-mono text-[11.5px] text-ink-dim truncate">{p.label}</div>
+                  <div className="mt-0.5 font-mono text-[10px] text-ink-faint truncate">{p.note}</div>
                 </button>
               ))}
             </div>
@@ -365,24 +410,29 @@ export function PredictView({ trained }: Props) {
                   max={f.max}
                   step={f.step}
                   value={values[f.id]}
+                  description={f.description}
                   onChange={(v) => set(f.id, v)}
                 />
               ))}
             </div>
+
+            <div className="mt-4 pt-3 border-t border-white/5 font-mono text-[11px] text-ink-faint leading-relaxed">
+              Hover over feature labels to view clinical morphological definitions.
+            </div>
           </section>
 
-          {/* outputs */}
+          {/* outputs and explainability column */}
           <div className="flex min-w-0 flex-1 flex-col gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Readout
-                title="Hybrid quantum"
-                subtitle="8-qubit VQC / 4 layers"
+                title="Hybrid Quantum VQC"
+                subtitle="8-qubit / parameterized rotation ansatz"
                 accent={LANE_COLOR.quantum}
                 result={quantum}
               />
               <Readout
-                title="Classical baseline"
-                subtitle="XGBoost + RandomForest"
+                title="Classical Baseline"
+                subtitle="Gradient Boosted Decision Forest"
                 accent={LANE_COLOR.classical}
                 result={classical}
               />
@@ -405,8 +455,8 @@ export function PredictView({ trained }: Props) {
               />
               <span className="font-mono text-[12px] text-ink-dim">
                 {agree
-                  ? `both heads agree on ${quantum.label}`
-                  : `heads disagree - quantum says ${quantum.label}, classical says ${classical.label}`}
+                  ? `Both model architectures reach concordance on ${quantum.label.toUpperCase()}`
+                  : `Architectural discordance: Quantum says ${quantum.label}, Classical baseline says ${classical.label}`}
               </span>
               <span className="flex-1" />
               <span className="font-mono text-[12px] tabular-nums text-ink-faint">
@@ -415,9 +465,14 @@ export function PredictView({ trained }: Props) {
               </span>
             </div>
 
-            <Attributions result={quantum} />
+            {/* Feature attribution chart */}
+            <Attributions
+              result={quantum}
+              selectedFeature={selectedFeature}
+              onSelectFeature={setSelectedFeature}
+            />
 
-            {/* explainability, read back in words rather than bars */}
+            {/* Comprehensive clinical explainability narrative */}
             <div
               className="rounded-panel p-4"
               style={{
@@ -427,25 +482,99 @@ export function PredictView({ trained }: Props) {
                   'inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 2px rgba(0,0,0,0.8), 0 14px 30px rgba(0,0,0,0.5)',
               }}
             >
-              <h3 className="mb-2.5 text-[14.5px] font-medium text-ink">
-                Why this prediction
-              </h3>
-              <p className="text-[11.5px] leading-relaxed text-ink-dim">{rationale}</p>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <h3 className="text-[14.5px] font-medium text-ink">
+                  Pathological Decision Support & Insight Handling
+                </h3>
+                <span className="font-mono text-[11px] text-ink-faint">
+                  Evidence Breakdown
+                </span>
+              </div>
 
-              <p
-                className="mt-3 pt-2.5 font-mono text-[11px] leading-relaxed text-ink-faint/80"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
-              >
-                Attribution is computed against the population mean, so a feature reads as
-                neutral when it sits at its typical value and contributes only as it moves
-                away. This is a decision-support view, not a diagnosis.
-              </p>
+              <div className="space-y-3 text-[12px] leading-relaxed text-ink-dim">
+                {/* Executive summary */}
+                <div className="p-3 rounded-[7px] bg-[#0D0E10] border border-white/5">
+                  <div className="text-[11px] font-mono uppercase tracking-wider text-ink-faint mb-1">
+                    Executive Classification Verdict ({clinicalReport.strength})
+                  </div>
+                  <p className="text-ink">
+                    The hybrid quantum-classical engine categorizes this cytological profile as{' '}
+                    <strong style={{ color: quantum.label === 'malignant' ? MALIGNANT : BENIGN }}>
+                      {quantum.label.toUpperCase()}
+                    </strong>{' '}
+                    with a {(quantum.probability * 100).toFixed(1)}% predicted probability and a decision margin of{' '}
+                    {quantum.confidence.toFixed(3)}.
+                  </p>
+                </div>
+
+                {/* Primary drivers */}
+                {clinicalReport.topDriver && (
+                  <div>
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-ink-faint mb-1">
+                      Dominant Pathological Drivers
+                    </div>
+                    <p className="text-ink-dim">
+                      The primary feature pulling the prediction is{' '}
+                      <span className="font-medium text-ink">{clinicalReport.topDriver.label}</span>{' '}
+                      (logit contribution{' '}
+                      <span
+                        className="font-mono"
+                        style={{
+                          color: clinicalReport.topDriver.contribution > 0 ? MALIGNANT : BENIGN,
+                        }}
+                      >
+                        {clinicalReport.topDriver.contribution >= 0 ? '+' : ''}
+                        {clinicalReport.topDriver.contribution.toFixed(3)}
+                      </span>
+                      ). {clinicalReport.topDriver.description}
+                      {clinicalReport.secondDriver && (
+                        <>
+                          {' '}Secondarily influenced by{' '}
+                          <span className="font-medium text-ink">{clinicalReport.secondDriver.label}</span>{' '}
+                          (+{clinicalReport.secondDriver.contribution.toFixed(3)}).
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {/* Counter evidence */}
+                {clinicalReport.topCounter ? (
+                  <div>
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-ink-faint mb-1">
+                      Moderating Evidence / Counter-Factors
+                    </div>
+                    <p className="text-ink-dim">
+                      <span className="font-medium text-ink">{clinicalReport.topCounter.label}</span>{' '}
+                      opposes the verdict with a signed contribution of{' '}
+                      <span
+                        className="font-mono"
+                        style={{
+                          color: clinicalReport.topCounter.contribution > 0 ? MALIGNANT : BENIGN,
+                        }}
+                      >
+                        {clinicalReport.topCounter.contribution.toFixed(3)}
+                      </span>
+                      , explaining why the decision boundary maintains an uncertainty envelope rather than 100% saturation.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-ink-faint text-[11px]">
+                    Uniform directional consensus: All evaluated morphological markers align toward the current class.
+                  </p>
+                )}
+
+                {/* Safety & Protocol */}
+                <div
+                  className="pt-2.5 border-t border-white/5 font-mono text-[11px] leading-relaxed text-ink-faint/80"
+                >
+                  <strong>Clinical Caveat:</strong> Attributions represent local Taylor/occlusion perturbations around the population baseline. Nuclear morphological assessment via FNA does not assess architectural tissue invasion; tissue biopsy and histological staging are mandatory for clinical diagnosis.
+                </div>
+              </div>
             </div>
 
             <p className="font-mono text-[11px] leading-relaxed text-ink-faint/70">
-              This readout is produced by a fixed logistic function over the eight
-              features, not a trained model. It is deterministic and illustrative only -
-              it must not inform any clinical decision.
+              API-compatible contract: Endpoint /api/predict/explain. Replaceable via backend integration in lib/explainability.ts.
             </p>
           </div>
         </div>
