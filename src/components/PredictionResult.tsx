@@ -79,9 +79,6 @@ export function PredictionResult({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <h2 className="text-[14.5px] font-medium text-ink">Inference & Explainability</h2>
-            <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] text-ink-faint">
-              {conditionId}
-            </span>
           </div>
           <InfoDot label="Clinical Explainability Basis">
             Predictions are evaluated against trained hybrid quantum-classical boundaries.
@@ -134,23 +131,7 @@ export function PredictionResult({
                     <Metric label="peak conf" value={peak.toFixed(2)} tone={CLASSICAL} />
                   </div>
 
-                  {/* Decision Guidance Box */}
-                  <div
-                    className="mt-3 rounded-[7px] p-3 text-[11.5px] leading-relaxed"
-                    style={{
-                      background: '#0D0E10',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                    }}
-                  >
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink-dim font-medium mb-1">
-                      Clinical Decision Support Guidance
-                    </div>
-                    <p className="text-ink-faint">
-                      {flagged
-                        ? `Elevated risk index (${(peak * 100).toFixed(1)}%) driven by localized ${worst}-severity region. Histopathological confirmation via core needle biopsy recommended.`
-                        : `Low risk envelope. No dominant high-grade suspicious lesions identified. Routine surveillance protocol indicated.`}
-                    </p>
-                  </div>
+
                 </>
               ) : scored === 0 ? (
                 <p className="text-[13px] text-ink-dim">
@@ -209,7 +190,7 @@ export function PredictionResult({
                 style={{ border: '1px solid rgba(255,255,255,0.08)', background: '#111214' }}
               >
                 <span>Inspect in High-Resolution Viewer</span>
-                <span className="text-ink-faint">↗</span>
+                <span className="text-ink-faint">↑</span>
               </button>
             )}
           </div>
@@ -391,32 +372,6 @@ export function PredictionResult({
                   {active.significance || active.notes.join('. ')}
                 </p>
 
-                {/* Pathological mechanism */}
-                {active.pathological_mechanism && (
-                  <div className="mt-2 text-[11px] leading-relaxed text-ink-faint">
-                    <strong className="font-mono text-ink-dim uppercase tracking-wider text-[10px] mr-1">
-                      Mechanism:
-                    </strong>
-                    {active.pathological_mechanism}
-                  </div>
-                )}
-
-                {/* Differential mimics */}
-                {active.differential_diagnoses && active.differential_diagnoses.length > 0 && (
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5">
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-ink-faint">
-                      Mimics / Differential:
-                    </span>
-                    {active.differential_diagnoses.slice(0, 3).map((d) => (
-                      <span
-                        key={d}
-                        className="rounded px-1.5 py-0.5 font-mono text-[10px] text-ink-faint bg-white/5"
-                      >
-                        {d}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
           </div>

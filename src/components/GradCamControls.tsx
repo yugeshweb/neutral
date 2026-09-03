@@ -30,14 +30,7 @@ export function GradCamControls({
       }}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-ink-dim">
-            Grad-CAM Saliency Mode
-          </span>
-          <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[10px] text-ink-faint">
-            {targetLayer}
-          </span>
-        </div>
+
 
         {/* View Mode Toggle Buttons */}
         <div

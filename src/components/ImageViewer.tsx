@@ -91,16 +91,13 @@ export function ImageViewer({ upload, onClose, conditionId = 'breast-cancer' }: 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h2 className="truncate text-[15px] font-medium text-ink">{upload.name}</h2>
-              <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] text-ink-faint">
-                {conditionId}
-              </span>
             </div>
             <p className="mt-0.5 font-mono text-[12px] text-ink-faint">
-              Grad-CAM Class Activation Mapping & ROI Localization / {findings.length} region
+              {findings.length} region
               {findings.length === 1 ? '' : 's'} flagged
             </p>
           </div>
-          <DemoChip label="Grad-CAM Saliency" />
+
           <button
             type="button"
             onClick={onClose}
@@ -252,17 +249,7 @@ export function ImageViewer({ upload, onClose, conditionId = 'breast-cancer' }: 
                   })}
                 </div>
 
-                {/* Grad-CAM Methodology Explainability */}
-                <div className="rounded-[8px] p-3 border border-white/5 bg-black/25">
-                  <div className="text-[11.5px] font-medium text-ink-dim">
-                    How Grad-CAM Computes Saliency
-                  </div>
-                  <p className="mt-1 font-mono text-[10.5px] leading-relaxed text-ink-faint">
-                    Grad-CAM calculates the gradient of the malignant class logit with respect to the
-                    penultimate convolutional feature maps (e.g. ResNet-50 <span className="text-ink">layer4.2.conv3</span>).
-                    Forward pooling highlights which anatomical patches directly maximize malignant score probability.
-                  </p>
-                </div>
+
               </div>
             ) : (
               <div className="space-y-4">
@@ -382,40 +369,12 @@ export function ImageViewer({ upload, onClose, conditionId = 'breast-cancer' }: 
                   </div>
                 </div>
 
-                {/* Recommended clinical action */}
-                {active.recommended_action && (
-                  <div className="space-y-1.5">
-                    <div className="text-[11.5px] font-medium uppercase tracking-wider text-ink-dim">
-                      Recommended Clinical Next Steps
-                    </div>
-                    <div
-                      className="rounded-[8px] p-2.5 text-[11.5px] leading-relaxed text-amber-200/90 font-mono"
-                      style={{
-                        background: 'rgba(192, 138, 62, 0.08)',
-                        border: '1px solid rgba(192, 138, 62, 0.22)',
-                      }}
-                    >
-                      {active.recommended_action}
-                    </div>
-                  </div>
-                )}
+
               </div>
             )}
           </aside>
         </div>
 
-        {/* Footer disclaimer */}
-        <div
-          className="shrink-0 flex items-center justify-between px-5 py-2.5 bg-[#0E0F12]"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
-        >
-          <p className="font-mono text-[11px] leading-relaxed text-ink-faint/80">
-            Grad-CAM heatmap indicates neural receptive field focus, not tissue margins. Histopathological biopsy remains mandatory.
-          </p>
-          <span className="font-mono text-[10.5px] text-ink-faint/60">
-            API Contract: /mock/mock.json
-          </span>
-        </div>
       </div>
     </div>
   )
