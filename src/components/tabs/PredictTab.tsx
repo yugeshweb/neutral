@@ -182,11 +182,12 @@ export function PredictTab({
               <h2 className="text-[14.5px] font-medium text-ink">Choose a condition</h2>
             </div>
 
-            {/* Four across from 640px up, not 1024: at two columns these are
-                two rows of squares, which at 220px each needs 452px of body
-                and overflows a 768px-tall window. One row of 220px fits every
-                height `.flow-step` allows. Below 640 it falls to two columns,
-                where the step drops its min-height and scrolling is fine.
+            {/* Four across from 640px up, not 1024: at two columns these
+                stack into more rows of squares than a 768px-tall window has
+                room for at 220px each. Four across keeps it to two rows for
+                the current condition count. Below 640 it falls to two
+                columns, where the step drops its min-height and scrolling is
+                fine.
 
                 `flex + items-center` centres the row inside whatever height
                 `.flow-step` reserves, rather than pinning it to the top with

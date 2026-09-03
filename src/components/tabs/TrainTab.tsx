@@ -456,15 +456,16 @@ export function TrainTab({
               </InfoDot>
             </div>
 
-            {/* The same four conditions the Predict tab offers, so a model
+            {/* The same conditions the Predict tab offers, so a model
                 trained here always has an intake to be used through.
 
-                Four across from 640px up, not 1024: at two columns these are
-                two rows of squares, which at 220px each needs 452px of body
-                and overflows a 768px-tall window. Four across is one row of
-                220px, which fits everywhere the flow-step does. Below 640 it
-                falls to two columns, where `.flow-step` drops its min-height
-                and the page is allowed to scroll.
+                Four across from 640px up, not 1024: at two columns these
+                stack into more rows of squares than a 768px-tall window has
+                room for at 220px each. Four across keeps it to two rows for
+                the current condition count, which fits everywhere the
+                flow-step does. Below 640 it falls to two columns, where
+                `.flow-step` drops its min-height and the page is allowed to
+                scroll.
 
                 `flex + items-center` on the wrapper centres the row inside
                 whatever height `.flow-step` reserves: the cards are capped at
@@ -1032,7 +1033,16 @@ export function TrainTab({
                       <span>Quantum Sensitivity:</span>
                       <span>
                         <span className="text-ink font-medium">{trainedQuantum.metrics.sensitivity.toFixed(3)}</span>{' '}
-                        (Benchmark: {benchmarkQuantum.metrics.sensitivity.toFixed(3)})
+                        {/* Every condition this screen offers carries a
+                            recorded benchmark sensitivity; `'n/a'` only
+                            appears on the Benchmark-only imaging/signal
+                            pipelines this tab never trains. Guarded anyway so
+                            the type stays honest about the shared field. */}
+                        (Benchmark:{' '}
+                        {typeof benchmarkQuantum.metrics.sensitivity === 'number'
+                          ? benchmarkQuantum.metrics.sensitivity.toFixed(3)
+                          : benchmarkQuantum.metrics.sensitivity}
+                        )
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-ink-dim">

@@ -467,6 +467,174 @@ export function VecScan({ size = 44, accent = 'currentColor' }: { size?: number;
   )
 }
 
+/** Stroke MRI: a brain hemisphere with a solid infarct core region, distinct
+ * from VecVessel's vessel-occlusion motif above (that one is the clinical
+ * risk-factor pipeline; this is the MRI characterisation one). */
+export function VecInfarct({ size = 56, accent = 'currentColor' }: { size?: number; accent?: string }) {
+  return (
+    <Frame size={size} accent={accent}>
+      {(fill) => (
+        <>
+          <path
+            d="M60 16c16.6 0 30 13.3 30 29.8 0 .5 0 1-.1 1.5 3.7 2.6 6.1 6.9 6.1 11.7 0 6.5-4.3 12-10.3 13.8C82.4 85.3 72.2 94 60 94S37.6 85.3 34.3 72.8C28.3 71 24 65.5 24 59c0-4.8 2.4-9.1 6.1-11.7-.1-.5-.1-1-.1-1.5C30 29.3 43.4 16 60 16Z"
+            fill={fill}
+            opacity="0.42"
+          />
+          {/* The infarct core: an irregular solid region at full strength,
+              off-centre the way a real lesion never sits in the middle. */}
+          <path
+            d="M72 46c5.4 1.6 9 6.2 9 11.8 0 4-1.8 7.4-4.6 9.7 1 2 1.6 4.3 1.6 6.7 0 7.5-6.6 13.6-14.7 13.6-5 0-9.4-2.3-12-5.9-1.1.3-2.3.5-3.5.5-6.8 0-12.3-5-12.3-11.2 0-3.5 1.8-6.7 4.6-8.8-.4-1.2-.6-2.5-.6-3.9 0-6.5 5.8-11.8 13-11.8 1.7 0 3.3.3 4.8.8 2.6-3.5 6.9-5.8 11.8-5.8 1.4 0 2.7.2 4 .5Z"
+            fill="#0b0c0e"
+            opacity="0.5"
+          />
+          <path
+            d="M72 46c5.4 1.6 9 6.2 9 11.8 0 4-1.8 7.4-4.6 9.7 1 2 1.6 4.3 1.6 6.7 0 7.5-6.6 13.6-14.7 13.6-5 0-9.4-2.3-12-5.9-1.1.3-2.3.5-3.5.5-6.8 0-12.3-5-12.3-11.2 0-3.5 1.8-6.7 4.6-8.8-.4-1.2-.6-2.5-.6-3.9 0-6.5 5.8-11.8 13-11.8 1.7 0 3.3.3 4.8.8 2.6-3.5 6.9-5.8 11.8-5.8 1.4 0 2.7.2 4 .5Z"
+            fill={fill}
+          />
+        </>
+      )}
+    </Frame>
+  )
+}
+
+/** Parkinson's gait: a footprint trail on a walkway, for the force-plate gait
+ * signal pipeline - distinct from VecTremor's waveform above (that one is the
+ * voice acoustic pipeline; this is gait). */
+export function VecGait({ size = 56, accent = 'currentColor' }: { size?: number; accent?: string }) {
+  const feet: [number, number, number, boolean][] = [
+    [34, 88, -8, true],
+    [50, 62, 6, false],
+    [66, 40, -8, true],
+    [82, 18, 6, false],
+  ]
+  return (
+    <Frame size={size} accent={accent}>
+      {(fill) => (
+        <>
+          <line x1="20" y1="100" x2="100" y2="14" stroke={fill} strokeWidth="1" strokeDasharray="1 6" opacity="0.3" />
+          {feet.map(([cx, cy, rot, dim], i) => (
+            <g key={i} transform={`translate(${cx} ${cy}) rotate(${rot})`} opacity={dim ? 0.55 : 0.95}>
+              <path
+                d="M0 -8.5C4 -8.5 6.2 -4.8 6.2 0.5c0 5-1.6 8.8-1.1 11.8.4 2.4 2 3.9 2 6.3 0 3-2.6 4.9-6 4.9-3.8 0-6.7-2.6-6.7-6.6 0-2.6 1-4.3 1-7.6C-4.6 5.8-6.2 3-6.2-1.5c0-4.6 2.3-7 6.2-7Z"
+                fill={fill}
+              />
+            </g>
+          ))}
+        </>
+      )}
+    </Frame>
+  )
+}
+
+/** Alzheimer's MRI: stacked axial slices, for the T1 structural-volume
+ * pipeline - distinct from VecNeuro's ventricle-ring motif above (that one is
+ * the tabular/clinical pipeline; this is a raw imaging volume). */
+export function VecSlices({ size = 56, accent = 'currentColor' }: { size?: number; accent?: string }) {
+  const slices: [number, number][] = [
+    [30, 0.32],
+    [46, 0.5],
+    [62, 0.72],
+    [78, 1],
+  ]
+  return (
+    <Frame size={size} accent={accent}>
+      {(fill) => (
+        <>
+          {slices.map(([cy, o]) => (
+            <ellipse key={cy} cx="60" cy={cy} rx="34" ry="13" fill={fill} opacity={o * 0.9} />
+          ))}
+          {/* A lesion marker cut into the frontmost (bottom) slice only. */}
+          <circle cx="70" cy="79" r="6" fill="#0b0c0e" opacity="0.55" />
+        </>
+      )}
+    </Frame>
+  )
+}
+
+/** ICH / CT: a skull cross-section in cool bone-window tone with the
+ * ventricular space marked, for the head-CT haemorrhage-subtype pipeline. */
+export function VecSkullCt({ size = 56, accent = 'currentColor' }: { size?: number; accent?: string }) {
+  return (
+    <Frame size={size} accent={accent}>
+      {(fill) => (
+        <>
+          <path
+            d="M60 18c18.2 0 33 13.9 33 31 0 8-3 15.3-8 20.9V84a5 5 0 0 1-5 5h-8a5 5 0 0 1-5-5v-3.4a41 41 0 0 1-14 0V84a5 5 0 0 1-5 5h-8a5 5 0 0 1-5-5v-14.1c-5-5.6-8-12.9-8-20.9 0-17.1 14.8-31 33-31Z"
+            fill={fill}
+            opacity="0.85"
+          />
+          {/* The ventricular space, cut in dark and off-centre. */}
+          <path d="M52 40c-3.6 3.8-3.6 12.4 0 16.2-5.8-2.4-8-13.8 0-16.2Z" fill="#0b0c0e" opacity="0.6" />
+          <path d="M68 40c3.6 3.8 3.6 12.4 0 16.2 5.8-2.4 8-13.8 0-16.2Z" fill="#0b0c0e" opacity="0.6" />
+          {/* A haemorrhage marker sitting inside the ventricle on one side. */}
+          <circle cx="68" cy="48" r="5" fill={fill} opacity="0.95" />
+        </>
+      )}
+    </Frame>
+  )
+}
+
+/** Glioma MGMT: a cranial mass with a bordered tumour region across four
+ * concentric rings, for the four-channel mpMRI characterisation pipeline -
+ * distinct from VecBrain (the EEG-based "Brain Tumor Detection" pipeline)
+ * and VecInfarct (the stroke MRI pipeline) above. */
+export function VecTumor({ size = 56, accent = 'currentColor' }: { size?: number; accent?: string }) {
+  return (
+    <Frame size={size} accent={accent}>
+      {(fill) => (
+        <>
+          <path
+            d="M60 18c16.6 0 30 13.3 30 29.8 0 .5 0 1-.1 1.5 3.7 2.6 6.1 6.9 6.1 11.7 0 6.5-4.3 12-10.3 13.8C82.4 85.3 72.2 94 60 94S37.6 85.3 34.3 72.8C28.3 71 24 65.5 24 59c0-4.8 2.4-9.1 6.1-11.7-.1-.5-.1-1-.1-1.5C30 29.3 43.4 16 60 16Z"
+            fill={fill}
+            opacity="0.4"
+          />
+          {/* Concentric mass boundary rings, reading as a multi-sequence
+              (T1/T1c/T2/FLAIR) delineation of one lesion rather than a
+              single flat blob. */}
+          <circle cx="66" cy="56" r="20" fill="none" stroke={fill} strokeWidth="1.4" opacity="0.45" />
+          <circle cx="66" cy="56" r="14" fill="none" stroke={fill} strokeWidth="1.4" opacity="0.65" />
+          <circle cx="66" cy="56" r="8" fill={fill} opacity="0.95" />
+        </>
+      )}
+    </Frame>
+  )
+}
+
+/** Preictal EEG: the same abnormal trace family as VecTremor/VecBrain, but
+ * struck through with a block mark - this pipeline is disabled, not merely
+ * weak, and the drawing itself should not read as "available." */
+export function VecBlockedSignal({ size = 56, accent = 'currentColor' }: { size?: number; accent?: string }) {
+  const pts: string[] = []
+  for (let i = 0; i <= 60; i++) {
+    const x = 20 + i * 1.35
+    const y = 60 - Math.sin(i * 0.68) * 22 * Math.sin((i / 60) * Math.PI)
+    pts.push(`${x.toFixed(1)} ${y.toFixed(1)}`)
+  }
+  return (
+    <Frame size={size} accent={accent}>
+      {(fill) => (
+        <>
+          <path
+            d={`M${pts.join(' L')}`}
+            fill="none"
+            stroke={fill}
+            strokeWidth="3.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.55"
+          />
+          {/* The block mark: a solid bar through the signal with a gap cut
+              in dark, reading as "interrupted" rather than "flowing." */}
+          <rect x="46" y="32" width="28" height="56" rx="6" fill="#0b0c0e" opacity="0.62" />
+          <rect x="55.5" y="32" width="9" height="56" fill={fill} opacity="0.95" />
+          <circle cx="60" cy="46" r="2.6" fill="#0b0c0e" />
+          <circle cx="60" cy="74" r="2.6" fill="#0b0c0e" />
+        </>
+      )}
+    </Frame>
+  )
+}
+
 /* --- lookup --------------------------------------------------------------- */
 
 /**
@@ -486,6 +654,14 @@ export const CONDITION_VECTOR: Record<
   // rather than falling back to an unrelated one.
   'stroke-risk': VecVessel,
   parkinsons: VecTremor,
+  // Two of the imaging/signal bundles under shuvam/manifests survive as
+  // working, Benchmark-only entries (see diseaseRegistry.ts) - each with its
+  // own drawing rather than falling back to VecLesion. The other four from
+  // that batch (alzheimers-mri, ich-intraventricular-ct, glioma-mgmt-mri,
+  // seizure-preictal-eeg) were removed from the registry as at-chance or
+  // disabled, so their entries were removed from here too.
+  'stroke-mri-core': VecInfarct,
+  'parkinsons-gait': VecGait,
 }
 
 /**

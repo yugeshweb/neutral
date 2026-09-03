@@ -174,11 +174,37 @@ export const CONDITION_INTAKE: ConditionIntake[] = [
       HL7_FEED,
     ],
   },
+  {
+    diseaseId: 'stroke-risk',
+    fields: [
+      { ...CLINICAL_TABLE, hint: 'Structured cardiovascular risk factors, one row per patient.' },
+      FHIR_BUNDLE,
+      HL7_FEED,
+    ],
+  },
+  {
+    diseaseId: 'parkinsons',
+    fields: [
+      { ...CLINICAL_TABLE, hint: 'Sustained-phonation acoustic measures, one row per recording.' },
+      FHIR_BUNDLE,
+      {
+        id: 'voice',
+        label: 'Voice recording',
+        system: 'Neurophysiology',
+        accept: '.wav,.mp3,.flac',
+        wired: false,
+        requires:
+          'An audio reader plus the acoustic feature extraction (jitter, shimmer, HNR, and the non-linear dynamics measures) that turns a raw sustained-vowel recording into the per-row features this model reads.',
+        hint: 'Raw sustained-vowel phonation, not yet parsed.',
+      },
+      HL7_FEED,
+    ],
+  },
 ]
 
 export function intakeFor(diseaseId: string): IntakeField[] {
   return CONDITION_INTAKE.find((c) => c.diseaseId === diseaseId)?.fields ?? []
 }
 
-/** The four conditions this screen offers, in display order. */
+/** The conditions Train and Predict offer, in display order. */
 export const INTAKE_DISEASE_IDS = CONDITION_INTAKE.map((c) => c.diseaseId)

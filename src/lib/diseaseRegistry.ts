@@ -5,10 +5,19 @@ export type DiseaseCategory = 'carcinogenic' | 'neurological' | 'cardiovascular'
 
 export type UnifiedMetrics = {
   accuracy: number
-  precision: number
-  sensitivity: number
-  specificity: number
-  f1: number
+  /**
+   * `precision`, `sensitivity`, `specificity` and `f1` are `'n/a'` for a
+   * handful of the imaging/signal bundles whose manifests report only
+   * balanced accuracy, sensitivity/specificity and AUC from
+   * `held_out_performance` - not a full confusion matrix, so precision and
+   * F1 cannot be honestly derived. Rendered as the literal string rather
+   * than a computed or guessed number, the same way `trainingTime` already
+   * does for figures that were never measured.
+   */
+  precision: number | 'n/a'
+  sensitivity: number | 'n/a'
+  specificity: number | 'n/a'
+  f1: number | 'n/a'
   rocAuc: number
   trainingTime: string
   inferenceTime: string
@@ -40,7 +49,13 @@ export type DiseasePipeline = {
   category: DiseaseCategory
   categoryLabel: string
   tagline: string
-  modality: 'Structured Tabular' | 'EEG Biosignal Features' | 'Clinical & Hemodynamic Tabular'
+  modality:
+    | 'Structured Tabular'
+    | 'EEG Biosignal Features'
+    | 'Clinical & Hemodynamic Tabular'
+    | 'MRI Volumetric'
+    | 'CT Volumetric'
+    | 'Gait Signal'
   targetCondition: string
   positiveLabel: string
   negativeLabel: string
@@ -52,9 +67,27 @@ export type DiseasePipeline = {
   totalSamples: number
   featureDescriptions: Record<string, string>
   featureRanges: Record<string, { min: number; max: number; step: number; unit: string; defaultVal: number }>
-  classicalModel: ModelBenchmark
+  /**
+   * Absent when no classical baseline has been computed on the same split as
+   * the quantum model. That is real for the six imaging/signal bundles added
+   * alongside the Python `qhealth_qml` serving layer: their manifests report
+   * only a QSVC figure, so inventing a paired classical number to fill this
+   * field would be exactly the kind of fabricated metric this registry
+   * exists to avoid. Every render site checks for this before reading it.
+   */
+  classicalModel?: ModelBenchmark
   quantumModel: ModelBenchmark
   quantumKernelModel?: ModelBenchmark
+  /**
+   * Honest deployability status, carried over from the Python bundle's own
+   * `training_provenance` / integration docs rather than asserted fresh here.
+   * Absent means the same as 'validated' - the four original tabular/EEG
+   * pipelines and the two demonstrated imaging/signal ones predate this
+   * field and are all above-chance on their own holdouts.
+   */
+  status?: 'validated' | 'at-chance' | 'disabled'
+  /** One line, shown wherever `status` is not 'validated'. Plain, not alarmist. */
+  statusNote?: string
   honestCallout: {
     title: string
     summary: string
@@ -986,6 +1019,133 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
         },
       },
     ],
+  },
+  /*
+   * The six entries below wrap shuvam's `qhealth_qml` bundles under
+   * `shuvam/manifests/*.pkl.manifest.json` and `shuvam/docs/INTEGRATION.md`.
+   * Unlike every pipeline above, none of these has a classical baseline
+   * computed on the same split - the manifests report only a QSVC figure -
+   * so `classicalModel` is left unset rather than filled with an invented
+   * number. `quantumModel.metrics.accuracy` holds each manifest's
+   * `held_out_performance.balanced_accuracy` (labelled as such in
+   * `description`, since that is the real figure and not the same thing as
+   * raw accuracy). Every other metric, sample count and limitation below is
+   * transcribed from the manifest or `training_provenance` block named in
+   * each entry's comment - nothing here is estimated.
+   *
+   * None of these six are in `INTAKE_DISEASE_IDS`: an MRI volume, a CT
+   * volume or an 18-channel gait trace has no per-feature summary statistics
+   * in its manifest (only encoder architecture, e.g. a frozen ResNet18
+   * backbone), so there is nothing honest to build a synthetic training
+   * dataset from the way the tabular pipelines above do. They are Benchmark
+   * pipelines only, the same treatment `stroke-risk` and `parkinsons` above
+   * already get.
+   */
+  {
+    // shuvam/manifests/stroke-core-volume-mri.pkl.manifest.json
+    id: 'stroke-mri-core',
+    name: 'Stroke Ischemic Core Characterisation (MRI)',
+    shortName: 'Stroke MRI',
+    category: 'neurological',
+    categoryLabel: 'Neurological / Cerebrovascular',
+    tagline: 'Infarct core volume characterisation from acute diffusion and perfusion MRI',
+    modality: 'MRI Volumetric',
+    targetCondition: 'Large ischaemic infarct core (acute stroke)',
+    positiveLabel: 'Large Infarct Core',
+    negativeLabel: 'Small Infarct Core',
+    inputDimensionality: '3-channel DWI + ADC + FLAIR volume, 64x64x64, ResNet18 slice encoder (32-dim latent)',
+    reducedDimensionality: '4 quantum-encoded latent components',
+    defaultQubits: 4,
+    datasetName: 'ISLES 2022',
+    datasetSource: 'Zenodo 7153326, CC BY 4.0',
+    totalSamples: 250,
+    featureDescriptions: {
+      dwi: 'Diffusion-weighted imaging channel, sensitive to acute cytotoxic oedema',
+      adc: 'Apparent diffusion coefficient map derived from the DWI series',
+      flair: 'Fluid-attenuated inversion recovery channel',
+    },
+    featureRanges: {},
+    quantumModel: {
+      id: 'stroke-core-volume-mri',
+      name: 'QSVC over frozen ResNet18 volume encoder',
+      kind: 'quantum',
+      metrics: {
+        accuracy: 0.7765072765072765,
+        precision: 'n/a',
+        sensitivity: 0.7692307692307693,
+        specificity: 0.7837837837837838,
+        f1: 'n/a',
+        rocAuc: 0.8794178794178794,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 0, fn: 0, tn: 0, fp: 0 },
+      parameters: '4 qubits, ZZFeatureMap (1 rep, linear entanglement), C=5.0',
+      hardware: 'Statevector simulator',
+      description: 'Accuracy shown is balanced accuracy (0.7765) from held-out evaluation, the figure the manifest actually reports; precision, F1 and the confusion matrix were not recorded and are left blank rather than derived.',
+      rationale: 'A frozen ImageNet ResNet18 slice encoder (11.2M frozen / 0.79M trainable parameters) reduces each 3-channel volume to a 32-dim latent, which a 4-qubit QSVC then classifies.',
+      rocPoints: [],
+    },
+    honestCallout: {
+      title: 'Best-performing imaging bundle in this set, still a single-cohort result',
+      summary: 'Balanced accuracy 0.7765, sensitivity 0.769, specificity 0.784, AUC 0.879 on a 50-case held-out split of ISLES 2022. No classical baseline was computed on this split, so there is nothing to compare it against here.',
+      quantumPros: [],
+      classicalPros: [],
+      nuance: 'Characterises an already-identified infarct (core volume above or below the DAWN-trial 21 mL threshold); it does not detect whether a stroke is present. Labels come from expert lesion masks, not prospective radiologist reads, and this is a single public cohort with no external-site validation.',
+    },
+    samplePresets: [],
+  },
+  {
+    // shuvam/manifests/parkinsons-gait-signal.pkl.manifest.json
+    id: 'parkinsons-gait',
+    name: "Parkinson's Gait Pattern Detection",
+    shortName: "Parkinson's Gait",
+    category: 'neurological',
+    categoryLabel: 'Neurological / Movement Disorder',
+    tagline: '18-channel force-plate gait dynamics, separate from the voice-based pipeline above',
+    modality: 'Gait Signal',
+    targetCondition: "Diagnosed Parkinson's gait pattern",
+    positiveLabel: 'Parkinsonian Gait',
+    negativeLabel: 'Control Gait',
+    inputDimensionality: '18-channel vertical ground reaction force @ 100 Hz, ~2 minute walk',
+    reducedDimensionality: '4 quantum-encoded latent components (4-dim gait-CNN encoder)',
+    defaultQubits: 4,
+    datasetName: "PhysioNet gaitpdb (Gait in Parkinson's Disease)",
+    datasetSource: 'PhysioNet, ODC-By',
+    totalSamples: 306,
+    featureDescriptions: Object.fromEntries(
+      Array.from({ length: 18 }, (_, i) => [`vgrf_${i + 1}`, `Vertical ground reaction force, sensor ${i + 1} of 18`]),
+    ),
+    featureRanges: {},
+    quantumModel: {
+      id: 'parkinsons-gait-signal',
+      name: 'QSVC over gait-CNN signal encoder',
+      kind: 'quantum',
+      metrics: {
+        accuracy: 0.7979651162790697,
+        precision: 'n/a',
+        sensitivity: 0.7209302325581395,
+        specificity: 0.875,
+        f1: 'n/a',
+        rocAuc: 0.8997093023255813,
+        trainingTime: 'n/a',
+        inferenceTime: 'n/a',
+      },
+      confusionMatrix: { tp: 0, fn: 0, tn: 0, fp: 0 },
+      parameters: '4 qubits, ZZFeatureMap (1 rep, linear entanglement), C=5.0',
+      hardware: 'Statevector simulator',
+      description: 'Accuracy shown is balanced accuracy (0.798) under a subject-grouped split, so a subject never straddles train and test. Precision, F1 and the confusion matrix were not recorded.',
+      rationale: 'A small gait-specific CNN reduces the 18-channel force trace to a 4-dim latent, which a 4-qubit QSVC classifies.',
+      rocPoints: [],
+    },
+    honestCallout: {
+      title: 'Second-best result in this set, evaluated subject-grouped',
+      summary: 'Balanced accuracy 0.798, sensitivity 0.721, specificity 0.875, AUC 0.900, on 59 held-out trials from 165 subjects with a subject-grouped split. No classical baseline was computed on this split.',
+      quantumPros: [],
+      classicalPros: [],
+      nuance: "Separate model from the Parkinson's Voice pipeline above: different cohort, different signal, different task. Discriminates already-diagnosed Parkinson's from controls, not prodromal or at-risk gait. Single public cohort (166 subjects), no external-site validation, calibration not assessed.",
+    },
+    samplePresets: [],
   },
 ]
 

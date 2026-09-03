@@ -36,3 +36,6 @@ pnpm-debug.log*
 runtime/
 runs/
 backend/tests/manual_check/_schema_cache*/
+
+# project context
+PROJECT_CONTEXT.plan
