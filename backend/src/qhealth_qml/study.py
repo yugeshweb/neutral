@@ -141,6 +141,9 @@ def run_nested_evaluation(
     holdout_site: str | None = None,
     selection_metric: str = "balanced_accuracy",
     tune: bool = True,
+    feature_map_reps: int = 1,
+    feature_map_entanglement: str = "linear",
+    angle_scale: float = 1.0,
 ) -> dict[str, Any]:
     """Tune on inner repeated holdouts, then score each choice on outer holdouts."""
 
@@ -202,6 +205,9 @@ def run_nested_evaluation(
                     reduction=reduction,
                     explain=False,
                     model_params={model_name: candidate},
+                    feature_map_reps=feature_map_reps,
+                    feature_map_entanglement=feature_map_entanglement,
+                    angle_scale=angle_scale,
                 )
                 if inner_repeats > 1:
                     summary = inner_result["repeated_evaluation"]["metric_summary"][model_name]
@@ -260,6 +266,9 @@ def run_nested_evaluation(
             holdout_site=holdout_site,
             split_indices=(np.asarray(train_index), np.asarray(test_index)),
             model_params=selected_parameters,
+            feature_map_reps=feature_map_reps,
+            feature_map_entanglement=feature_map_entanglement,
+            angle_scale=angle_scale,
         )
         folds.append(
             {

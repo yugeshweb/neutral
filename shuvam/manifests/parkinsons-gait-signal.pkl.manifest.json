@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "model_id": "parkinsons-gait-signal",
+  "condition": "Parkinson's disease (gait)",
+  "temporal_framing": "detection",
+  "labels": {
+    "positive": "parkinsons_gait_pattern",
+    "negative": "control_gait_pattern"
+  },
+  "expects": {
+    "channels": [
+      "vgrf_1",
+      "vgrf_2",
+      "vgrf_3",
+      "vgrf_4",
+      "vgrf_5",
+      "vgrf_6",
+      "vgrf_7",
+      "vgrf_8",
+      "vgrf_9",
+      "vgrf_10",
+      "vgrf_11",
+      "vgrf_12",
+      "vgrf_13",
+      "vgrf_14",
+      "vgrf_15",
+      "vgrf_16",
+      "vgrf_17",
+      "vgrf_18"
+    ],
+    "grid": [
+      12000
+    ],
+    "channel_count": 18
+  },
+  "encoder": {
+    "kind": "gait_cnn",
+    "latent_dim": 4,
+    "in_channels": 18
+  },
+  "head": "qsvc",
+  "quantum": {
+    "n_qubits": 4,
+    "feature_map": "ZZFeatureMap",
+    "feature_map_reps": 1,
+    "entanglement": "linear",
+    "C": 5.0,
+    "angle_scale": 0.2,
+    "backend": "statevector"
+  },
+  "operating_point": {
+    "threshold": 0.7232991558319848,
+    "policy": "target_sensitivity@0.8 (validation only)"
+  },
+  "training_provenance": {
+    "dataset": "PhysioNet gaitpdb (Gait in Parkinson's Disease), ODC-By",
+    "modality": "signal",
+    "cohort_size": 306,
+    "subjects": 165,
+    "positives": 214,
+    "split": {
+      "train": 196,
+      "validation": 51,
+      "test": 59
+    },
+    "split_strategy": "subject-grouped (a subject's trials never straddle the split)",
+    "held_out_performance": {
+      "balanced_accuracy": 0.7979651162790697,
+      "sensitivity": 0.7209302325581395,
+      "specificity": 0.875,
+      "roc_auc": 0.8997093023255813
+    },
+    "sampling_rate_hz": 100.0,
+    "limitations": [
+      "Research use only, not a medical device",
+      "Discriminates DIAGNOSED Parkinson's from controls; NOT prodromal or at-risk detection",
+      "Single public cohort (166 subjects), no external-site validation",
+      "Input must be 18-channel vertical ground reaction force at 100 Hz, ~2 minute walk",
+      "Calibration (reliability/ECE) not assessed"
+    ]
+  },
+  "created_at": "2026-09-03T12:43:48.367235+00:00"
+}

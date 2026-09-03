@@ -153,6 +153,9 @@ def benchmark_model(
             max_train=overrides.get("max_train", 0),
             max_test=overrides.get("max_test", 0),
             seed=seed,
+            feature_map_reps=overrides.get("feature_map_reps", 1),
+            feature_map_entanglement=overrides.get("feature_map_entanglement", "linear"),
+            angle_scale=overrides.get("angle_scale", 1.0),
         )
         paired = nested["paired_deltas"].get(engine_name)
     except ValueError as exc:

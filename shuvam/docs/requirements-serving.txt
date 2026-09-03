@@ -1,0 +1,15 @@
+fastapi==0.141.1
+monai==1.6.0
+nibabel==5.4.2
+numpy==2.5.2
+pydantic==2.13.5
+pydicom==3.0.2
+python-multipart==0.0.32
+qiskit==2.5.2
+qiskit-algorithms==0.4.0
+qiskit-machine-learning==0.9.1
+scikit-learn==1.9.0
+scipy==1.18.1
+torch==2.14.0+cpu
+torchvision==0.29.0+cpu
+uvicorn==0.52.4

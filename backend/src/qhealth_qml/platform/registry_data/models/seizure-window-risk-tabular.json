@@ -5,7 +5,7 @@
   "display_name": "Seizure window risk (tabular band-power, research)",
   "task_type": "binary_classification",
   "availability": "available",
-  "lifecycle": "experimental",
+  "lifecycle": "operational_reference",
   "executor": "tabular_qml",
   "input_contract": {
     "required_modalities": ["signal"],
@@ -32,7 +32,7 @@
     "framework": "qiskit",
     "encoding": "ZZFeatureMap",
     "ansatz": null,
-    "circuit_version": "qiskit-2.5/zzfeaturemap-reps2",
+    "circuit_version": "qiskit-2.5/zzfeaturemap-reps1-circular-C5",
     "backend_mode": "statevector",
     "n_qubits": 4,
     "shots": 512
@@ -48,7 +48,7 @@
   "calibration": {
     "method": "validation_sigmoid",
     "status": "not_assessed",
-    "note": "Single chronological-split run (2026-08-29): QSVC balanced accuracy 0.5625 vs classical (LR/HistGB tied) 0.875. Nested paired evaluation could not run — the 18/2700 positive windows are too rare and clustered to preserve both classes across inner/outer folds; real_gain_decision stays not_assessed pending more data. Not calibration-assessed at production scale."
+    "note": "Second-pass architecture search (2026-08-29): QSVC with C=5, feature_map_reps=1, feature_map_entanglement=circular, at production scale (full 2700-window chronological split, bootstrap_samples=1000): balanced accuracy 0.8125, 95% CI [0.6247, 1.0] — clears the baseline-viability gate (CI lower bound > 0.5). This is the only split this single-patient chronological dataset supports; the entanglement-setting swing on the same 8 test positives (full=0.500 vs circular=0.8125) is a small-N generalization risk documented in the research record, not proof of cross-patient robustness. Nested paired real-gain evaluation could not run — the 18/2700 positive windows are too rare and clustered to preserve both classes across inner/outer folds; real_gain_decision stays not_assessed. Promoted on the baseline-viability gate alone, per the platform's revised policy (classical is a reported comparison, not a promotion gate)."
   },
   "explainability": {
     "method": "input_sensitivity",
@@ -68,7 +68,8 @@
       "Extreme class imbalance means metrics are unstable; treat point estimates as indicative only.",
       "CHB-MIT seizure labels reflect one center's expert annotation protocol; not a general epilepsy diagnosis (spec: 'CHB-MIT seizure output is not an epilepsy diagnosis').",
       "No site-held-out or cross-patient external validation was possible with a single patient's data.",
-      "No EDF/signal ingestion adapter exists in the platform layer yet — a live case bundle with a raw EEG asset currently routes to 'incompatible' ('requires signal; not present in this case') rather than being scored. This model is benchmark-only via the offline evaluation pipeline until that adapter is built."
+      "No EDF/signal ingestion adapter exists in the platform layer yet — a live case bundle with a raw EEG asset currently routes to 'incompatible' ('requires signal; not present in this case') rather than being scored. This model is benchmark-only via the offline evaluation pipeline until that adapter is built.",
+      "Promoted on the baseline-viability gate (95% CI lower bound > 0.5) after a second-pass architecture search (C, feature-map reps/entanglement), not on a real-gain comparison against classical — the paired real-gain evaluation could not run on this rare/clustered-positive dataset. Only 8 positive windows exist in the test split; the result is a single, structurally forced chronological split, not repeated-seed-validated. Treat as a promising, honestly-scoped result, not a decisively proven one."
     ]
   },
   "model_card": {

@@ -1,0 +1,96 @@
+{
+  "dataset": "P5 Alzheimer's T1 MRI (MedicalNet 3D)",
+  "architecture": "frozen 3-D MedicalNet ResNet18 + trainable projection -> classical/QSVC heads",
+  "config": {
+    "volumes": "/home/unichronic/neutral_data/p5_ad_mri/volumes.npy",
+    "labels": "/home/unichronic/neutral_data/p5_ad_mri/labels.npy",
+    "rowids": "/home/unichronic/neutral_data/p5_ad_mri/rowids.npy",
+    "label_name": "P5 Alzheimer's T1 MRI (MedicalNet 3D)",
+    "latent_dim": 32,
+    "num_qubits": 4,
+    "slice_stride": 2,
+    "encoder": "medicalnet",
+    "epochs": 20,
+    "batch_size": 4,
+    "lr": 0.001,
+    "seeds": 3,
+    "report": "runtime/p5_medicalnet_hybrid.json"
+  },
+  "parameters": {
+    "total_parameters": 33125761,
+    "trainable_parameters": 139585,
+    "frozen_parameters": 32986176
+  },
+  "summary": {
+    "hist_gradient_boosting": {
+      "mean": 0.5,
+      "std": 0.0,
+      "n": 3,
+      "ci": [
+        0.5,
+        0.5
+      ],
+      "per_seed": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "logistic_regression": {
+      "mean": 0.6011904761904762,
+      "std": 0.03669294049386292,
+      "n": 3,
+      "ci": [
+        0.5100328021458518,
+        0.6923481502351005
+      ],
+      "per_seed": [
+        0.6071428571428572,
+        0.5535714285714286,
+        0.6428571428571428
+      ]
+    },
+    "pretrained_cnn_head": {
+      "mean": 0.5714285714285714,
+      "std": 0.1543033499620919,
+      "n": 3,
+      "ci": [
+        0.18808686344551728,
+        0.9547702794116255
+      ],
+      "per_seed": [
+        0.7857142857142857,
+        0.42857142857142855,
+        0.5
+      ]
+    },
+    "qsvc_decoupled": {
+      "mean": 0.5238095238095238,
+      "std": 0.04686909448816555,
+      "n": 3,
+      "ci": [
+        0.4073708415830751,
+        0.6402482060359725
+      ],
+      "per_seed": [
+        0.48214285714285715,
+        0.5,
+        0.5892857142857143
+      ]
+    },
+    "rbf_svc": {
+      "mean": 0.6190476190476191,
+      "std": 0.07338588098772592,
+      "n": 3,
+      "ci": [
+        0.4367322709583701,
+        0.801362967136868
+      ],
+      "per_seed": [
+        0.6071428571428572,
+        0.5357142857142857,
+        0.7142857142857143
+      ]
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "architecture": "end-to-end hybrid (CNN encoder + TorchConnector dressed quantum circuit)",
+  "parameters": {
+    "total_parameters": 176998,
+    "quantum_parameters": 12
+  },
+  "config": {
+    "data_root": "/home/unichronic/neutral_data/p6_gait/gait-in-parkinsons-disease-1.0.0",
+    "latent_dim": 4,
+    "num_qubits": 4,
+    "ansatz_reps": 2,
+    "angle_scale": 1.0,
+    "epochs": 12,
+    "batch_size": 8,
+    "lr": 0.001,
+    "seeds": 3,
+    "report": "runtime/p6_gait_e2e_hybrid.json"
+  },
+  "summary": {
+    "mean": 0.739905745039754,
+    "std": 0.13210389912398032,
+    "n": 3,
+    "per_seed_balanced_accuracy": [
+      0.8757267441860466,
+      0.5609022556390977,
+      0.7830882352941176
+    ]
+  },
+  "per_seed_metrics": {
+    "7": {
+      "evaluated_rows": 59,
+      "accuracy": 0.847457627118644,
+      "balanced_accuracy": 0.8757267441860466,
+      "sensitivity": 0.813953488372093,
+      "specificity": 0.9375,
+      "precision": 0.9722222222222222,
+      "negative_predictive_value": 0.6521739130434783,
+      "f1": 0.8860759493670887,
+      "roc_auc": 0.8953488372093024,
+      "pr_auc": 0.9379985586621912,
+      "brier_score": 0.2414897233247757,
+      "expected_calibration_error": 0.2531356659986205,
+      "confusion_matrix_labels": [
+        "negative",
+        "positive"
+      ],
+      "confusion_matrix": [
+        [
+          15,
+          1
+        ],
+        [
+          8,
+          35
+        ]
+      ]
+    },
+    "8": {
+      "evaluated_rows": 54,
+      "accuracy": 0.5555555555555556,
+      "balanced_accuracy": 0.5609022556390977,
+      "sensitivity": 0.5428571428571428,
+      "specificity": 0.5789473684210527,
+      "precision": 0.7037037037037037,
+      "negative_predictive_value": 0.4074074074074074,
+      "f1": 0.6129032258064516,
+      "roc_auc": 0.6210526315789473,
+      "pr_auc": 0.7450093359046374,
+      "brier_score": 0.2734135091304779,
+      "expected_calibration_error": 0.2278409164260935,
+      "confusion_matrix_labels": [
+        "negative",
+        "positive"
+      ],
+      "confusion_matrix": [
+        [
+          11,
+          8
+        ],
+        [
+          16,
+          19
+        ]
+      ]
+    },
+    "9": {
+      "evaluated_rows": 57,
+      "accuracy": 0.7192982456140351,
+      "balanced_accuracy": 0.7830882352941176,
+      "sensitivity": 0.625,
+      "specificity": 0.9411764705882353,
+      "precision": 0.9615384615384616,
+      "negative_predictive_value": 0.5161290322580645,
+      "f1": 0.7575757575757575,
+      "roc_auc": 0.835294117647059,
+      "pr_auc": 0.9373596272627144,
+      "brier_score": 0.20143838226795197,
+      "expected_calibration_error": 0.20524502009676213,
+      "confusion_matrix_labels": [
+        "negative",
+        "positive"
+      ],
+      "confusion_matrix": [
+        [
+          16,
+          1
+        ],
+        [
+          15,
+          25
+        ]
+      ]
+    }
+  },
+  "decoupled_reference": {
+    "qsvc": [
+      0.7501,
+      0.0396
+    ],
+    "rbf_svc": [
+      0.7693,
+      0.0369
+    ]
+  }
+}

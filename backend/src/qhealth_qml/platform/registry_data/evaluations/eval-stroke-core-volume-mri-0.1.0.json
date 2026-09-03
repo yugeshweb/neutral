@@ -1,0 +1,81 @@
+{
+  "evaluation_id": "eval-stroke-core-volume-mri-0.1.0",
+  "model_id": "stroke-core-volume-mri",
+  "model_version": "0.1.0",
+  "condition_id": "neuro.stroke.ischemic.acute",
+  "created_at": "2026-09-03T11:30:08.506054+00:00",
+  "dataset_profile": {
+    "name": "ISLES 2022 (Zenodo 7153326, CC BY 4.0)",
+    "modality": "imaging",
+    "task_type": "binary_classification",
+    "outcome_definition": "large_infarct_core",
+    "reduction": "pca"
+  },
+  "dataset_fingerprint": null,
+  "split_strategy": "stratified_random",
+  "split_summary": {
+    "train": 160,
+    "validation": 40,
+    "test": 50
+  },
+  "preprocessing": {
+    "imputation": "none",
+    "scaling": "percentile intensity normalisation",
+    "reduction": "pca",
+    "n_components": 4,
+    "angle_scaling": "minmax",
+    "fitted_on": "train_partition_only"
+  },
+  "leakage_checks": [
+    {
+      "name": "training_only_preprocessing",
+      "status": "passed",
+      "detail": "Encoder, standardiser, PCA, angle scaler and threshold are all fitted on training/validation only and persisted in the inference bundle; nothing is refitted at inference."
+    },
+    {
+      "name": "subject_identity",
+      "status": "passed",
+      "detail": "One scan per subject in this cohort, so a stratified split cannot place a subject on both sides."
+    }
+  ],
+  "metrics": {
+    "balanced_accuracy": 0.8101178101178101,
+    "sensitivity": 0.7692307692307693,
+    "specificity": 0.7837837837837838,
+    "roc_auc": 0.8794178794178794
+  },
+  "segmentation_metrics": {},
+  "event_metrics": {},
+  "calibration": {
+    "calibration_curve": [],
+    "engine_calibration": {}
+  },
+  "abstention": {
+    "enabled": true,
+    "margin": 0.05
+  },
+  "resource": {
+    "wall_seconds": 0.0,
+    "qubits": 4,
+    "backend": "statevector"
+  },
+  "confidence_intervals": {
+    "balanced_accuracy": {
+      "lower": 0.7040721131187608,
+      "upper": 0.9161635071168595,
+      "n": 3
+    }
+  },
+  "baseline_model_id": null,
+  "baseline_metrics": {
+    "hist_gradient_boosting": 0.8156618156618157,
+    "logistic_regression": 0.8184338184338186,
+    "raw_cnn_3d": 0.8184338184338186,
+    "rbf_svc": 0.8146223146223145
+  },
+  "paired_comparison": {},
+  "real_gain_decision": "not_assessed",
+  "real_gain_reason": "Paired nested evaluation has not been run for the imaging path; classical head results on the same latent are reported as baseline_metrics for context.",
+  "software": {},
+  "source_result_path": "runtime/p1_isles_hybrid.json"
+}

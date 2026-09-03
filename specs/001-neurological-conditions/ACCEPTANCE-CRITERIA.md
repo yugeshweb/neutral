@@ -45,6 +45,25 @@ every condition where a dataset exists.
    already used for the feature map. This closes a real gap rather than working around it (per
    standing instruction: extend the reused tool fully, don't leave gaps).
 
+### 0.1 Baseline-viability gate results, second architecture-search pass (2026-09-02)
+
+The mandate in item 4 was extended once more this pass with two literature-motivated levers not
+previously tried: the ZZFeatureMap angle-encoding bandwidth (new `angle_scale` engine parameter,
+motivated by quantum-kernel exponential-concentration theory), and a quantum-kernel-similarity-to-
+class-prototype feature fed into a classical ensemble (motivated by a cardiovascular-risk paper's
+reported ensemble gain). Both were tried on every condition that had not yet cleared the gate.
+Result, against the revised bar in §0.1–3 above:
+
+| Condition | QSVC/VQC baseline-viability gate | What moved it (or didn't) |
+|---|---|---|
+| P1 stroke | **Still FAILS**, thoroughly re-tested | Neither lever helped; best production result remains 0.549, CI [0.439, 0.655]. Three independent architectural levers now tried (hyperparameter/ansatz sweep, bandwidth, kernel-as-feature) with no improvement — a well-searched honest negative. |
+| P4 seizure | **PASSES** (already found this pass, promoted) | QSVC C=5/circular, BA 0.8125, CI [0.6247, 1.0]. Single structurally-forced split, small-N caveated. |
+| P5 Alzheimer's | **PASSES** — new this pass | Encoding-bandwidth tuning (`angle_scale=0.2`) rescued QSVC from a false lead (0.564±0.082, correctly identified as too weak) to a robust pass (10-seed mean 0.819±0.039, near classical parity 0.823). Promoted to `operational_reference`. |
+| P6 Parkinson's | **Still FAILS**, thoroughly re-tested | A promising single-split bandwidth result (0.931) did not survive repeated evaluation (0.633±0.120) — caught and correctly reversed. Kernel-as-feature also showed no effect. |
+
+Full methodology, numbers, and caveats: `research/P1-stroke-reuse-record.md` §10,
+`research/P5-alzheimers-reuse-record.md` §10, `research/P6-parkinsons-reuse-record.md` §10.
+
 ## 1. The two-part criterion applied throughout this build (original pass — see §0 for the active revision)
 
 Every `tabular_qml` model in this registry has been held to the same two-part bar, applied
