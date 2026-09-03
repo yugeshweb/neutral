@@ -1,0 +1,23 @@
+{
+  "name": "music_cardiac_death",
+  "dataset_path": "../data/music_cardiac_death/music_cardiac_death.csv",
+  "target_column": "cardiac_death_within_horizon",
+  "positive_label": "1",
+  "id_column": "patient_id",
+  "group_column": "patient_id",
+  "index_time_column": "enrolment_date",
+  "outcome_time_column": "outcome_date",
+  "site_column": null,
+  "horizon_days": 1461,
+  "outcome_definition": "Cardiac death - the MUSIC study's own primary endpoint, sudden cardiac death or pump-failure death - occurring within 1461 days (4 years) of enrolment. Features are the clinical, echocardiographic, radiographic and laboratory measurements taken at enrolment, so the outcome genuinely postdates every predictor: this is prognosis over a defined horizon, not detection of disease already present. Landmark labelling: positives died of cardiac causes within the horizon; negatives were observed event-free through the full horizon; patients censored before the horizon (lost, transplanted, or follow-up ended) and competing-risk non-cardiac deaths before the horizon are excluded rather than counted as negatives, since their status at the horizon is unknown. Enrolment dates are not published in this release, so a nominal epoch stands in for the index time - the measured follow-up interval per patient is real, but cross-patient chronological ordering is not recoverable and chronological splitting across patients is therefore not meaningful here; split by patient group instead.",
+  "leakage_columns": [
+    "Follow-up period from enrollment (days)",
+    "days_4years",
+    "Exit of the study",
+    "Cause of death"
+  ],
+  "subgroup_columns": [],
+  "modality": "ehr_numeric",
+  "reduction": "anova",
+  "task_type": "early_detection"
+}

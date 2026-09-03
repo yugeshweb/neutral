@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "condition": "cardiovascular",
+  "readiness": {
+    "schema_version": 1,
+    "condition": "cardiovascular",
+    "root": "/home/unichronic/Neutral/backend",
+    "modalities": [
+      {
+        "modality": "ecg_12lead",
+        "clinical_role": "Resting 12-lead ECG. First-line test for suspected myocardial infarction and the only modality here that is universally available at the point of care.",
+        "temporal_framing": "detection",
+        "data_requirement": "PTB-XL WFDB records plus ptbxl_database.csv and scp_statements.csv",
+        "default_model": "logistic_regression",
+        "quantum_capable": true,
+        "implemented": true,
+        "notes": "Measured: balanced accuracy 0.8620, AUROC 0.9374. Reads a state already present; it is not an early warning.",
+        "state": "ready",
+        "reason": "loader registered and data source present",
+        "source": "/home/unichronic/Neutral/backend/data/ptb-xl/1.0.3"
+      },
+      {
+        "modality": "ehr_tabular",
+        "clinical_role": "Structured clinical record: demographics, NYHA class, vitals, laboratory biomarkers (Pro-BNP, troponin, creatinine), echocardiographic measurements, chest-radiograph indices, ECG intervals, Holter/HRV summaries and medications.",
+        "temporal_framing": "prediction",
+        "data_requirement": "A profile JSON whose cohort declares a horizon and index/outcome times",
+        "default_model": "logistic_regression",
+        "quantum_capable": true,
+        "implemented": true,
+        "notes": "Measured: AUROC 0.768 for cardiac death within 4 years. The only genuinely prognostic channel in this frame.",
+        "state": "ready",
+        "reason": "loader registered and data source present",
+        "source": "/home/unichronic/Neutral/backend/profiles/music_cardiac_death.json"
+      },
+      {
+        "modality": "angiography",
+        "clinical_role": "X-ray coronary angiography. The clinical reference standard for coronary stenosis; a lesion's calibre is read directly from the contrast-filled tree.",
+        "temporal_framing": "detection",
+        "data_requirement": "A directory of angiography frames plus a labels CSV (frame,label)",
+        "default_model": "logistic_regression",
+        "quantum_capable": true,
+        "implemented": true,
+        "notes": "Extractor implemented and unit-tested (multi-scale Hessian vesselness); no frames on disk, so this modality has never produced a number. CADICA is openly downloadable and matches this loader's expectations.",
+        "state": "needs_data",
+        "reason": "no data source configured for this modality",
+        "source": null
+      },
+      {
+        "modality": "cad_prs",
+        "clinical_role": "Genomic risk. A published coronary-artery-disease polygenic score, which is fixed at birth and therefore contributes risk context no measurement can date.",
+        "temporal_framing": "screening",
+        "data_requirement": "A PGS Catalog scoring file, a per-sample genotype dosage table, and outcomes",
+        "default_model": "logistic_regression",
+        "quantum_capable": false,
+        "implemented": true,
+        "notes": "The model is published and openly downloadable (PGS000018 metaGRS_CAD, 1,745,180 variants) so nothing is fitted; individual-level genotypes are what this platform lacks. One feature per patient, so a quantum feature map has nothing to entangle -- marked not quantum-capable deliberately.",
+        "state": "needs_data",
+        "reason": "no data source configured for this modality",
+        "source": null
+      },
+      {
+        "modality": "echocardiography",
+        "clinical_role": "Transthoracic echocardiography. Source of LVEF, the single strongest prognostic measurement in heart failure, plus chamber and valve assessment.",
+        "temporal_framing": "characterisation",
+        "data_requirement": "Echo video volumes; no loader implemented in this repo",
+        "default_model": "logistic_regression",
+        "quantum_capable": true,
+        "implemented": false,
+        "notes": "Declared, not implemented. EchoNet-Dynamic publishes both data and pretrained weights (LVEF mean absolute error 4.1%), so this is the cheapest imaging modality to add next; MUSIC already carries LVEF as a tabular feature.",
+        "state": "stub",
+        "reason": "no loader registered; this modality is declared but not implemented",
+        "source": null
+      }
+    ],
+    "summary": {
+      "needs_data": [
+        "angiography",
+        "cad_prs"
+      ],
+      "ready": [
+        "ecg_12lead",
+        "ehr_tabular"
+      ],
+      "stub": [
+        "echocardiography"
+      ]
+    },
+    "runnable_now": [
+      "ecg_12lead",
+      "ehr_tabular"
+    ],
+    "note": "A modality reported 'needs_data' is code-complete and starved, not broken. 'stub' means declared but unimplemented."
+  },
+  "trained_modalities": [
+    "ecg_12lead",
+    "ehr_tabular"
+  ],
+  "weights": {
+    "ecg_12lead": {
+      "validated_balanced_accuracy": 0.8485714285714285,
+      "fusion_weight": 0.6971428571428571,
+      "model_id": "ecg_12lead:logistic_regression"
+    },
+    "ehr_tabular": {
+      "validated_balanced_accuracy": 0.6045850701023114,
+      "fusion_weight": 0.20917014020462288,
+      "model_id": "ehr_tabular:logistic_regression"
+    }
+  },
+  "training_reports": {
+    "ecg_12lead": {
+      "modality": "ecg_12lead",
+      "model": "logistic_regression",
+      "temporal_framing": "detection",
+      "validated_balanced_accuracy": 0.8485714285714285,
+      "fusion_weight": 0.6971428571428571,
+      "artifact": "runtime/cvd/cvd-ecg_12lead.pkl",
+      "dataset": {
+        "name": "ptb-xl-mi-raw-wfdb",
+        "rows": 6000,
+        "features": 294,
+        "positives": 2960
+      },
+      "test_metrics": {
+        "evaluated_rows": 300,
+        "accuracy": 0.7366666666666667,
+        "balanced_accuracy": 0.7379807692307693,
+        "sensitivity": 0.7708333333333334,
+        "specificity": 0.7051282051282052,
+        "precision": 0.7070063694267515,
+        "negative_predictive_value": 0.7692307692307693,
+        "f1": 0.7375415282392026,
+        "roc_auc": 0.8352029914529915,
+        "pr_auc": 0.8267703246962074,
+        "brier_score": 0.16763923349761464,
+        "expected_calibration_error": 0.045213756230620385,
+        "confusion_matrix_labels": [
+          "negative",
+          "positive"
+        ],
+        "confusion_matrix": [
+          [
+            110,
+            46
+          ],
+          [
+            33,
+            111
+          ]
+        ]
+      }
+    },
+    "ehr_tabular": {
+      "modality": "ehr_tabular",
+      "model": "logistic_regression",
+      "temporal_framing": "prediction",
+      "validated_balanced_accuracy": 0.6045850701023114,
+      "fusion_weight": 0.20917014020462288,
+      "artifact": "runtime/cvd/cvd-ehr_tabular.pkl",
+      "dataset": {
+        "name": "music_cardiac_death",
+        "rows": 888,
+        "features": 97,
+        "positives": 185
+      },
+      "test_metrics": {
+        "evaluated_rows": 178,
+        "accuracy": 0.449438202247191,
+        "balanced_accuracy": 0.6152560083594566,
+        "sensitivity": 0.8787878787878788,
+        "specificity": 0.35172413793103446,
+        "precision": 0.23577235772357724,
+        "negative_predictive_value": 0.9272727272727272,
+        "f1": 0.3717948717948718,
+        "roc_auc": 0.7895506792058516,
+        "pr_auc": 0.5166777849092045,
+        "brier_score": 0.12185815714440705,
+        "expected_calibration_error": 0.06198462986279756,
+        "confusion_matrix_labels": [
+          "negative",
+          "positive"
+        ],
+        "confusion_matrix": [
+          [
+            51,
+            94
+          ],
+          [
+            4,
+            29
+          ]
+        ]
+      }
+    }
+  },
+  "fusion": {
+    "rule": "skill-weighted mean of threshold-aligned calibrated probabilities",
+    "weight_source": "each modality's own validation balanced accuracy",
+    "limitation": "The cardiovascular cohorts here are disjoint, so a fused score pools independent evidence but its improvement over the best single modality is not measurable on this data."
+  },
+  "fit_outcome": {
+    "fitted": [
+      "ecg_12lead",
+      "ehr_tabular"
+    ],
+    "skipped": []
+  }
+}
