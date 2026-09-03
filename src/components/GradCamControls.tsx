@@ -1,4 +1,4 @@
-﻿export type GradCamViewMode = 'hybrid' | 'heatmap' | 'contours'
+export type GradCamViewMode = 'hybrid' | 'heatmap' | 'contours'
 
 interface Props {
   mode: GradCamViewMode
@@ -30,7 +30,10 @@ export function GradCamControls({
       }}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-white/5">
-
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-ink-faint">Layer:</span>
+          <span className="font-mono text-[10.5px] text-ink-dim truncate max-w-[220px]">{targetLayer}</span>
+        </div>
 
         {/* View Mode Toggle Buttons */}
         <div

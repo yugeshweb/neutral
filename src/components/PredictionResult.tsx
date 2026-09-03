@@ -6,6 +6,7 @@ import { LANE_COLOR, alpha } from '../lib/theme'
 import { GradCamOverlay } from './GradCamOverlay'
 import { ImageViewer } from './ImageViewer'
 import { InfoDot } from './InfoDot'
+import { RadiologicalContours } from './RadiologicalContours'
 
 const QUANTUM = LANE_COLOR.quantum
 const CLASSICAL = LANE_COLOR.classical
@@ -238,13 +239,36 @@ export function PredictionResult({
             <div className="mt-2 flex flex-col sm:flex-row items-start gap-3">
               {/* Scan viewport */}
               <div className="flex flex-col gap-1.5 shrink-0">
-                <div className="readout relative aspect-square w-[220px] shrink-0 overflow-hidden rounded-[6px] bg-[#0A0B0D]">
+                <div className="readout relative flex items-center justify-center aspect-square w-full max-w-[280px] sm:w-[280px] shrink-0 overflow-hidden rounded-[6px] bg-[#0A0B0D]">
                   {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt="Uploaded scan"
-                      className="h-full w-full object-contain"
-                    />
+                    <div className="relative inline-block max-h-full max-w-full overflow-hidden rounded-[4px]">
+                      <img
+                        src={imageUrl}
+                        alt="Uploaded scan"
+                        className="block max-h-[280px] max-w-[280px] w-auto h-auto object-contain rounded-[4px]"
+                      />
+
+                      {/* Grad-CAM Saliency Map Layer */}
+                      {gradCamMode !== 'contours' && (
+                        <GradCamOverlay
+                          findings={findings}
+                          opacity={0.68}
+                          threshold={0.12}
+                          colormap="jet"
+                        />
+                      )}
+
+                      {/* Contours & Markers */}
+                      {gradCamMode !== 'heatmap' && (
+                        <RadiologicalContours
+                          findings={findings}
+                          activeId={active?.id ?? null}
+                          onSelect={setActive}
+                          mode={gradCamMode}
+                          compact={true}
+                        />
+                      )}
+                    </div>
                   ) : (
                     <div className="grid h-full place-items-center px-4 text-center">
                       <span className="font-mono text-[11px] leading-relaxed text-ink-faint">
@@ -252,57 +276,9 @@ export function PredictionResult({
                       </span>
                     </div>
                   )}
-
-                  {/* Grad-CAM Saliency Map Layer */}
-                  {imageUrl && gradCamMode !== 'contours' && (
-                    <GradCamOverlay
-                      findings={findings}
-                      opacity={0.68}
-                      threshold={0.12}
-                      colormap="jet"
-                    />
-                  )}
-
-                  {imageUrl &&
-                    gradCamMode !== 'heatmap' &&
-                    findings.map((f) => {
-                      const on = active?.id === f.id
-                      return (
-                        <button
-                          key={f.id}
-                          type="button"
-                          onClick={() => setActive(on ? null : f)}
-                          aria-label={f.label}
-                          className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full transition-transform hover:scale-105"
-                          style={{
-                            left: `${f.x * 100}%`,
-                            top: `${f.y * 100}%`,
-                            width: `${f.r * 100}%`,
-                            aspectRatio: '1',
-                            border: `2px solid ${SEVERITY_COLOR[f.severity]}`,
-                            background: alpha(SEVERITY_COLOR[f.severity], on ? 0.26 : 0.1),
-                            boxShadow: on ? `0 0 12px ${SEVERITY_COLOR[f.severity]}88` : 'none',
-                          }}
-                        />
-                      )
-                    })}
                 </div>
 
-                {/* Saliency color scale legend */}
-                {imageUrl && gradCamMode !== 'contours' && (
-                  <div className="flex items-center gap-1.5 w-[220px]">
-                    <span className="font-mono text-[9px] text-ink-faint shrink-0">0.0</span>
-                    <div
-                      className="h-1.5 flex-1 rounded-full overflow-hidden"
-                      style={{
-                        background:
-                          'linear-gradient(to right, #000080, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000, #800000)',
-                        opacity: 0.8,
-                      }}
-                    />
-                    <span className="font-mono text-[9px] text-ink shrink-0">1.0 peak</span>
-                  </div>
-                )}
+
               </div>
 
               {/* Finding buttons list */}
@@ -382,6 +358,10 @@ export function PredictionResult({
       {viewerOpen && imageUrl && (
         <ImageViewer
           upload={imageSummary}
+          findings={findings}
+          activeFinding={active}
+          onActiveChange={setActive}
+          initialMode={gradCamMode}
           onClose={() => setViewerOpen(false)}
           conditionId={conditionId}
         />

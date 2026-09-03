@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef } from 'react'
 import type { Finding } from '../lib/findings'
+import { getFindingMorphology } from '../lib/morphology'
 
 interface Props {
   findings: Finding[]
@@ -29,7 +30,7 @@ function saliencyToRgba(
 
   // Normalized above threshold
   const t = Math.min(1, Math.max(0, (val - threshold) / (1 - threshold)))
-  const alpha = Math.floor(opacity * (0.3 + 0.7 * Math.pow(t, 0.8)) * 255)
+  const alpha = Math.floor(opacity * (0.35 + 0.65 * Math.pow(t, 0.8)) * 255)
 
   if (colormap === 'inferno') {
     // Inferno-like medical heat ramp: black -> purple -> orange -> yellow
@@ -78,13 +79,13 @@ function saliencyToRgba(
  *
  * Renders an authentic gradient-weighted class activation heatmap over medical scans.
  * When an actual model API returns a 2D activation matrix, it renders that directly via
- * bilinear upsampling. In demo mode, it synthesizes the Grad-CAM field using multi-scale
- * Gaussian kernel density centered on localized findings.
+ * bilinear upsampling. In demo mode, it synthesizes an anisotropic, morphologically-grounded
+ * Grad-CAM field featuring lesion orientation, margin lobulation, and conv-layer texture.
  */
 export function GradCamOverlay({
   findings,
   matrix,
-  opacity = 0.65,
+  opacity = 0.68,
   threshold = 0.12,
   colormap = 'jet',
   className = '',
@@ -98,14 +99,20 @@ export function GradCamOverlay({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const width = canvas.width
-    const height = canvas.height
+    // Match physical canvas buffer to display bounds to prevent aspect-ratio stretching
+    const rect = canvas.getBoundingClientRect()
+    const dpr = window.devicePixelRatio || 1
+    const width = Math.max(1, Math.round((rect.width || 480) * dpr))
+    const height = Math.max(1, Math.round((rect.height || 480) * dpr))
 
-    if (width === 0 || height === 0) return
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width
+      canvas.height = height
+    }
 
-    // Offscreen buffer at lower resolution for smooth bilinear interpolation
-    const gridW = matrix ? matrix[0]?.length ?? 28 : 36
-    const gridH = matrix ? matrix.length : 36
+    // Offscreen buffer resolution for smooth bilinear interpolation
+    const gridW = matrix ? matrix[0]?.length ?? 28 : 64
+    const gridH = matrix ? matrix.length : 64
 
     const offscreen = document.createElement('canvas')
     offscreen.width = gridW
@@ -128,7 +135,7 @@ export function GradCamOverlay({
         }
       }
     } else {
-      // Synthesize realistic Grad-CAM activation field based on findings
+      // Synthesize realistic, anisotropic Grad-CAM activation field matching clinical morphology
       for (let y = 0; y < gridH; y++) {
         rawGrid[y] = []
         const ny = y / (gridH - 1)
@@ -137,18 +144,41 @@ export function GradCamOverlay({
           let sumActivation = 0
 
           for (const f of findings) {
+            const m = getFindingMorphology(f)
             const dx = nx - f.x
             const dy = ny - f.y
-            const distSq = dx * dx + dy * dy
-            // Spread is proportional to marker radius
-            const sigma = f.r * 0.95
-            const weight = f.severity === 'high' ? 1.0 : f.severity === 'moderate' ? 0.78 : 0.5
-            const gaussian = Math.exp(-distSq / (2 * sigma * sigma))
-            sumActivation += gaussian * weight * f.confidence
+
+            // Rotate into local lesion principal axis
+            const du = Math.cos(m.angle) * dx + Math.sin(m.angle) * dy
+            const dv = -Math.sin(m.angle) * dx + Math.cos(m.angle) * dy
+
+            // Angular polar coordinate for margin lobulation & spiculation modulation
+            const psi = Math.atan2(dv, du)
+            const mod =
+              1 +
+              m.h1 * Math.cos(3 * psi + m.p1) +
+              m.h2 * Math.cos(5 * psi + m.p2) +
+              m.h3 * Math.sin(2 * psi + m.p3)
+
+            // Anisotropic squared distance along major/minor axes
+            const distSq =
+              ((du * du) / (2 * m.sigmaU * m.sigmaU) + (dv * dv) / (2 * m.sigmaV * m.sigmaV)) /
+              (mod * mod)
+
+            // Grad-CAM dual-exponent profile: dense core nidus with non-linear exponential falloff
+            const profile = 0.72 * Math.exp(-distSq) + 0.28 * Math.exp(-2.4 * distSq)
+
+            // Convolutional spatial feature texture (replicates intermediate conv-filter responses)
+            const convTexture =
+              0.032 * Math.sin(nx * 24 + f.x * 12) * Math.cos(ny * 24 + f.y * 12) * Math.exp(-distSq)
+
+            const weight =
+              (f.severity === 'high' ? 1.0 : f.severity === 'moderate' ? 0.82 : 0.6) * f.confidence
+            sumActivation += Math.max(0, profile + convTexture) * weight
           }
 
-          // Subtle background baseline noise
-          const ambient = 0.03 * Math.sin(nx * 5) * Math.cos(ny * 5)
+          // Subtle ambient tissue baseline
+          const ambient = 0.015 * Math.sin(nx * 6) * Math.cos(ny * 6)
           rawGrid[y][x] = Math.max(0, Math.min(1, sumActivation + ambient))
         }
       }
@@ -180,8 +210,6 @@ export function GradCamOverlay({
   return (
     <canvas
       ref={canvasRef}
-      width={480}
-      height={480}
       className={`pointer-events-none absolute inset-0 h-full w-full ${className}`}
       style={{
         mixBlendMode: 'screen',

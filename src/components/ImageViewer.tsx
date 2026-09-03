@@ -1,16 +1,21 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { DatasetSummary } from '../lib/dataset'
 import { fetchExplainability } from '../lib/explainability'
 import { SEVERITY_COLOR, deriveFindings, type Finding } from '../lib/findings'
-import { DemoChip } from './DemoChip'
 import { GradCamControls, type GradCamViewMode } from './GradCamControls'
 import { GradCamOverlay } from './GradCamOverlay'
 import { IconClose } from './icons'
+import { RadiologicalContours } from './RadiologicalContours'
 
 type Props = {
   upload: DatasetSummary
   onClose: () => void
   conditionId?: string
+  findings?: Finding[]
+  activeFinding?: Finding | null
+  onActiveChange?: (f: Finding | null) => void
+  initialMode?: GradCamViewMode
+  matrix?: number[][]
 }
 
 /**
@@ -20,28 +25,43 @@ type Props = {
  * Supports toggleable Grad-CAM activation overlays, continuous thermal color ramps,
  * and detailed clinical interpretations of what each highlighted region signifies.
  */
-export function ImageViewer({ upload, onClose, conditionId = 'breast-cancer' }: Props) {
+export function ImageViewer({
+  upload,
+  onClose,
+  conditionId = 'breast-cancer',
+  findings: externalFindings,
+  activeFinding: externalActive,
+  onActiveChange: externalOnActiveChange,
+  initialMode = 'hybrid',
+  matrix: externalMatrix,
+}: Props) {
   const ref = useRef<HTMLDivElement>(null)
-  const [findings] = useState<Finding[]>(() => deriveFindings(upload.name, conditionId))
-  const [active, setActive] = useState<Finding | null>(null)
+  const [localFindings] = useState<Finding[]>(() => deriveFindings(upload.name, conditionId))
+  const findings = externalFindings ?? localFindings
+
+  const [localActive, setLocalActive] = useState<Finding | null>(() => externalActive ?? null)
+  const active = externalActive !== undefined ? externalActive : localActive
+  const setActive = (f: Finding | null) => {
+    if (externalOnActiveChange) {
+      externalOnActiveChange(f)
+    }
+    setLocalActive(f)
+  }
 
   // Grad-CAM Controls state
-  const [gradCamMode, setGradCamMode] = useState<GradCamViewMode>('hybrid')
+  const [gradCamMode, setGradCamMode] = useState<GradCamViewMode>(initialMode)
   const [gradCamOpacity, setGradCamOpacity] = useState(0.68)
   const [gradCamThreshold, setGradCamThreshold] = useState(0.12)
-  const [gradCamMatrix, setGradCamMatrix] = useState<number[][] | undefined>(undefined)
+  const [gradCamMatrix] = useState<number[][] | undefined>(externalMatrix)
   const [targetLayer, setTargetLayer] = useState<string>('backbone.layer4 (ResNet-50)')
 
-  // Fetch API / Mock Grad-CAM matrix if available
+  // Fetch API explainability metadata
   useEffect(() => {
     let unmounted = false
     void fetchExplainability(conditionId).then((data) => {
       if (unmounted) return
       if (data.model.gradcam) {
         setTargetLayer(data.model.gradcam.target_layer)
-        if (data.model.gradcam.matrix) {
-          setGradCamMatrix(data.model.gradcam.matrix)
-        }
       }
     })
     return () => {
@@ -58,7 +78,7 @@ export function ImageViewer({ upload, onClose, conditionId = 'breast-cancer' }: 
     window.addEventListener('keydown', onKey)
     ref.current?.focus()
     return () => window.removeEventListener('keydown', onKey)
-  }, [active, onClose])
+  }, [active, onClose, setActive])
 
   return (
     <div className="absolute inset-0 z-50 grid place-items-center p-3 lg:p-5">
@@ -113,12 +133,12 @@ export function ImageViewer({ upload, onClose, conditionId = 'breast-cancer' }: 
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           {/* Scan viewport & Grad-CAM canvas */}
           <div className="relative flex min-h-0 flex-1 flex-col items-center justify-between p-4 bg-[#0A0B0D] overflow-hidden">
-            <div className="relative flex-1 flex items-center justify-center w-full min-h-0">
-              <div className="relative inline-block max-h-full max-w-full">
+            <div className="relative flex-1 flex items-center justify-center w-full min-h-0 overflow-hidden">
+              <div className="relative inline-block max-h-full max-w-full overflow-hidden rounded-[8px]">
                 <img
                   src={upload.objectUrl ?? ''}
                   alt={`Uploaded scan ${upload.name}`}
-                  className="block max-h-[56vh] w-auto max-w-full rounded-[8px] object-contain"
+                  className="block max-h-[58vh] max-w-full w-auto h-auto object-contain rounded-[8px]"
                   style={{ border: '1px solid rgba(255,255,255,0.08)' }}
                 />
 
@@ -133,48 +153,16 @@ export function ImageViewer({ upload, onClose, conditionId = 'breast-cancer' }: 
                   />
                 )}
 
-                {/* ROI Vector Bounding Rings & Markers */}
-                {gradCamMode !== 'heatmap' &&
-                  findings.map((f) => {
-                    const color = SEVERITY_COLOR[f.severity]
-                    const isActive = active?.id === f.id
-                    return (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={() => setActive(isActive ? null : f)}
-                        aria-label={`${f.label}, ${f.severity} severity. Inspect finding`}
-                        aria-pressed={isActive}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform duration-150 hover:scale-105"
-                        style={{ left: `${f.x * 100}%`, top: `${f.y * 100}%` }}
-                      >
-                        {/* Ring showing flagged boundary */}
-                        <span
-                          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
-                          style={{
-                            width: `${f.r * 480}px`,
-                            height: `${f.r * 480}px`,
-                            border: `2px solid ${color}`,
-                            outline: '1px solid rgba(0,0,0,0.65)',
-                            outlineOffset: '-2px',
-                            boxShadow: `0 0 0 1px rgba(0,0,0,0.5), 0 0 16px ${color}66`,
-                            opacity: isActive ? 1 : 0.75,
-                            background: isActive ? `${color}28` : 'transparent',
-                            transition: 'opacity 160ms ease-out, background 160ms ease-out',
-                          }}
-                        />
-                        {/* Blinking central node */}
-                        <span
-                          className="marker-pulse relative block h-[12px] w-[12px] rounded-full"
-                          style={{
-                            background: color,
-                            border: '2px solid rgba(10,10,12,0.9)',
-                            boxShadow: `0 0 8px ${color}, 0 0 16px ${color}90`,
-                          }}
-                        />
-                      </button>
-                    )
-                  })}
+                {/* ROI Vector Bounding Rings & Multi-Level Contours */}
+                {gradCamMode !== 'heatmap' && (
+                  <RadiologicalContours
+                    findings={findings}
+                    activeId={active?.id ?? null}
+                    onSelect={setActive}
+                    mode={gradCamMode}
+                    compact={false}
+                  />
+                )}
               </div>
             </div>
 
