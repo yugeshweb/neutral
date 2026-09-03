@@ -1,0 +1,201 @@
+patient_id,age,sex,smoking_status,bmi,ejection_fraction,vpc_per_hour,nyha_class,cardiac_death_within_horizon
+P1001,>89,Male,never smoked,25.5,54,0,I,0
+P1002,59,Male,smokes,N/A,47,0,IV,0
+P1003,55,Male,never smoked,25.1,28,4970833333,II,1
+P1004,70,Female,never smoked,27.1,25,60.7,III,1
+P1005,53,Female,never smoked,20.1,41,0.9,III,0
+P1006,54,Male,formerly smoked,23.8,71,7.3,I,0
+P1007,52,Male,formerly smoked,31.2,23,67.6,I,1
+P1008,63,Male,formerly smoked,30.7,37,41.1,II,0
+P1009,65,Male,never smoked,19.2,58,0,I,0
+P1010,89,Female,never smoked,26.1,26,37.5,IV,1
+P1011,81,Female,smokes,34.1,15,33.8,IV,1
+P1012,75,Female,never smoked,29.0,31,20.2,II,1
+P1013,58,Male,formerly smoked,21.0,35,43.8,III,0
+P1014,56,Male,smokes,24.5,65,0,III,0
+P1015,60,Female,smokes,30.8,31,32.2,I,1
+P1016,51,Male,never smoked,30.4,52,16.3,I,0
+P1017,50,Female,formerly smoked,25.1,55,21.1,I,0
+P1018,66,Male,never smoked,29.1,20,19.3,II,1
+P1019,77,Male,smokes,26.0,30,27.1,III,1
+P1020,65,Female,never smoked,25.6,30,55.5,I,1
+P1021,56,Male,smokes,27.8,51,2.1,I,0
+P1022,62,Female,never smoked,26.3,43,4.1,IV,0
+P1023,60,Male,never smoked,29.7,26,38.2,IV,1
+P1024,53,Male,never smoked,19.1,49,17.8,I,0
+P1025,74,Female,never smoked,33.1,29,61.2,I,1
+P1026,63,Male,smokes,21.1,70,9.9,I,0
+P1027,59,Female,formerly smoked,23.0,57,24.8,I,0
+P1028,80,Female,formerly smoked,29.1,12,67.5,IV,1
+P1029,62,Male,smokes,39.1,29,54.4,IV,1
+P1030,59,Male,never smoked,23.1,58,12.3,II,0
+P1031,67,Male,smokes,23.1,65,20.8,III,0
+P1032,59,Male,formerly smoked,31.1,46,23.6,III,0
+P1033,76,Male,formerly smoked,21.0,48,0,I,0
+P1034,72,Female,never smoked,32.1,36,40.1,II,1
+P1035,47,Male,smokes,24.1,58,0,I,0
+P1036,58,Male,smokes,26.5,49,6.1,II,0
+P1037,59,Female,smokes,30.4,38,12.3,I,0
+P1038,63,Male,formerly smoked,30.5,32,28.8,III,1
+P1039,55,Male,never smoked,31.2,45,64.2,II,1
+P1040,62,Male,formerly smoked,20.4,60,19.2,I,0
+P1041,57,Male,formerly smoked,27.9,58,0,IV,0
+P1042,55,Male,never smoked,15.9,69,5.9,IV,0
+P1043,69,Female,smokes,25.4,40,29.4,III,1
+P1044,67,Male,formerly smoked,25.3,33,77.2,IV,1
+P1045,79,Male,never smoked,21.7,26,37.2,III,1
+P1046,63,Female,smokes,24.3,65,7.8,I,0
+P1047,76,Female,never smoked,28.5,37,60.1,III,1
+P1048,60,Male,formerly smoked,24.8,63,14.4,II,0
+P1049,83,Female,smokes,31.5,24,76.8,III,1
+P1050,51,Female,smokes,21.9,61,21.2,IV,0
+P1051,66,Female,formerly smoked,21.8,55,9.9,III,0
+P1052,73,Female,formerly smoked,23.7,19,58.1,IV,1
+P1053,71,Male,formerly smoked,23.4,44,7.9,III,0
+P1054,77,Female,never smoked,28.1,32,42.1,I,1
+P1055,51,Male,formerly smoked,30.2,20,60.8,II,1
+P1056,47,Male,smokes,27.7,49,0,I,0
+P1057,59,Female,never smoked,32.1,38,0,I,0
+P1058,60,Female,formerly smoked,19.4,45,0,IV,0
+P1059,35,Female,formerly smoked,22.5,55,21.3,III,0
+P1060,41,Female,formerly smoked,24.3,61,15.8,III,0
+P1061,73,Male,never smoked,28.0,27,55.8,II,1
+P1062,60,Female,never smoked,31.7,32,65.1,I,1
+P1063,56,Male,formerly smoked,21.1,53,24.2,IV,0
+P1064,53,Male,formerly smoked,17.9,57,25.8,I,0
+P1065,61,Male,formerly smoked,22.8,50,29.6,I,1
+P1066,43,Male,smokes,21.8,41,23.1,II,0
+P1067,65,Female,formerly smoked,30.9,31,35.4,IV,1
+P1068,72,Male,formerly smoked,29.4,30,55.6,I,1
+P1069,61,Male,smokes,24.2,57,16.4,I,0
+P1070,58,Female,never smoked,31.1,39,0,I,0
+P1071,59,Male,formerly smoked,28.0,39,0,IV,0
+P1072,69,Male,never smoked,27.4,28,38.0,I,1
+P1073,52,Female,smokes,24.5,48,22.9,III,0
+P1074,60,Female,formerly smoked,31.2,20,28.8,II,1
+P1075,52,Female,smokes,14.7,59,0,IV,0
+P1076,61,Female,never smoked,20.2,57,4.4,IV,0
+P1077,57,Female,formerly smoked,30.2,45,55.2,II,1
+P1078,50,Female,smokes,27.4,53,0,I,0
+P1079,58,Female,formerly smoked,27.8,49,6.2,IV,0
+P1080,37,Male,formerly smoked,25.4,57,32.6,III,0
+P1081,46,Female,formerly smoked,28.7,65,9.6,III,0
+P1082,54,Male,smokes,28.0,56,17.1,II,0
+P1083,69,Female,never smoked,25.8,33,39.1,III,1
+P1084,82,Female,never smoked,29.4,40,46.9,II,1
+P1085,55,Male,smokes,23.1,53,26.7,III,0
+P1086,93,Female,never smoked,32.0,34,36.4,I,1
+P1087,53,Female,never smoked,22.9,59,9.7,IV,0
+P1088,57,Female,formerly smoked,22.2,61,3.1,IV,0
+P1089,60,Male,never smoked,25.2,26,41.7,I,1
+P1090,72,Male,formerly smoked,30.4,20,56.2,III,1
+P1091,68,Female,never smoked,32.2,23,18.6,II,1
+P1092,41,Female,never smoked,23.4,59,13.9,III,0
+P1093,65,Female,never smoked,16.9,48,12.5,IV,0
+P1094,43,Male,smokes,25.0,63,14.0,III,0
+P1095,62,Male,smokes,25.5,60,0,II,0
+P1096,42,Male,smokes,17.7,41,20.8,I,0
+P1097,48,Male,never smoked,26.9,49,30.2,III,0
+P1098,41,Male,formerly smoked,29.0,60,16.0,I,0
+P1099,45,Male,smokes,27.7,61,0,I,0
+P1100,59,Female,never smoked,34.1,33,68.1,III,1
+P1101,53,Male,smokes,23.1,61,25.9,IV,0
+P1102,92,Female,never smoked,28.6,27,43.1,III,1
+P1103,52,Female,never smoked,32.5,51,12.2,II,0
+P1104,34,Male,formerly smoked,24.6,57,0,III,0
+P1105,36,Female,smokes,24.6,52,29.0,IV,0
+P1106,44,Female,smokes,26.5,56,0,III,0
+P1107,62,Female,never smoked,24.6,60,0,III,0
+P1108,50,Female,smokes,18.0,58,0,II,0
+P1109,66,Female,never smoked,26.1,61,0,IV,0
+P1110,82,Male,never smoked,35.4,9,57.5,III,1
+P1111,52,Female,smokes,26.0,60,0,III,0
+P1112,64,Male,smokes,22.0,65,18.8,III,0
+P1113,55,Male,smokes,20.7,54,3.4,II,0
+P1114,58,Male,formerly smoked,24.3,50,22.4,II,0
+P1115,39,Male,never smoked,22.1,69,24.4,II,0
+P1116,49,Female,formerly smoked,23.5,55,12.1,IV,0
+P1117,52,Female,formerly smoked,22.9,62,9.0,IV,0
+P1118,47,Female,formerly smoked,25.9,61,19.1,III,0
+P1119,63,Female,formerly smoked,24.8,71,11.5,I,0
+P1120,54,Female,never smoked,17.4,49,1.3,II,0
+P1121,48,Male,smokes,19.3,64,22.1,I,0
+P1122,58,Male,never smoked,30.9,36,42.8,IV,1
+P1123,78,Female,smokes,32.7,24,49.9,II,1
+P1124,75,Female,smokes,24.9,40,30.3,IV,1
+P1125,72,Female,smokes,33.1,46,29.8,I,0
+P1126,77,Female,smokes,31.7,22,64.5,III,1
+P1127,70,Female,smokes,29.9,31,55.3,IV,1
+P1128,52,Male,never smoked,28.9,61,5.8,IV,0
+P1129,71,Female,formerly smoked,33.9,17,76.5,IV,1
+P1130,52,Male,formerly smoked,16.8,41,0,III,0
+P1131,63,Male,formerly smoked,32.1,40,63.3,III,1
+P1132,66,Female,never smoked,39.4,24,31.7,I,1
+P1133,55,Male,never smoked,39.4,35,33.3,II,1
+P1134,57,Male,formerly smoked,31.9,58,3.5,II,0
+P1135,56,Male,never smoked,23.2,69,12.5,II,0
+P1136,63,Male,smokes,25.3,52,13.5,I,0
+P1137,57,Male,formerly smoked,20.3,36,9.1,I,0
+P1138,67,Female,formerly smoked,21.8,54,7.0,IV,0
+P1139,51,Female,never smoked,25.9,61,2.2,II,0
+P1140,68,Female,formerly smoked,34.6,40,49.4,IV,1
+P1141,39,Male,smokes,28.0,47,0,II,0
+P1142,63,Female,formerly smoked,22.3,52,13.4,IV,0
+P1143,69,Female,never smoked,38.9,33,53.4,IV,1
+P1144,69,Male,smokes,21.7,40,44.8,I,1
+P1145,72,Female,smokes,18.2,61,13.9,III,0
+P1146,64,Female,never smoked,27.7,34,38.6,III,1
+P1147,69,Female,smokes,31.8,45,45.6,I,1
+P1148,47,Male,never smoked,19.9,53,35.2,III,0
+P1149,72,Female,never smoked,31.0,37,66.5,I,1
+P1150,60,Female,formerly smoked,28.3,34,60.8,III,1
+P1151,51,Male,never smoked,24.3,61,27.4,I,0
+P1152,64,Female,formerly smoked,25.1,28,74.9,I,1
+P1153,82,Female,smokes,32.9,29,46.0,IV,1
+P1154,61,Male,never smoked,25.9,56,0,I,0
+P1155,70,Female,smokes,26.5,27,33.1,III,1
+P1156,72,Male,formerly smoked,28.1,44,35.8,IV,1
+P1157,52,Male,formerly smoked,21.0,62,11.7,IV,0
+P1158,59,Male,never smoked,24.2,48,16.0,I,0
+P1159,67,Female,never smoked,32.4,40,59.8,II,1
+P1160,46,Male,never smoked,30.2,60,16.9,II,0
+P1161,56,Male,smokes,19.2,42,10.9,IV,0
+P1162,66,Female,smokes,21.1,52,24.8,IV,0
+P1163,52,Male,formerly smoked,28.0,48,9.4,IV,0
+P1164,64,Male,smokes,31.4,23,41.8,I,1
+P1165,60,Female,smokes,19.6,50,11.3,I,0
+P1166,62,Male,smokes,17.9,54,6.6,IV,0
+P1167,41,Female,formerly smoked,24.2,62,2.7,III,0
+P1168,68,Female,never smoked,26.8,50,26.8,IV,0
+P1169,68,Male,formerly smoked,23.2,40,60.8,III,1
+P1170,62,Male,smokes,24.1,29,43.9,IV,1
+P1171,53,Male,smokes,26.8,50,0,I,0
+P1172,73,Female,never smoked,31.5,31,58.1,I,1
+P1173,73,Male,smokes,24.4,23,71.9,II,1
+P1174,59,Male,smokes,27.1,47,15.9,II,0
+P1175,42,Female,never smoked,20.7,48,7.3,IV,0
+P1176,60,Female,formerly smoked,30.7,57,0,IV,0
+P1177,62,Male,formerly smoked,18.4,64,15.5,III,0
+P1178,70,Male,formerly smoked,29.6,59,14.5,IV,0
+P1179,61,Male,formerly smoked,28.4,69,0,IV,0
+P1180,63,Male,formerly smoked,29.0,31,63.0,I,1
+P1181,45,Male,never smoked,19.3,52,37.5,II,0
+P1182,41,Male,never smoked,26.1,54,38.5,IV,0
+P1183,68,Male,never smoked,32.3,18,62.9,IV,1
+P1184,76,Male,smokes,25.0,24,48.9,II,1
+P1185,79,Female,never smoked,29.0,28,44.6,III,1
+P1186,58,Male,formerly smoked,28.2,32,46.8,IV,1
+P1187,55,Male,formerly smoked,25.7,56,31.9,I,0
+P1188,54,Male,formerly smoked,21.4,41,2.2,II,0
+P1189,44,Female,smokes,14.7,57,17.4,IV,0
+P1190,75,Male,formerly smoked,35.8,39,42.7,IV,1
+P1191,70,Female,never smoked,26.4,35,39.9,I,1
+P1192,46,Female,formerly smoked,26.6,52,18.2,IV,0
+P1193,72,Male,smokes,26.0,22,57.3,II,1
+P1194,53,Female,formerly smoked,26.5,43,18.0,II,0
+P1195,53,Female,smokes,25.9,61,9.9,I,0
+P1196,64,Male,never smoked,26.1,37,66.0,IV,1
+P1197,86,Female,formerly smoked,31.8,22,63.0,II,1
+P1198,64,Male,smokes,23.8,60,20.9,III,0
+P1199,55,Male,formerly smoked,27.0,37,6.3,I,0
+P1200,69,Female,smokes,33.3,38,41.3,I,1

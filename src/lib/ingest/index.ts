@@ -1,6 +1,7 @@
 import { IMAGE_TYPES, loadImage, parseCsv } from '../dataset'
 import { fhirAdapter } from './fhir'
 import { hl7Adapter } from './hl7'
+import { pdfAdapter } from './pdf'
 import {
   NotImplementedError,
   type IngestAdapter,
@@ -12,6 +13,7 @@ import {
 export * from './types'
 export { parseFhirBundle } from './fhir'
 export { parseHl7Feed } from './hl7'
+export { parsePdfReport } from './pdf'
 
 /** Numeric-looking columns are the ones the model can actually consume. */
 function inferSchema(headers: string[], preview: string[][]): SchemaField[] {
@@ -92,6 +94,7 @@ export const ADAPTERS: IngestAdapter[] = [
   csvAdapter,
   fhirAdapter,
   hl7Adapter,
+  pdfAdapter,
   dicomAdapter,
   vcfAdapter,
 ]

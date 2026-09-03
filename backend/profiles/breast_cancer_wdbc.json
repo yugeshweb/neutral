@@ -1,0 +1,39 @@
+{
+  "name": "breast_cancer_wdbc",
+  "dataset_path": "../data/breast_cancer_wdbc/wdbc.csv",
+  "target_column": "diagnosis",
+  "positive_label": "malignant",
+  "id_column": "id",
+  "group_column": null,
+  "index_time_column": null,
+  "outcome_time_column": null,
+  "site_column": null,
+  "horizon_days": null,
+  "outcome_definition": "Binary malignant vs benign diagnosis from digitized fine-needle-aspirate (FNA) biopsy images of a breast mass (Wisconsin Diagnostic Breast Cancer set). A same-sample diagnostic classification from biopsy-derived morphometric features (the CONFIRMING step of the mammography -> breast MRI -> biopsy workup), not a longitudinal screening/early-detection task on its own - mammography/MRI screening imagery is a separate, unimplemented modality this pipeline does not ingest.",
+  "leakage_columns": [],
+  "subgroup_columns": [],
+  "modality": "tabular",
+  "reduction": "anova",
+  "task_type": "early_detection",
+  "display_name": "Breast cancer diagnosis (WDBC biopsy features, tabular)",
+  "status": "no_trained_model_yet",
+  "required_fields": [
+    "mean radius", "mean texture", "mean perimeter", "mean area", "mean smoothness",
+    "mean compactness", "mean concavity", "mean concave points", "mean symmetry", "mean fractal dimension",
+    "radius error", "texture error", "perimeter error", "area error", "smoothness error",
+    "compactness error", "concavity error", "concave points error", "symmetry error", "fractal dimension error",
+    "worst radius", "worst texture", "worst perimeter", "worst area", "worst smoothness",
+    "worst compactness", "worst concavity", "worst concave points", "worst symmetry", "worst fractal dimension"
+  ],
+  "clinical_context": {
+    "typical_workup": ["mammography", "breast MRI", "biopsy (confirming)"],
+    "this_pipeline_covers": "biopsy-derived morphometric features (digitized FNA image measurements) - the confirming step",
+    "gap": "mammography/MRI screening imagery is not ingested by this pipeline; only post-biopsy tabular measurements are"
+  },
+  "data_source": {
+    "citation": "Wolberg, Street & Mangasarian, UCI Machine Learning Repository - Breast Cancer Wisconsin (Diagnostic)",
+    "access": "bundled with scikit-learn (sklearn.datasets.load_breast_cancer) - no download or license review needed, see data/breast_cancer_wdbc/prepare.py",
+    "rows": 569,
+    "class_balance": "357 benign, 212 malignant"
+  }
+}

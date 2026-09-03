@@ -1,0 +1,22 @@
+{
+  "spec_version": 2,
+  "name": "eeg_seizure_screen",
+  "modality": "eeg",
+  "target_column": "seizure_event",
+  "positive_label": "1",
+  "adapter": "edf_eeg",
+  "source": { "root": "", "pattern": "eeg_cohort" },
+  "signal": {
+    "channels": ["Fp1", "Fp2", "C3"],
+    "resample_to_hz": 100,
+    "target_samples": 200,
+    "length_norm": "crop_center",
+    "per_record_normalize": "zscore"
+  },
+  "representation": {
+    "kind": "deterministic",
+    "extractor": "qhealth_qml.pipeline.extractors.reference_signal:extract_signal_features"
+  },
+  "split": { "strategy": "grouped", "test_size": 0.25, "validation_size": 0.2, "seed": 7 },
+  "n_qubits": 4
+}

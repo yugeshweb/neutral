@@ -14,7 +14,16 @@ dependencies = [
   "qiskit-aer~=0.17.1",
   "qiskit-machine-learning~=0.9.1",
   "qiskit-algorithms~=0.4.0",
-  "wfdb>=4.3,<5",
+  # qhealth_qml.ingest: standardizer format adapters beyond CSV.
+  "pydicom>=2.4,<4",       # DICOM header tags AND (pipeline.adapters.dicom_series) pixel data
+  "pypdf>=4.0,<6",         # PDF native text-layer extraction
+  "pymupdf>=1.24,<2",      # pure-Python PDF page rasterization for OCR (no poppler)
+  "pytesseract>=0.3,<1",   # OCR wrapper - still needs the Tesseract engine on PATH
+  # qhealth_qml.pipeline: Phase 2 (signal) / Phase 3 (imaging) adapters.
+  "nibabel>=5.2,<6",       # pipeline.adapters.nifti_volume
+  "wfdb>=4.3,<5",          # pipeline.adapters.wfdb_ecg - pin from origin/main kept as-is
+  "mne>=1.7,<2",           # pipeline.adapters.edf_eeg - EDF reader (pyedflib needs a C compiler this machine lacks)
+  "Pillow>=10.0,<12",      # pipeline.adapters.image_2d - plain PNG/JPEG, not part of the team-head spec
 ]
 
 [project.optional-dependencies]

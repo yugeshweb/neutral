@@ -1,0 +1,23 @@
+{
+  "spec_version": 2,
+  "name": "cardiac_cohort_fixture",
+  "modality": "tabular",
+  "source": { "root": "", "pattern": "tests/pipeline/fixtures/cardiac_cohort.csv" },
+  "target_column": "cardiac_death_within_horizon",
+  "positive_label": "1",
+  "id_column": "patient_id",
+  "group_column": "patient_id",
+  "temporal_framing": "detection",
+  "outcome_definition": "Synthetic fixture: cardiac death, injected with the documented defects (censored age bound, a BMI sentinel, and a vpc_per_hour thousands-separator corruption signature) to exercise the cleaning layer end to end.",
+  "leakage_columns": [],
+  "columns": {
+    "age": { "plausible_range": [0, 120], "value_ceiling": 89, "censor_tokens": [">", "<"] },
+    "vpc_per_hour": { "plausible_range": [0, 5000] },
+    "smoking_status": { "unseen_policy": "indicator" },
+    "sex": { "unseen_policy": "indicator" }
+  },
+  "quarantine_threshold": 0.05,
+  "split": { "strategy": "grouped", "test_size": 0.25, "validation_size": 0.2, "seed": 7 },
+  "selection": { "reduction": "anova", "angle_scale": 1.0 },
+  "n_qubits": 6
+}

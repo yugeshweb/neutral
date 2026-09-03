@@ -1,0 +1,35 @@
+{
+  "name": "heart_disease_clinical",
+  "dataset_path": "../data/heart_disease_clinical/heart_disease_uci.csv",
+  "target_column": "heart_disease",
+  "positive_label": "1",
+  "id_column": "id",
+  "group_column": null,
+  "index_time_column": null,
+  "outcome_time_column": null,
+  "site_column": null,
+  "horizon_days": null,
+  "outcome_definition": "Binary presence of coronary artery disease (source `num` > 0, i.e. any major vessel >50% narrowed) confirmed by cardiac catheterization / angiography - the CONFIRMING step of the ECG -> troponin -> angiography workup. Exercise-test SUMMARY NUMBERS (restecg, thalach, exang, oldpeak, slope - derived from an ECG trace, not the trace itself) plus clinical/lab values (age, sex, cp, trestbps, chol, fbs) are the raw inputs. A same-visit diagnostic classification, not longitudinal early detection.",
+  "leakage_columns": ["num"],
+  "subgroup_columns": [],
+  "modality": "tabular",
+  "reduction": "anova",
+  "task_type": "early_detection",
+  "display_name": "Heart disease clinical risk (Cleveland cohort, tabular)",
+  "status": "no_trained_model_yet",
+  "required_fields": [
+    "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg",
+    "thalach", "exang", "oldpeak", "slope", "ca", "thal"
+  ],
+  "clinical_context": {
+    "typical_workup": ["ECG", "troponin (blood test)", "angiography (confirming)"],
+    "this_pipeline_covers": "resting/exercise-test SUMMARY NUMBERS (restecg, thalach, exang, oldpeak, slope - not the raw waveform) plus clinical risk factors; label is angiography-confirmed disease presence",
+    "gap": "troponin is NOT in this schema - the classic UCI Cleveland cohort (Detrano et al. 1989) predates routine high-sensitivity troponin testing. Flagged here rather than silently ignored; add a troponin column to required_fields once a cohort that has one is sourced.",
+    "not_the_same_as": "This is NOT the raw-12-lead-ECG-waveform MI-pattern/abnormal-ECG detection model being built elsewhere in this repo (backend/run_raw_hybrid.py, PTB-XL, CNN+QML) - unrelated dataset, features and task, coincidentally sharing the words 'heart' and 'ECG'."
+  },
+  "data_source": {
+    "citation": "Detrano et al. 1989, UCI Machine Learning Repository - Heart Disease (Cleveland Clinic Foundation subset)",
+    "access": "not bundled - place a locally-sourced copy at data/heart_disease_clinical/processed.cleveland.data and run prepare.py; needs the same license review other third-party sources went through (FR-035) before the derived CSV is used for training",
+    "rows": "303 in the classic Cleveland subset"
+  }
+}

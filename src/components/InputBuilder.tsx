@@ -6,14 +6,17 @@ import { INPUT_KINDS, kindOf, type InputKind, type InputRow } from '../lib/input
 /**
  * The training intake builder.
  *
- * A cohort is rarely one file. Clinical measurements arrive as a table, the
- * EHR extract as FHIR or HL7, imaging as a separate export - so rather than
- * fixing the number of inputs, the user adds a row per source and says what
- * type each one is.
+ * A cohort is rarely one file. Clinical/EHR data arrives as a table, a FHIR
+ * bundle, an HL7 feed or a PDF report, imaging as a separate export - so
+ * rather than fixing the number of inputs, the user adds a row per source
+ * and says what type each one is.
  *
- * Only CSV is actually parsed into a trainable matrix today. The other types
- * are accepted and listed, and the row says plainly that it will not
- * contribute to training, rather than being silently ignored once uploaded.
+ * The `ehr` kind is parsed into a trainable matrix, through the same
+ * `ingest()` adapter registry the Predict tab uses - it auto-detects which
+ * of CSV/FHIR/HL7/PDF a row's file actually is, so the user names the kind
+ * of data, not the file format. Every imaging kind has no feature extraction
+ * behind it yet, and the row says plainly that it will not contribute to
+ * training, rather than being silently ignored once uploaded.
  */
 
 const QUANTUM = LANE_COLOR.quantum

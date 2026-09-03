@@ -35,3 +35,4 @@ pnpm-debug.log*
 *.tsbuildinfo
 runtime/
 runs/
+backend/tests/manual_check/_schema_cache*/

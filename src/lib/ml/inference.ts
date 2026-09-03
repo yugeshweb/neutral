@@ -135,13 +135,26 @@ export function scoreBatch(
   const model = restoreVqc(artifact)
 
   // Map each of the model's features to a column index in the file.
+  // Case-insensitive: a predict-time upload (PDF/HL7/FHIR extraction, a
+  // hand-typed CSV header) naming the same measurement "MMSE" where training
+  // saw "mmse" is the same column, not a missing one - matching on the exact
+  // byte string here is the kind of standardizer/model disagreement that
+  // fails silently rather than loudly, so this widens the match rather than
+  // narrowing it. An exact-case match still wins first if both exist.
   const columnOf = new Map<string, number>()
-  headers.forEach((h, i) => columnOf.set(h.trim(), i))
+  const columnOfCi = new Map<string, number>()
+  headers.forEach((h, i) => {
+    const trimmed = h.trim()
+    columnOf.set(trimmed, i)
+    if (!columnOfCi.has(trimmed.toLowerCase())) columnOfCi.set(trimmed.toLowerCase(), i)
+  })
+  const resolveColumn = (name: string): number | undefined =>
+    columnOf.get(name) ?? columnOfCi.get(name.toLowerCase())
 
   const matched: string[] = []
   const missing: string[] = []
   for (const name of artifact.featureNames) {
-    if (columnOf.has(name)) matched.push(name)
+    if (resolveColumn(name) !== undefined) matched.push(name)
     else missing.push(name)
   }
 
@@ -154,7 +167,7 @@ export function scoreBatch(
     // off fill values alone.
     let usable = 0
     const raw = artifact.featureNames.map((name) => {
-      const col = columnOf.get(name)
+      const col = resolveColumn(name)
       if (col === undefined) return Number.NaN
       const v = Number(cells[col])
       if (Number.isFinite(v)) {

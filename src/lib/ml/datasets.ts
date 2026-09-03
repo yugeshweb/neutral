@@ -222,8 +222,11 @@ export const DATASET_META: DatasetMeta[] = [
     synthetic: true,
   },
   {
+    // Clinical risk-factor cohort, not the raw-ECG-waveform MI/abnormal-ECG
+    // detection effort elsewhere in this repo (backend/run_raw_hybrid.py,
+    // PTB-XL) - different dataset, different features, different task.
     id: 'heart-disease',
-    name: 'Heart Disease & Myocardial Infarction',
+    name: 'Heart Disease Clinical Risk (Cleveland Cohort)',
     source: 'Cleveland Clinic Foundation / UCI',
     rows: 303,
     positiveLabel: 'High Risk (Stenosis/CAD)',

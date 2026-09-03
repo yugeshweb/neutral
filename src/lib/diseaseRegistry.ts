@@ -417,12 +417,20 @@ export const DISEASE_PIPELINES: DiseasePipeline[] = [
     ],
   },
   {
+    // Name deliberately says "clinical risk factors," not "ECG" or "MI
+    // detection": a separate, real effort in this repo (see
+    // backend/run_raw_hybrid.py) builds MI-pattern/abnormal-ECG detection
+    // from raw PTB-XL 12-lead waveforms via a CNN+QML pipeline - a different
+    // dataset, different features, and a different task from this one. This
+    // condition is the Cleveland tabular risk-factor cohort (age, chest-pain
+    // type, exercise-test summary numbers), not that model, and the naming
+    // here should never be read as claiming otherwise.
     id: 'heart-disease',
-    name: 'Heart Disease & Myocardial Infarction Risk',
+    name: 'Heart Disease Clinical Risk (Cleveland Cohort)',
     shortName: 'Heart Disease',
     category: 'cardiovascular',
     categoryLabel: 'Cardiovascular / Cardiology',
-    tagline: 'Hemodynamic, electrocardiographic & fluoroscopic cardiovascular risk stratification',
+    tagline: 'Clinical, hemodynamic & exercise-test risk stratification from tabular measurements',
     modality: 'Clinical & Hemodynamic Tabular',
     targetCondition: 'High Risk Myocardial Infarction / CAD (>50% Coronary Stenosis)',
     positiveLabel: 'High Risk (Stenosis/CAD)',

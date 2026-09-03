@@ -4,12 +4,37 @@
  * Kept out of the component file so the module exports components only, which
  * is what React Fast Refresh needs to swap a component without remounting.
  *
- * `trains` is the honest field: only a CSV table is parsed into the numeric
- * matrix the pipeline fits on. The rest are accepted and recorded as reference
- * sources, and the row says so rather than being silently dropped.
+ * Two groupings, on purpose:
+ *
+ * - EHR/clinical data is ONE pipeline (`ehr`), not four. CSV, FHIR, HL7 and
+ *   PDF all converge on the same `DatasetSummary` shape through `ingest()`'s
+ *   own format auto-detection (by extension, confirmed by content) - the
+ *   pipeline downstream never learns which format a row started as, so
+ *   making the user pick the format up front was a distinction without a
+ *   difference. One row, one file, the right adapter runs automatically.
+ * - Imaging is one pipeline PER MODALITY, not one generic "image" bucket.
+ *   An MRI, a CT, a mammogram and a histopathology slide are different
+ *   studies from different systems, and lumping them into one dropdown
+ *   entry implied they were interchangeable. None of them are analysed yet
+ *   (pixel data needs a modality-specific CNN this platform does not build),
+ *   but which study a row is stays visible rather than being flattened to
+ *   "image."
+ *
+ * `trains` is the honest field: only `ehr` is actually parsed into the
+ * numeric matrix the pipeline fits on. Every imaging kind is accepted and
+ * recorded as a reference source, and the row says so rather than being
+ * silently dropped.
  */
 
-export type InputKind = 'csv' | 'fhir' | 'hl7' | 'image' | 'signal'
+export type InputKind =
+  | 'ehr'
+  | 'mri'
+  | 'ct'
+  | 'mammogram'
+  | 'histology'
+  | 'ecg'
+  | 'angiogram'
+  | 'eeg'
 
 export type InputKindSpec = {
   value: InputKind
@@ -19,11 +44,54 @@ export type InputKindSpec = {
 }
 
 export const INPUT_KINDS: InputKindSpec[] = [
-  { value: 'csv', label: 'CSV table', accept: '.csv', trains: true },
-  { value: 'fhir', label: 'FHIR R4 bundle', accept: '.json', trains: false },
-  { value: 'hl7', label: 'HL7 v2 feed', accept: '.hl7,.txt', trains: false },
-  { value: 'image', label: 'Image / scan', accept: '.png,.jpg,.jpeg,.webp', trains: false },
-  { value: 'signal', label: 'Signal trace', accept: '.edf,.bdf,.csv', trains: false },
+  {
+    value: 'ehr',
+    label: 'EHR / clinical data (CSV, FHIR, HL7, PDF)',
+    accept: '.csv,.json,.hl7,.txt,.pdf',
+    trains: true,
+  },
+  {
+    value: 'mri',
+    label: 'MRI',
+    accept: '.png,.jpg,.jpeg,.webp,.dcm,.nii,.nii.gz',
+    trains: false,
+  },
+  {
+    value: 'ct',
+    label: 'CT',
+    accept: '.png,.jpg,.jpeg,.webp,.dcm,.nii,.nii.gz',
+    trains: false,
+  },
+  {
+    value: 'mammogram',
+    label: 'Mammogram',
+    accept: '.png,.jpg,.jpeg,.webp,.dcm',
+    trains: false,
+  },
+  {
+    value: 'histology',
+    label: 'Histopathology slide',
+    accept: '.png,.jpg,.jpeg,.webp,.dcm,.svs,.tif',
+    trains: false,
+  },
+  {
+    value: 'ecg',
+    label: 'ECG waveform',
+    accept: '.png,.jpg,.jpeg,.webp,.xml,.scp,.dcm',
+    trains: false,
+  },
+  {
+    value: 'angiogram',
+    label: 'Angiogram',
+    accept: '.png,.jpg,.jpeg,.webp,.dcm',
+    trains: false,
+  },
+  {
+    value: 'eeg',
+    label: 'EEG recording',
+    accept: '.png,.jpg,.jpeg,.webp,.edf,.bdf',
+    trains: false,
+  },
 ]
 
 export type InputRow = {

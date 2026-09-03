@@ -13,7 +13,7 @@ import type { DatasetSummary } from '../dataset'
  * The pipeline downstream never learns which format it came from.
  */
 
-export type SourceFormat = 'csv' | 'fhir' | 'hl7v2' | 'dicom' | 'vcf'
+export type SourceFormat = 'csv' | 'fhir' | 'hl7v2' | 'pdf' | 'dicom' | 'vcf'
 
 export type AdapterStatus = 'implemented' | 'not-implemented'
 

@@ -12,7 +12,8 @@ import {
   loadDataset,
   registerCustomDataset,
 } from '../../lib/ml/datasets'
-import { parseCsv } from '../../lib/dataset'
+import { ingest } from '../../lib/ingest'
+import { NotImplementedError } from '../../lib/ingest/types'
 import { convertUpload, suggestLabelColumn, previewColumns } from '../../lib/ml/customDataset'
 import { pca, pcaTransform, rankFeatures, type SelectionMethod } from '../../lib/ml/features'
 import { rocCurve } from '../../lib/ml/metrics'
@@ -55,12 +56,12 @@ export function TrainTab({
   const [activeStep, setActiveStep] = useState<Step>('inputs')
 
   /*
-   * The declared inputs. Starts as one CSV row; the user adds more and picks a
-   * type per row. Only the CSV rows become a trainable matrix - the rest are
-   * recorded as reference sources and say so.
+   * The declared inputs. Starts as one EHR row; the user adds more and picks a
+   * type per row. Only `ehr` rows become a trainable matrix - the imaging
+   * kinds are recorded as reference sources and say so.
    */
   const [inputRows, setInputRows] = useState<InputRow[]>([
-    { id: 'in-1', kind: 'csv', fileName: null, rows: null, note: null },
+    { id: 'in-1', kind: 'ehr', fileName: null, rows: null, note: null },
   ])
   const nextInputId = useRef(2)
   const [uploadFileName, setUploadFileName] = useState<string | null>(null)
@@ -156,7 +157,7 @@ export function TrainTab({
     const id = `in-${nextInputId.current++}`
     setInputRows((prev) => [
       ...prev,
-      { id, kind: 'csv', fileName: null, rows: null, note: null },
+      { id, kind: 'ehr', fileName: null, rows: null, note: null },
     ])
   }
 
@@ -172,11 +173,13 @@ export function TrainTab({
     )
 
   /**
-   * A CSV row is parsed and registered as the trainable dataset. Any other type
-   * is recorded with its file name and marked as not contributing, because only
-   * the CSV path produces the numeric matrix the pipeline needs.
+   * The `ehr` kind goes through the same `ingest()` entry point used by the
+   * Predict tab - it auto-detects CSV, FHIR, HL7 or PDF from the file itself
+   * and runs the matching adapter, so a cohort standardized one way here is
+   * standardized the identical way there. The imaging kinds have no feature
+   * extraction behind them yet and are kept as reference sources.
    */
-  const handleRowFile = (id: string, file: File) => {
+  const handleRowFile = async (id: string, file: File) => {
     const row = inputRows.find((r) => r.id === id)
     if (!row) return
 
@@ -191,40 +194,33 @@ export function TrainTab({
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const text = ev.target?.result as string
-        const summary = parseCsv(text, file.name, file.size)
-        const previews = previewColumns(summary)
-        const labelCol =
-          suggestLabelColumn(previews) || summary.headers[summary.headers.length - 1]
-        const converted = convertUpload(summary, labelCol)
-        registerCustomDataset(converted.dataset, file.name)
-        setUploadFileName(file.name)
-        setInputRows((prev) =>
-          prev.map((r) =>
-            r.id === id
-              ? { ...r, fileName: file.name, rows: summary.rows, note: null }
-              : r,
-          ),
-        )
-      } catch (err) {
-        setInputRows((prev) =>
-          prev.map((r) =>
-            r.id === id
-              ? {
-                  ...r,
-                  fileName: file.name,
-                  rows: null,
-                  note: err instanceof Error ? 'parse failed' : 'failed',
-                }
-              : r,
-          ),
-        )
-      }
+    try {
+      const parsed = await ingest(file)
+      const summary = parsed.dataset
+      const previews = previewColumns(summary)
+      const labelCol =
+        suggestLabelColumn(previews) || summary.headers[summary.headers.length - 1]
+      const converted = convertUpload(summary, labelCol)
+      registerCustomDataset(converted.dataset, file.name)
+      setUploadFileName(file.name)
+      setInputRows((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? { ...r, fileName: file.name, rows: summary.rows, note: null }
+            : r,
+        ),
+      )
+    } catch (err) {
+      const note =
+        err instanceof NotImplementedError
+          ? 'not implemented'
+          : err instanceof Error
+            ? err.message
+            : 'failed'
+      setInputRows((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, fileName: file.name, rows: null, note } : r)),
+      )
     }
-    reader.readAsText(file)
   }
 
 
@@ -506,8 +502,8 @@ export function TrainTab({
                     <div className="mt-2.5 min-w-0 shrink-0">
                       {/*
                        * `shortName`, not `name`: the full descriptive title
-                       * ("Heart Disease & Myocardial Infarction Risk") wraps
-                       * to a different number of lines per condition, which
+                       * ("Heart Disease Clinical Risk (Cleveland Cohort)")
+                       * wraps to a different number of lines per condition, which
                        * on a card whose plate is `flex-1` inside a fixed
                        * `aspect-square` handed shorter names extra plate
                        * height - the images came out visibly uneven. Every

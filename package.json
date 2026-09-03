@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.11.5",
+    "pdfjs-dist": "^4.10.38",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "tesseract.js": "^5.1.1"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

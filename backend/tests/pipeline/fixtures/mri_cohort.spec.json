@@ -1,0 +1,22 @@
+{
+  "spec_version": 2,
+  "name": "mri_glioma_screen",
+  "modality": "mr",
+  "target_column": "lesion_present",
+  "positive_label": "1",
+  "adapter": "nifti_volume",
+  "source": { "root": "", "pattern": "mri_cohort" },
+  "imaging": {
+    "sequences": ["t1", "t2"],
+    "required_sequences": ["t1", "t2"],
+    "orientation": "RAS",
+    "voxel_spacing_mm": [1.0, 1.0, 1.0],
+    "grid": [16, 16, 16]
+  },
+  "representation": {
+    "kind": "deterministic",
+    "extractor": "qhealth_qml.pipeline.extractors.reference_imaging:extract_imaging_features"
+  },
+  "split": { "strategy": "grouped", "test_size": 0.25, "validation_size": 0.2, "seed": 7 },
+  "n_qubits": 4
+}

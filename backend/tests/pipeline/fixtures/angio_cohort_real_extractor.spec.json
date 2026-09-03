@@ -1,0 +1,20 @@
+{
+  "spec_version": 2,
+  "name": "angiography_stenosis_screen",
+  "modality": "image2d",
+  "target_column": "stenosis_present",
+  "positive_label": "stenosis",
+  "adapter": "image_2d",
+  "source": { "root": "", "pattern": "angio_cohort" },
+  "image": {
+    "color_mode": "grayscale",
+    "target_size": [128, 128],
+    "crop_foreground": false
+  },
+  "representation": {
+    "kind": "deterministic",
+    "extractor": "qhealth_qml.pipeline.extractors.real_angiography:extract_image2d_features"
+  },
+  "split": { "strategy": "grouped", "test_size": 0.25, "validation_size": 0.2, "seed": 7 },
+  "n_qubits": 4
+}

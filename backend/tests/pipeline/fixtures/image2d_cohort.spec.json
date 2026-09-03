@@ -1,0 +1,20 @@
+{
+  "spec_version": 2,
+  "name": "brain_mri_photo_screen",
+  "modality": "image2d",
+  "target_column": "tumor_present",
+  "positive_label": "yes",
+  "adapter": "image_2d",
+  "source": { "root": "", "pattern": "image2d_cohort" },
+  "image": {
+    "color_mode": "grayscale",
+    "target_size": [96, 96],
+    "crop_foreground": true
+  },
+  "representation": {
+    "kind": "deterministic",
+    "extractor": "qhealth_qml.pipeline.extractors.reference_image2d:extract_image2d_features"
+  },
+  "split": { "strategy": "grouped", "test_size": 0.25, "validation_size": 0.2, "seed": 7 },
+  "n_qubits": 4
+}
