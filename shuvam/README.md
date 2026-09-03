@@ -32,7 +32,12 @@ research/   per-condition research records + result JSONs
 test_serving_integration.py   12 acceptance tests
 ```
 
-Model binaries (`*.pkl`, ~91 MB) are **not** included — they are build outputs, reproducible from
+All six models are built and verified loading through the HTTP service; each scores end to end
+with the correct temporal framing, and the three chance-level models return their
+`PERFORMS AT CHANCE` warning in every response (verified — the two working models correctly do
+*not* carry it).
+
+Model binaries (`*.pkl`, ~110 MB) are **not** included — they are build outputs, reproducible from
 `runners/build_*.py`. The `*.manifest.json` files describe them exactly.
 
 ## The headline finding

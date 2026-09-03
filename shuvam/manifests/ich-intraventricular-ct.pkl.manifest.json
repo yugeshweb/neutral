@@ -1,0 +1,88 @@
+{
+  "schema_version": 2,
+  "model_id": "ich-intraventricular-ct",
+  "condition": "intracranial haemorrhage (subtype)",
+  "temporal_framing": "detection",
+  "labels": {
+    "positive": "intraventricular_haemorrhage_present",
+    "negative": "intraventricular_haemorrhage_absent"
+  },
+  "expects": {
+    "channels": [
+      "ct_brain_window",
+      "ct_subdural_window",
+      "ct_bone_window"
+    ],
+    "grid": [
+      64,
+      64,
+      32
+    ],
+    "channel_count": 3
+  },
+  "encoder": {
+    "kind": "pretrained_volume",
+    "in_channels": 3,
+    "latent_dim": 32,
+    "slice_stride": 2,
+    "backbone": "frozen ImageNet ResNet18, slice-wise"
+  },
+  "head": "qsvc",
+  "quantum": {
+    "n_qubits": 4,
+    "feature_map": "ZZFeatureMap",
+    "feature_map_reps": 1,
+    "entanglement": "linear",
+    "C": 5.0,
+    "angle_scale": 0.2,
+    "backend": "statevector"
+  },
+  "operating_point": {
+    "threshold": 0.0984796249092209,
+    "policy": "target_sensitivity@0.8 (validation only)"
+  },
+  "training_provenance": {
+    "dataset": "BHSD (HuggingFace Wendy-Fly/BHSD), MIT",
+    "cohort_size": 192,
+    "positives": 104,
+    "split": {
+      "train": 122,
+      "validation": 31,
+      "test": 39
+    },
+    "held_out_performance": {
+      "balanced_accuracy": 0.5555555555555556,
+      "sensitivity": 1.0,
+      "specificity": 0.1111111111111111,
+      "roc_auc": 0.6428571428571429
+    },
+    "parameters": {
+      "total_parameters": 11971457,
+      "trainable_parameters": 794945,
+      "frozen_parameters": 11176512
+    },
+    "modality": "CT",
+    "ct_windows": [
+      {
+        "level": 40,
+        "width": 80
+      },
+      {
+        "level": 75,
+        "width": 215
+      },
+      {
+        "level": 600,
+        "width": 2800
+      }
+    ],
+    "limitations": [
+      "RESEARCH USE ONLY, NOT A MEDICAL DEVICE",
+      "PERFORMS AT CHANCE: leave-out evaluation gave balanced accuracy 0.54-0.58 with CIs spanning 0.5 - this model has NO demonstrated discriminative ability and must not inform any decision",
+      "Cohort of 192 volumes is too small for a 3-D CNN on this task; resolution was tested at 64x64x32 and 128x128x32 with no improvement",
+      "Every BHSD volume is haemorrhage-positive, so this discriminates SUBTYPE (is blood in the ventricles), not whether a bleed exists",
+      "No external-site validation; calibration not assessed"
+    ]
+  },
+  "created_at": "2026-09-03T13:21:50.711282+00:00"
+}
